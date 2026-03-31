@@ -99,7 +99,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/health"
 # 预期输出
 # status    version
 # -------   -------
-# healthy   v0.9.0
+# healthy   v{version}
 ```
 
 ---
@@ -379,7 +379,6 @@ Test-NetConnection -ComputerName localhost -Port 9090
 ```yaml
 server:
   name: "ofa-center"
-  version: "0.9.0"
 
 grpc:
   address: ":9090"
