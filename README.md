@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <em>Omni - 全能 | Federated - 联邦 | Agents - 智能体</em>
+  <em>Omni - 全能 | Federated - 分布式 | Agents - 智能体</em>
 </p>
 
 <p align="center">

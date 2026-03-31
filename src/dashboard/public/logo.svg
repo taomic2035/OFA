@@ -1,66 +1,70 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0EA5E9;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="nodeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A5B4FC;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#60A5FA;stop-opacity:0.6" />
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1E40AF" flood-opacity="0.3"/>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#1E1B4B" flood-opacity="0.25"/>
     </filter>
   </defs>
 
-  <!-- Background Circle -->
-  <circle cx="100" cy="100" r="95" fill="url(#bgGrad)" filter="url(#shadow)"/>
+  <!-- Background -->
+  <circle cx="100" cy="100" r="96" fill="url(#bgGrad)" filter="url(#shadow)"/>
 
-  <!-- Network Nodes representing federated agents -->
-  <!-- Center node (O - Omni) -->
-  <circle cx="100" cy="100" r="28" fill="white" opacity="0.95"/>
-  <text x="100" y="108" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#1D4ED8" text-anchor="middle">O</text>
+  <!-- Outer orbital ring -->
+  <ellipse cx="100" cy="100" rx="70" ry="70" fill="none" stroke="url(#ringGrad)" stroke-width="2" stroke-dasharray="8 4" opacity="0.5"/>
 
-  <!-- Surrounding nodes (F - Federated) -->
-  <!-- Top -->
-  <circle cx="100" cy="45" r="18" fill="url(#nodeGrad)"/>
-  <text x="100" y="51" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">F</text>
+  <!-- Middle orbital ring -->
+  <ellipse cx="100" cy="100" rx="50" ry="50" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.3"/>
 
-  <!-- Top Right -->
-  <circle cx="148" cy="70" r="18" fill="url(#nodeGrad)"/>
-  <text x="148" y="76" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">A</text>
+  <!-- Inner orbital ring -->
+  <ellipse cx="100" cy="100" rx="30" ry="30" fill="none" stroke="white" stroke-width="1" stroke-opacity="0.2"/>
 
-  <!-- Bottom Right -->
-  <circle cx="148" cy="130" r="18" fill="url(#nodeGrad)"/>
-  <text x="148" y="136" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">F</text>
-
-  <!-- Bottom -->
-  <circle cx="100" cy="155" r="18" fill="url(#nodeGrad)"/>
-  <text x="100" y="161" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">A</text>
-
-  <!-- Bottom Left -->
-  <circle cx="52" cy="130" r="18" fill="url(#nodeGrad)"/>
-  <text x="52" y="136" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">F</text>
-
-  <!-- Top Left -->
-  <circle cx="52" cy="70" r="18" fill="url(#nodeGrad)"/>
-  <text x="52" y="76" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">A</text>
-
-  <!-- Connection lines (representing federation) -->
-  <g stroke="white" stroke-width="2" stroke-opacity="0.4">
-    <line x1="100" y1="72" x2="100" y2="63"/>
-    <line x1="125" y1="82" x2="132" y2="75"/>
-    <line x1="125" y1="118" x2="132" y2="125"/>
-    <line x1="100" y1="128" x2="100" y2="137"/>
-    <line x1="75" y1="118" x2="68" y2="125"/>
-    <line x1="75" y1="82" x2="68" y2="75"/>
-
-    <!-- Outer connections -->
-    <line x1="118" y1="55" x2="132" y2="60" stroke-opacity="0.25"/>
-    <line x1="145" y1="88" x2="145" y2="112" stroke-opacity="0.25"/>
-    <line x1="132" y1="140" x2="118" y2="145" stroke-opacity="0.25"/>
-    <line x1="82" y1="145" x2="68" y2="140" stroke-opacity="0.25"/>
-    <line x1="55" y1="112" x2="55" y2="88" stroke-opacity="0.25"/>
-    <line x1="68" y1="60" x2="82" y2="55" stroke-opacity="0.25"/>
+  <!-- Connection lines between nodes -->
+  <g stroke="white" stroke-width="1.5" stroke-opacity="0.4" filter="url(#glow)">
+    <line x1="100" y1="100" x2="100" y2="30"/>
+    <line x1="100" y1="100" x2="170" y2="100"/>
+    <line x1="100" y1="100" x2="100" y2="170"/>
+    <line x1="100" y1="100" x2="30" y2="100"/>
+    <line x1="100" y1="100" x2="156" y2="44"/>
+    <line x1="100" y1="100" x2="156" y2="156"/>
+    <line x1="100" y1="100" x2="44" y2="156"/>
+    <line x1="100" y1="100" x2="44" y2="44"/>
   </g>
+
+  <!-- Center core - abstract representation -->
+  <circle cx="100" cy="100" r="20" fill="white" opacity="0.95"/>
+  <circle cx="100" cy="100" r="12" fill="#6366F1" opacity="0.8"/>
+  <circle cx="100" cy="100" r="5" fill="white"/>
+
+  <!-- Outer nodes - abstract particles -->
+  <g filter="url(#glow)">
+    <circle cx="100" cy="30" r="8" fill="white" opacity="0.9"/>
+    <circle cx="170" cy="100" r="8" fill="white" opacity="0.9"/>
+    <circle cx="100" cy="170" r="8" fill="white" opacity="0.9"/>
+    <circle cx="30" cy="100" r="8" fill="white" opacity="0.9"/>
+    <circle cx="156" cy="44" r="6" fill="#A5B4FC" opacity="0.8"/>
+    <circle cx="156" cy="156" r="6" fill="#A5B4FC" opacity="0.8"/>
+    <circle cx="44" cy="156" r="6" fill="#A5B4FC" opacity="0.8"/>
+    <circle cx="44" cy="44" r="6" fill="#A5B4FC" opacity="0.8"/>
+  </g>
+
+  <!-- Subtle orbiting particles -->
+  <circle cx="145" cy="55" r="3" fill="#60A5FA" opacity="0.6"/>
+  <circle cx="155" cy="105" r="2" fill="#60A5FA" opacity="0.5"/>
+  <circle cx="95" cy="155" r="2.5" fill="#60A5FA" opacity="0.5"/>
+  <circle cx="50" cy="110" r="2" fill="#60A5FA" opacity="0.4"/>
 </svg>
