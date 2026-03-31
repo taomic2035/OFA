@@ -3,7 +3,7 @@ package version
 // 版本信息 - 由构建系统注入
 var (
 	// Version 版本号
-	Version = "v8.0.0"
+	Version = "0.9.0"
 	// GitCommit Git提交哈希
 	GitCommit = "unknown"
 	// BuildTime 构建时间

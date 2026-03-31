@@ -89,7 +89,7 @@ const isConnected = inject<any>('isConnected')
         <span :class="['status-dot', isConnected ? 'connected' : 'disconnected']"></span>
         <span class="status-text">{{ isConnected ? '已连接' : '未连接' }}</span>
       </div>
-      <div class="version">v1.0.0</div>
+      <div class="version">v0.9.0-beta</div>
     </div>
   </aside>
 </template>

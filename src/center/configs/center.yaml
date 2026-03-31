@@ -1,7 +1,7 @@
 # OFA Center Configuration
 server:
   name: "ofa-center"
-  version: "1.0.0"
+  version: "0.9.0"
 
 grpc:
   address: ":9090"

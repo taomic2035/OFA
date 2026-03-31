@@ -157,7 +157,7 @@ if (savedSettings) {
         <div class="card-body">
           <div class="about-item">
             <span class="about-label">OFA Dashboard</span>
-            <span class="about-value">v1.0.0</span>
+            <span class="about-value">v0.9.0-beta</span>
           </div>
           <div class="about-item">
             <span class="about-label">Vue</span>
