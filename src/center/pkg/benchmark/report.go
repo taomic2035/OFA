@@ -1,5 +1,5 @@
 // Package benchmark - 性能基准测试报告生成器
-// Sprint: 0.9.0 Beta - 性能测试
+// 提供系统性能测试和报告生成功能
 package benchmark
 
 import (
@@ -11,6 +11,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/ofa/center/pkg/version"
 )
 
 // PerformanceReport 性能测试报告
@@ -565,7 +567,7 @@ func (r *PerformanceReport) PrintReport() string {
 	var sb string
 	sb = fmt.Sprintf("\n")
 	sb += fmt.Sprintf("╔════════════════════════════════════════════════════════════════╗\n")
-	sb += fmt.Sprintf("║              OFA 0.9.0 Beta 性能基准测试报告                    ║\n")
+	sb += fmt.Sprintf("║              OFA %s 性能基准测试报告                           ║\n", version.GetVersion())
 	sb += fmt.Sprintf("╠════════════════════════════════════════════════════════════════╣\n")
 	sb += fmt.Sprintf("║ 生成时间: %-52s║\n", r.GeneratedAt.Format(time.RFC3339))
 	sb += fmt.Sprintf("║ Go版本: %-54s║\n", r.GoVersion)

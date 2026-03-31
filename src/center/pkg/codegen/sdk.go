@@ -1,5 +1,4 @@
-// Package codegen - SDK代码生成
-// 0.9.0 Beta: 自动代码生成
+// Package codegen - SDK 代码生成
 package codegen
 
 import (

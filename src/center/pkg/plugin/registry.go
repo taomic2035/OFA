@@ -1,5 +1,4 @@
 // Package plugin - 插件注册表
-// 0.9.0 Beta: 插件系统增强
 package plugin
 
 import (

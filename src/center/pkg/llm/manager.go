@@ -1,5 +1,5 @@
 // Package llm - 大语言模型集成
-// 0.9.0 Beta: LLM深度集成
+// 提供多 LLM 提供商的统一接口，支持 OpenAI、Claude、本地模型
 package llm
 
 import (

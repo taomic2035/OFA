@@ -1,5 +1,4 @@
-// Package llm - 向量存储
-// 0.9.0 Beta: LLM深度集成
+// Package llm - 向量存储与 RAG 检索
 package llm
 
 import (

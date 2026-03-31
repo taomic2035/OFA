@@ -1,5 +1,4 @@
 // Package collab - 任务分配器
-// 0.9.0 Beta: 智能Agent协作
 package collab
 
 import (

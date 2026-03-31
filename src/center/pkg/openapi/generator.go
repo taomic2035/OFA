@@ -1,5 +1,5 @@
-// Package openapi - OpenAPI文档生成器
-// Sprint 25: 正式发布准备 - API文档
+// Package openapi - OpenAPI 文档生成器
+// 生成符合 OpenAPI 3.0 规范的 API 文档
 package openapi
 
 import (
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/ofa/center/pkg/version"
 )
 
 // OpenAPIDoc OpenAPI文档
@@ -352,7 +354,7 @@ func (dg *DocumentGenerator) SetComponents(components *Components) *DocumentGene
 
 // GenerateOFAAPI 生成OFA API文档
 func GenerateOFAAPI() *OpenAPIDoc {
-	gen := NewDocumentGenerator("OFA API", "0.9.0")
+	gen := NewDocumentGenerator("OFA API", version.GetVersion())
 	gen.SetDescription("OFA - Omni Federated Agents 分布式智能体系统 API").
 		SetContact("OFA Team", "ofa@example.com", "https://ofa.dev").
 		SetLicense("MIT", "https://opensource.org/licenses/MIT").

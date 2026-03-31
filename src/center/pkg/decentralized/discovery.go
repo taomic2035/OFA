@@ -1,5 +1,4 @@
-// Package decentralized - Peer发现
-// 0.9.0 Beta: 去中心化增强
+// Package decentralized - Peer 发现
 package decentralized
 
 import (

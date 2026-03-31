@@ -1,5 +1,5 @@
 // Package audit - 安全审计工具
-// Sprint 25: 正式发布准备 - 安全审计
+// 检查 SSL/TLS 配置、HTTP 安全头、端点安全性
 package audit
 
 import (

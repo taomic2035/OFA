@@ -1,5 +1,5 @@
 // Package plugin - 插件系统
-// 0.9.0 Beta: 插件系统增强
+// 提供插件生命周期管理和钩子机制
 package plugin
 
 import (

@@ -1,5 +1,5 @@
 // Package wasm - WebAssembly技能运行时
-// 0.9.0 Beta: WASM技能支持
+// 基于 wazero 实现安全的 WASM 模块加载和执行
 package wasm
 
 import (

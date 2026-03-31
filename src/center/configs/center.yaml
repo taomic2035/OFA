@@ -1,7 +1,7 @@
 # OFA Center Configuration
+# 版本信息从 pkg/version/version.go 获取
 server:
   name: "ofa-center"
-  version: "0.9.0"
 
 grpc:
   address: ":9090"

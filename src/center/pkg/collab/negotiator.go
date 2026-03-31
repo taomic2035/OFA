@@ -1,5 +1,4 @@
-// Package collab - Agent协商器
-// 0.9.0 Beta: 智能Agent协作
+// Package collab - Agent 协商器
 package collab
 
 import (

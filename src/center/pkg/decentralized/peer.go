@@ -1,5 +1,4 @@
-// Package decentralized - Peer管理
-// 0.9.0 Beta: 去中心化增强
+// Package decentralized - Peer 管理
 package decentralized
 
 import (

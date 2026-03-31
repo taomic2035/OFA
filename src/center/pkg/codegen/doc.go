@@ -1,5 +1,4 @@
-// Package codegen - 文档生成
-// 0.9.0 Beta: 自动代码生成
+// Package codegen - API 文档生成
 package codegen
 
 import (

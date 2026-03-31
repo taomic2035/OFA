@@ -1,5 +1,5 @@
 // Package collab - Agent协作系统
-// 0.9.0 Beta: 智能Agent协作
+// 支持顺序、并行、管道、MapReduce等多种协作模式
 package collab
 
 import (

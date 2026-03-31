@@ -1,5 +1,4 @@
 // Package plugin - 插件加载器
-// 0.9.0 Beta: 插件系统增强
 package plugin
 
 import (

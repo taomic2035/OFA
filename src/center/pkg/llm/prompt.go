@@ -1,5 +1,4 @@
-// Package llm - Prompt模板管理
-// 0.9.0 Beta: LLM深度集成
+// Package llm - Prompt 模板管理
 package llm
 
 import (

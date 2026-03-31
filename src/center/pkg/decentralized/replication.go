@@ -1,5 +1,4 @@
 // Package decentralized - 数据复制
-// 0.9.0 Beta: 去中心化增强
 package decentralized
 
 import (

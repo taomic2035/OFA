@@ -1,5 +1,4 @@
-// Package llm - OpenAI适配器
-// 0.9.0 Beta: LLM深度集成
+// Package llm - OpenAI/Claude/Ollama 适配器
 package llm
 
 import (

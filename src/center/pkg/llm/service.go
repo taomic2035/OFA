@@ -1,5 +1,4 @@
-// Package llm - LLM服务集成
-// 0.9.0 Beta: LLM深度集成
+// Package llm - LLM 服务集成
 package llm
 
 import (

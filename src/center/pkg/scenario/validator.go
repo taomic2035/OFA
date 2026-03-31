@@ -1,5 +1,5 @@
 // Package scenario - 场景验证测试
-// Sprint 24: 验证OFA核心场景实现
+// 验证跨设备协同、智能家居、分布式AI等核心场景
 package scenario
 
 import (

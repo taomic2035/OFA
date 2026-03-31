@@ -1,5 +1,5 @@
 // Package codegen - 代码生成器
-// 0.9.0 Beta: 自动代码生成
+// 支持从 API 规范自动生成模型、处理器、路由和 SDK
 package codegen
 
 import (

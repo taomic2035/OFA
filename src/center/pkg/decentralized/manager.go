@@ -1,5 +1,5 @@
 // Package decentralized - 去中心化管理
-// 0.9.0 Beta: 去中心化增强
+// 提供 P2P 网络、共识机制、数据复制和信任管理
 package decentralized
 
 import (

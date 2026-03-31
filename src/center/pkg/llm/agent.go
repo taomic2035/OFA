@@ -1,5 +1,4 @@
-// Package llm - LLM Agent技能
-// 0.9.0 Beta: LLM深度集成
+// Package llm - LLM Agent 技能
 package llm
 
 import (
