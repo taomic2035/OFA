@@ -86,13 +86,34 @@ go build -o ../../../build/agent ./cmd/agent
 
 ### 文档
 
+- [项目指南](docs/PROJECT_GUIDE.md) - 完整的项目指南
 - [用户指南](docs/USER_GUIDE.md) - 详细使用说明
 - [设备接入指南](docs/DEVICE_GUIDE.md) - Android/iOS/IoT/可穿戴设备接入
-- [Dashboard](src/dashboard/README.md) - Web 管理控制台
 - [架构设计](docs/03-ARCHITECTURE_DESIGN.md) - 系统架构说明
 - [API文档](docs/API.md) - REST/gRPC API参考
 - [部署指南](docs/DEPLOYMENT.md) - Docker/Kubernetes部署
+- [开发指南](docs/DEVELOPMENT.md) - 开发环境配置
 - [更新日志](CHANGELOG.md) - 版本更新记录
+
+### Web Dashboard
+
+OFA 提供 Web 管理控制台，支持可视化的 Agent/Task 管理:
+
+```bash
+# 启动 Dashboard
+cd src/dashboard
+npm install
+npm run dev
+# 访问 http://localhost:3000
+```
+
+功能模块:
+- 📊 **控制台** - 系统概览、统计卡片、实时活动流
+- 🤖 **智能体管理** - Agent 列表、搜索、详情、删除
+- 📋 **任务管理** - 任务列表、新建表单、状态筛选
+- 📈 **系统监控** - 实时指标、WebSocket 更新
+- 💬 **消息中心** - 消息发送、广播、历史记录
+- ⚙️ **系统设置** - 连接配置、显示设置
 
 ### 许可证
 

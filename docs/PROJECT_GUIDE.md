@@ -144,11 +144,17 @@ OFA/
 │   │   ├── internal/    # 内部包
 │   │   └── pkg/         # 公共包
 │   ├── agent/go/        # Go Agent 源码
-│   └── sdk/             # 各平台 SDK
-│       ├── android/     # Android SDK
-│       ├── ios/         # iOS SDK
-│       ├── python/      # Python SDK
-│       └── ...
+│   ├── sdk/             # 各平台 SDK
+│   │   ├── android/     # Android SDK
+│   │   ├── ios/         # iOS SDK
+│   │   ├── python/      # Python SDK
+│   │   └── ...
+│   └── dashboard/       # Web Dashboard
+│       ├── src/         # Vue 3 源码
+│       │   ├── views/   # 页面组件
+│       │   ├── api/     # API 客户端
+│       │   └── styles/  # 样式文件
+│       └── package.json
 ├── docs/                # 文档
 ├── deployments/         # 部署配置
 ├── configs/             # 配置文件

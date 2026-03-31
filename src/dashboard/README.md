@@ -4,21 +4,33 @@ OFA 管理控制台，基于 Vue 3 + TypeScript + Vite 构建。
 
 ## 功能特性
 
-- **Dashboard 首页**: 系统概览、实时统计、Agent/Task 摘要
-- **Agent 管理**: 查看、搜索、删除 Agent
-- **Task 管理**: 提交、查看、取消 Task
-- **监控面板**: 实时指标、性能数据
-- **消息中心**: Agent 间消息发送、广播
+- **控制台首页**: 系统概览、渐变统计卡片、实时活动流、性能指标
+- **智能体管理**: 卡片网格布局、搜索过滤、详情弹窗、删除操作
+- **任务管理**: 状态图标、新建表单、状态筛选、统计条
+- **系统监控**: 指标卡片、WebSocket 实时更新、任务进度条
+- **消息中心**: 消息发送面板、广播消息、发送历史、快捷操作
+- **系统设置**: 连接配置、显示设置、数据设置
 
-## 开发
+## 快速开始
 
 ```bash
+# 进入 Dashboard 目录
+cd src/dashboard
+
 # 安装依赖
 npm install
 
-# 启动开发服务器
+# 启动开发服务器 (端口 3000)
 npm run dev
 
+# 访问 http://localhost:3000
+```
+
+**注意**: 需要 Center 服务运行在端口 8080 以提供 API 支持。
+
+## 构建
+
+```bash
 # 构建生产版本
 npm run build
 
@@ -31,18 +43,19 @@ npm run preview
 ```
 src/
 ├── api/
-│   └── client.ts       # API 客户端
+│   └── client.ts       # REST + WebSocket API 客户端
 ├── components/
 │   ├── Layout.vue      # 布局组件
-│   └── Sidebar.vue     # 侧边栏
+│   └── Sidebar.vue     # 侧边导航栏
 ├── types/
 │   └── index.ts        # TypeScript 类型定义
 ├── views/
-│   ├── Dashboard.vue   # 首页
-│   ├── Agents.vue      # Agent 管理
-│   ├── Tasks.vue       # Task 管理
-│   ├── Monitor.vue     # 监控面板
-│   └── Messages.vue    # 消息中心
+│   ├── Dashboard.vue   # 控制台首页
+│   ├── Agents.vue      # 智能体管理
+│   ├── Tasks.vue       # 任务管理
+│   ├── Monitor.vue     # 系统监控
+│   ├── Messages.vue    # 消息中心
+│   └── Settings.vue    # 系统设置
 ├── styles/
 │   └── main.css        # 全局样式
 ├── App.vue             # 根组件
@@ -81,8 +94,18 @@ Dashboard 作为 Center 服务的一部分部署：
 
 ## 技术栈
 
-- **Vue 3** - 渐进式 JavaScript 框架
-- **TypeScript** - 类型安全
-- **Vite** - 下一代前端构建工具
-- **Vue Router** - 官方路由
-- **Chart.js** - 图表库（可选）
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| Vue | 3.4+ | 前端框架 |
+| TypeScript | 5.3+ | 类型安全 |
+| Vite | 5.0+ | 构建工具 |
+| Vue Router | 4.2+ | 路由管理 |
+| Chart.js | 4.4+ | 图表库 |
+
+## 特性
+
+- 🎨 **渐变色卡片** - 美观的统计卡片设计
+- 🔄 **WebSocket** - 实时数据更新
+- 📱 **响应式布局** - 适配不同屏幕尺寸
+- 🌐 **中文界面** - 全中文 UI
+- ⚡ **Vite HMR** - 快速热更新开发体验
