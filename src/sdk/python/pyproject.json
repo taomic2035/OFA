@@ -1,6 +1,6 @@
 {
     "name": "ofa-agent",
-    "version": "8.1.0",
+    "version": "0.9.0",
     "description": "OFA Python Agent SDK - Multi-device distributed agent system",
     "author": "OFA Team",
     "license": "Apache-2.0",

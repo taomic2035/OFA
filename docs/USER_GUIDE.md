@@ -272,7 +272,7 @@ sdkGen := codegen.NewSDKGenerator(generator)
 
 sdkSpec := codegen.SDKSpec{
     Name:    "OFA",
-    Version: "9.0.0",
+    Version: "0.9.0",
     Package: "ofa",
     Methods: []codegen.SDKMethod{
         {

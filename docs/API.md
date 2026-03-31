@@ -29,7 +29,7 @@ GET /health
 ```json
 {
     "status": "healthy",
-    "version": "v0.1.0"
+    "version": "v0.9.0"
 }
 ```
 
@@ -368,7 +368,7 @@ GET /api/v1/system/info
 
 ```json
 {
-    "version": "v0.1.0",
+    "version": "v0.9.0",
     "uptime_seconds": 3600,
     "agent_count": 5,
     "task_count": 10

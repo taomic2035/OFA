@@ -1,5 +1,5 @@
 // Package wasm - WebAssembly技能运行时
-// Sprint 27: v8.1增强版本 - WASM技能支持
+// 0.9.0 Beta: WASM技能支持
 package wasm
 
 import (

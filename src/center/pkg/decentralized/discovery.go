@@ -1,5 +1,5 @@
 // Package decentralized - Peer发现
-// Sprint 33: v9.0 去中心化增强
+// 0.9.0 Beta: 去中心化增强
 package decentralized
 
 import (

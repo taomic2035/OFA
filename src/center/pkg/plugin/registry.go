@@ -1,5 +1,5 @@
 // Package plugin - 插件注册表
-// Sprint 28: v8.1插件系统增强
+// 0.9.0 Beta: 插件系统增强
 package plugin
 
 import (

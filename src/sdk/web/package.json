@@ -1,6 +1,6 @@
 {
   "name": "ofa-web-agent",
-  "version": "2.0.0",
+  "version": "0.9.0",
   "description": "OFA Web Agent SDK - TypeScript/JavaScript implementation for browser-based agents",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",

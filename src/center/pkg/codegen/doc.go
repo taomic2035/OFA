@@ -1,5 +1,5 @@
 // Package codegen - 文档生成
-// Sprint 31: v9.0 自动代码生成
+// 0.9.0 Beta: 自动代码生成
 package codegen
 
 import (

@@ -38,7 +38,7 @@ Each skill should include:
 ```yaml
 id: text.process
 name: Text Process
-version: 1.0.0
+version: 0.9.0
 category: text
 description: Process text with various operations
 author: OFA Team

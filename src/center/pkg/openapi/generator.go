@@ -352,7 +352,7 @@ func (dg *DocumentGenerator) SetComponents(components *Components) *DocumentGene
 
 // GenerateOFAAPI 生成OFA API文档
 func GenerateOFAAPI() *OpenAPIDoc {
-	gen := NewDocumentGenerator("OFA API", "v7.1.0")
+	gen := NewDocumentGenerator("OFA API", "0.9.0")
 	gen.SetDescription("OFA - Omni Federated Agents 分布式智能体系统 API").
 		SetContact("OFA Team", "ofa@example.com", "https://ofa.dev").
 		SetLicense("MIT", "https://opensource.org/licenses/MIT").

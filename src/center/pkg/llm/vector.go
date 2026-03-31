@@ -1,5 +1,5 @@
 // Package llm - 向量存储
-// Sprint 30: v9.0 LLM深度集成
+// 0.9.0 Beta: LLM深度集成
 package llm
 
 import (

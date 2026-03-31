@@ -199,7 +199,7 @@ spec:
     spec:
       containers:
       - name: center
-        image: ofa/center:v7.1.0
+        image: ofa/center:0.9.0
         ports:
         - containerPort: 8080
           name: http
@@ -487,7 +487,7 @@ resources:
 
 ```bash
 # 更新镜像
-kubectl set image deployment/ofa-center center=ofa/center:v7.2.0 -n ofa
+kubectl set image deployment/ofa-center center=ofa/center:0.9.1 -n ofa
 
 # 查看升级状态
 kubectl rollout status deployment/ofa-center -n ofa
@@ -500,7 +500,7 @@ kubectl rollout undo deployment/ofa-center -n ofa
 
 ```bash
 # 运行迁移脚本
-./scripts/migrate.sh v7.0 v7.1
+./scripts/migrate.sh 0.8.0 0.9.0
 ```
 
 ---

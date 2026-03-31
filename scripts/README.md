@@ -53,7 +53,7 @@ powershell -File D:\vibecoding\OFA\scripts\test_metrics.ps1
 
 1. 健康检查
 状态: healthy
-版本: v0.1.0
+版本: v0.9.0
 
 2. 系统信息
 在线Agent数: 1

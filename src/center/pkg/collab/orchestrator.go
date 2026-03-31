@@ -1,5 +1,5 @@
 // Package collab - 任务编排器
-// Sprint 32: v9.0 智能Agent协作
+// 0.9.0 Beta: 智能Agent协作
 package collab
 
 import (

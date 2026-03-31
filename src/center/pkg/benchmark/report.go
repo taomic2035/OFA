@@ -1,5 +1,5 @@
 // Package benchmark - 性能基准测试报告生成器
-// Sprint 26: v8.0最终发布 - 性能测试
+// Sprint: 0.9.0 Beta - 性能测试
 package benchmark
 
 import (
@@ -565,7 +565,7 @@ func (r *PerformanceReport) PrintReport() string {
 	var sb string
 	sb = fmt.Sprintf("\n")
 	sb += fmt.Sprintf("╔════════════════════════════════════════════════════════════════╗\n")
-	sb += fmt.Sprintf("║              OFA v8.0 性能基准测试报告                          ║\n")
+	sb += fmt.Sprintf("║              OFA 0.9.0 Beta 性能基准测试报告                    ║\n")
 	sb += fmt.Sprintf("╠════════════════════════════════════════════════════════════════╣\n")
 	sb += fmt.Sprintf("║ 生成时间: %-52s║\n", r.GeneratedAt.Format(time.RFC3339))
 	sb += fmt.Sprintf("║ Go版本: %-54s║\n", r.GoVersion)
