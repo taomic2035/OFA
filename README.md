@@ -1,11 +1,15 @@
 # OFA - Omni Federated Agents
 
 <p align="center">
-  <img src="docs/images/logo.png" alt="OFA Logo" width="200">
+  <img src="docs/images/logo.svg" alt="OFA Logo" width="200">
 </p>
 
 <p align="center">
   <strong>多设备分布式智能体系统 | Multi-Device Distributed Agent System</strong>
+</p>
+
+<p align="center">
+  <em>Omni - 全能 | Federated - 联邦 | Agents - 智能体</em>
 </p>
 
 <p align="center">
@@ -84,6 +88,7 @@ go build -o ../../../build/agent ./cmd/agent
 
 - [用户指南](docs/USER_GUIDE.md) - 详细使用说明
 - [设备接入指南](docs/DEVICE_GUIDE.md) - Android/iOS/IoT/可穿戴设备接入
+- [Dashboard](src/dashboard/README.md) - Web 管理控制台
 - [架构设计](docs/03-ARCHITECTURE_DESIGN.md) - 系统架构说明
 - [API文档](docs/API.md) - REST/gRPC API参考
 - [部署指南](docs/DEPLOYMENT.md) - Docker/Kubernetes部署
@@ -145,6 +150,7 @@ go build -o ../../../build/agent ./cmd/agent
 
 - [User Guide](docs/USER_GUIDE.md) - Detailed usage instructions
 - [Device Integration Guide](docs/DEVICE_GUIDE.md) - Android/iOS/IoT/Wearable integration
+- [Dashboard](src/dashboard/README.md) - Web management console
 - [Architecture Design](docs/03-ARCHITECTURE_DESIGN.md) - System architecture
 - [API Reference](docs/API.md) - REST/gRPC API reference
 - [Deployment Guide](docs/DEPLOYMENT.md) - Docker/Kubernetes deployment

@@ -1,5 +1,9 @@
 # OFA 项目指南
 
+<p align="center">
+  <img src="images/logo.svg" alt="OFA Logo" width="150">
+</p>
+
 ## 目录
 
 1. [项目概述](#项目概述)

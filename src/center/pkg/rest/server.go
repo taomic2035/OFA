@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -16,24 +18,31 @@ import (
 
 // Server implements the REST API server
 type Server struct {
-	service *service.CenterService
-	config  *config.Config
-	router  *mux.Router
-	server  *http.Server
-	metrics *metrics.Metrics
+	service        *service.CenterService
+	config         *config.Config
+	router         *mux.Router
+	server         *http.Server
+	metrics        *metrics.Metrics
+	dashboardDir   string
 }
 
 // NewServer creates a new REST server
 func NewServer(service *service.CenterService, config *config.Config) *Server {
 	s := &Server{
-		service: service,
-		config:  config,
-		router:  mux.NewRouter(),
-		metrics: metrics.NewMetrics(),
+		service:      service,
+		config:       config,
+		router:       mux.NewRouter(),
+		metrics:      metrics.NewMetrics(),
+		dashboardDir: "./dashboard",
 	}
 
 	s.setupRoutes()
 	return s
+}
+
+// SetDashboardDir sets the dashboard static files directory
+func (s *Server) SetDashboardDir(dir string) {
+	s.dashboardDir = dir
 }
 
 // Start starts the REST server
@@ -88,6 +97,59 @@ func (s *Server) setupRoutes() {
 
 	// Skill endpoints (with metrics)
 	s.router.HandleFunc("/api/v1/skills", s.withMetrics(s.listSkills)).Methods("GET")
+
+	// Dashboard static files
+	s.setupDashboardRoutes()
+}
+
+// setupDashboardRoutes configures dashboard static file serving
+func (s *Server) setupDashboardRoutes() {
+	// Dashboard routes
+	dashboardHandler := s.serveDashboard()
+	s.router.PathPrefix("/dashboard").Handler(dashboardHandler)
+	s.router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			http.Redirect(w, r, "/dashboard", http.StatusFound)
+			return
+		}
+		http.NotFound(w, r)
+	})
+}
+
+// serveDashboard returns a handler for serving dashboard static files
+func (s *Server) serveDashboard() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check if dashboard directory exists
+		if _, err := os.Stat(s.dashboardDir); os.IsNotExist(err) {
+			http.Error(w, "Dashboard not found. Build the dashboard first: cd src/dashboard && npm install && npm run build", http.StatusNotFound)
+			return
+		}
+
+		// Serve from dist directory
+		distDir := filepath.Join(s.dashboardDir, "dist")
+		if _, err := os.Stat(distDir); os.IsNotExist(err) {
+			http.Error(w, "Dashboard not built. Run: cd src/dashboard && npm run build", http.StatusNotFound)
+			return
+		}
+
+		// Get the path relative to /dashboard
+		relPath := r.URL.Path
+		if relPath == "/dashboard" || relPath == "/dashboard/" {
+			relPath = "/dashboard/index.html"
+		}
+
+		// Remove /dashboard prefix and serve from dist
+		filePath := filepath.Join(distDir, relPath[len("/dashboard/"):])
+
+		// Check if file exists
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			// For SPA, serve index.html for unknown routes
+			filePath = filepath.Join(distDir, "index.html")
+		}
+
+		// Serve the file
+		http.ServeFile(w, r, filePath)
+	})
 }
 
 // withMetrics wraps a handler with Prometheus metrics recording
