@@ -1,0 +1,56 @@
+id: text.process
+name: Text Process
+version: 1.0.0
+category: text
+description: Process text with various operations
+author: OFA Team
+license: MIT
+
+operations:
+  - uppercase
+  - lowercase
+  - reverse
+  - length
+  - trim
+  - split
+  - replace
+
+input_schema:
+  type: object
+  properties:
+    text:
+      type: string
+      description: Input text to process
+    operation:
+      type: string
+      enum: [uppercase, lowercase, reverse, length, trim, split, replace]
+      default: uppercase
+    options:
+      type: object
+      properties:
+        separator:
+          type: string
+          default: " "
+        old:
+          type: string
+        new:
+          type: string
+
+output_schema:
+  type: object
+  properties:
+    result:
+      oneOf:
+        - type: string
+        - type: array
+        - type: integer
+      description: Processing result
+
+requirements:
+  - python >= 3.8
+
+tags:
+  - text
+  - processing
+  - utility
+  - core

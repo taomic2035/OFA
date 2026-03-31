@@ -1,0 +1,28 @@
+{
+    "name": "ofa-agent",
+    "version": "8.1.0",
+    "description": "OFA Python Agent SDK - Multi-device distributed agent system",
+    "author": "OFA Team",
+    "license": "Apache-2.0",
+    "keywords": ["agent", "distributed", "grpc", "websocket", "iot"],
+    "requires-python": ">=3.8",
+    "dependencies": [
+        "aiohttp>=3.8.0",
+        "websockets>=10.0"
+    ],
+    "optional-dependencies": {
+        "grpc": ["grpcio>=1.50.0"],
+        "mqtt": ["aiomqtt>=1.0.0"]
+    },
+    "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12"
+    ]
+}

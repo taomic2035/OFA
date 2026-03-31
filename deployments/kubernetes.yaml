@@ -1,0 +1,293 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ofa
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ofa-secrets
+  namespace: ofa
+type: Opaque
+stringData:
+  db-password: "ofa123"
+  redis-password: ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ofa-config
+  namespace: ofa
+data:
+  center.yaml: |
+    server:
+      name: "ofa-center"
+      version: "0.1.0"
+    grpc:
+      address: ":9090"
+    rest:
+      address: ":8080"
+    database:
+      host: "postgres"
+      port: 5432
+      user: "ofa"
+      database: "ofa"
+    redis:
+      address: "redis:6379"
+    etcd:
+      endpoints:
+        - "etcd:2379"
+    scheduler:
+      default_strategy: "hybrid"
+      max_concurrent: 1000
+    agent:
+      heartbeat_interval: 30s
+      heartbeat_timeout: 60s
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: center
+  namespace: ofa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: center
+  template:
+    metadata:
+      labels:
+        app: center
+    spec:
+      containers:
+      - name: center
+        image: ofa/center:latest
+        ports:
+        - containerPort: 8080
+          name: rest
+        - containerPort: 9090
+          name: grpc
+        volumeMounts:
+        - name: config
+          mountPath: /app/configs
+          readOnly: true
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ofa-secrets
+              key: db-password
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: config
+        configMap:
+          name: ofa-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: center
+  namespace: ofa
+spec:
+  selector:
+    app: center
+  ports:
+  - name: rest
+    port: 8080
+    targetPort: 8080
+  - name: grpc
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent
+  namespace: ofa
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: agent
+  template:
+    metadata:
+      labels:
+        app: agent
+    spec:
+      containers:
+      - name: agent
+        image: ofa/agent:latest
+        env:
+        - name: CENTER_ADDR
+          value: "center:9090"
+        - name: AGENT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: ofa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "ofa"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ofa-secrets
+              key: db-password
+        - name: POSTGRES_DB
+          value: "ofa"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: postgres-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: ofa
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: ofa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: ofa
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etcd
+  namespace: ofa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etcd
+  template:
+    metadata:
+      labels:
+        app: etcd
+    spec:
+      containers:
+      - name: etcd
+        image: bitnami/etcd:3.5
+        ports:
+        - containerPort: 2379
+        env:
+        - name: ALLOW_NONE_AUTHENTICATION
+          value: "yes"
+        - name: ETCD_ADVERTISE_CLIENT_URLS
+          value: "http://etcd:2379"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd
+  namespace: ofa
+spec:
+  selector:
+    app: etcd
+  ports:
+  - port: 2379
+    targetPort: 2379

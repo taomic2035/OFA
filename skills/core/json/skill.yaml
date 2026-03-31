@@ -1,0 +1,59 @@
+id: json.process
+name: JSON Process
+version: 1.0.0
+category: data
+description: Process JSON data with various operations
+author: OFA Team
+license: MIT
+
+operations:
+  - get_keys
+  - get_values
+  - pretty
+  - validate
+  - merge
+  - extract
+
+input_schema:
+  type: object
+  properties:
+    json_str:
+      type: string
+      description: JSON string to process
+    operation:
+      type: string
+      enum: [get_keys, get_values, pretty, validate, merge, extract]
+      default: pretty
+    options:
+      type: object
+      properties:
+        path:
+          type: string
+          description: JSON path for extraction
+        indent:
+          type: integer
+          default: 2
+        other_json:
+          type: string
+          description: Second JSON for merge
+
+output_schema:
+  type: object
+  properties:
+    result:
+      oneOf:
+        - type: string
+        - type: array
+        - type: object
+        - type: boolean
+      description: Processing result
+
+requirements:
+  - python >= 3.8
+
+tags:
+  - json
+  - data
+  - processing
+  - utility
+  - core

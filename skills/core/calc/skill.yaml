@@ -1,0 +1,48 @@
+# Calculator Skill
+id: calculator
+name: Calculator
+version: 1.0.0
+category: math
+description: Perform mathematical calculations
+author: OFA Team
+license: MIT
+
+operations:
+  - add
+  - sub
+  - mul
+  - div
+  - pow
+  - sqrt
+
+input_schema:
+  type: object
+  properties:
+    operation:
+      type: string
+      enum: [add, sub, mul, div, pow, sqrt]
+      description: Operation to perform
+    a:
+      type: number
+      description: First operand
+    b:
+      type: number
+      description: Second operand (not needed for sqrt)
+
+output_schema:
+  type: object
+  properties:
+    result:
+      type: number
+      description: Calculation result
+    error:
+      type: string
+      description: Error message if any
+
+requirements:
+  - python >= 3.8
+
+tags:
+  - math
+  - calculator
+  - utility

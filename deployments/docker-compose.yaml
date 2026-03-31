@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ofa-postgres
+    environment:
+      POSTGRES_USER: ofa
+      POSTGRES_PASSWORD: ofa123
+      POSTGRES_DB: ofa
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ofa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ofa-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Etcd (for distributed coordination)
+  etcd:
+    image: bitnami/etcd:3.5
+    container_name: ofa-etcd
+    environment:
+      ALLOW_NONE_AUTHENTICATION: "yes"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379"
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+
+  # OFA Center
+  center:
+    build:
+      context: ./src/center
+      dockerfile: Dockerfile
+    container_name: ofa-center
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      etcd:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ofa
+      DB_PASSWORD: ofa123
+      DB_NAME: ofa
+      REDIS_ADDR: redis:6379
+      ETCD_ENDPOINTS: etcd:2379
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    volumes:
+      - ./configs:/app/configs
+
+  # Test Agent
+  agent:
+    build:
+      context: ./src/agent/go
+      dockerfile: Dockerfile
+    container_name: ofa-agent
+    depends_on:
+      - center
+    environment:
+      CENTER_ADDR: center:9090
+      AGENT_NAME: test-agent
+
+volumes:
+  postgres-data:

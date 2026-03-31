@@ -1,0 +1,473 @@
+syntax = "proto3";
+
+package ofa;
+
+option go_package = "github.com/ofa/proto;proto";
+
+// =====================================================
+// 枚举定义
+// =====================================================
+
+enum AgentType {
+    AGENT_TYPE_UNKNOWN = 0;
+    AGENT_TYPE_FULL = 1;      // 完整Agent (PC/服务器)
+    AGENT_TYPE_MOBILE = 2;    // 移动Agent (手机/平板)
+    AGENT_TYPE_LITE = 3;      // 轻量Agent (手表)
+    AGENT_TYPE_IOT = 4;       // IoT Agent
+    AGENT_TYPE_EDGE = 5;      // 边缘Agent
+}
+
+enum AgentStatus {
+    AGENT_STATUS_UNKNOWN = 0;
+    AGENT_STATUS_ONLINE = 1;
+    AGENT_STATUS_BUSY = 2;
+    AGENT_STATUS_IDLE = 3;
+    AGENT_STATUS_OFFLINE = 4;
+}
+
+enum TaskStatus {
+    TASK_STATUS_UNKNOWN = 0;
+    TASK_STATUS_PENDING = 1;
+    TASK_STATUS_RUNNING = 2;
+    TASK_STATUS_COMPLETED = 3;
+    TASK_STATUS_FAILED = 4;
+    TASK_STATUS_CANCELLED = 5;
+    TASK_STATUS_TIMEOUT = 6;
+}
+
+// =====================================================
+// 数据结构
+// =====================================================
+
+// 设备信息
+message DeviceInfo {
+    string os = 1;                  // 操作系统
+    string os_version = 2;          // 系统版本
+    string model = 3;               // 设备型号
+    string manufacturer = 4;        // 制造商
+    int64 total_memory = 5;         // 总内存(字节)
+    int32 cpu_cores = 6;            // CPU核心数
+    string arch = 7;                // 架构 (arm64/x86等)
+}
+
+// 能力描述
+message Capability {
+    string id = 1;                  // 能力ID
+    string name = 2;                // 能力名称
+    string version = 3;             // 版本
+    string category = 4;            // 分类
+    map<string, string> metadata = 5; // 元数据
+}
+
+// 资源使用情况
+message ResourceUsage {
+    double cpu_usage = 1;           // CPU使用率 (0-100)
+    double memory_usage = 2;        // 内存使用率 (0-100)
+    int32 battery_level = 3;        // 电量 (0-100, -1表示不适用)
+    string network_type = 4;        // 网络类型 (wifi/mobile/ethernet)
+    int32 network_latency_ms = 5;   // 网络延迟(毫秒)
+}
+
+// Agent状态
+message AgentStatusInfo {
+    string agent_id = 1;
+    AgentStatus status = 2;
+    ResourceUsage resources = 3;
+    repeated Capability capabilities = 4;
+    int64 last_seen = 5;            // 最后心跳时间(Unix时间戳)
+}
+
+// 任务
+message Task {
+    string task_id = 1;
+    string parent_task_id = 2;
+    string skill_id = 3;
+    bytes input = 4;                // JSON序列化的输入
+    bytes output = 5;               // JSON序列化的输出
+    TaskStatus status = 6;
+    int32 priority = 7;
+    string target_agent = 8;        // 目标Agent
+    string source_agent = 9;        // 来源Agent
+    string error = 10;
+    int64 created_at = 11;
+    int64 started_at = 12;
+    int64 completed_at = 13;
+    int64 duration_ms = 14;
+    int64 timeout_ms = 15;
+    map<string, string> metadata = 16;
+}
+
+// 消息
+message Message {
+    string msg_id = 1;
+    string from_agent = 2;
+    string to_agent = 3;            // 特定Agent / "broadcast" / "group:xxx"
+    string action = 4;
+    bytes payload = 5;              // JSON序列化
+    int64 timestamp = 6;
+    int32 ttl = 7;                  // 生存时间(秒)
+    map<string, string> headers = 8;
+}
+
+// =====================================================
+// Agent服务 - Center与Agent通信
+// =====================================================
+
+service AgentService {
+    // 双向流式通信
+    rpc Connect(stream AgentMessage) returns (stream CenterMessage);
+
+    // 任务相关
+    rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse);
+    rpc GetTaskStatus(GetTaskStatusRequest) returns (GetTaskStatusResponse);
+    rpc CancelTask(CancelTaskRequest) returns (CancelTaskResponse);
+    rpc SubscribeTask(SubscribeTaskRequest) returns (stream TaskEvent);
+
+    // 能力相关
+    rpc RegisterCapabilities(RegisterCapabilitiesRequest) returns (RegisterCapabilitiesResponse);
+    rpc GetCapabilities(GetCapabilitiesRequest) returns (GetCapabilitiesResponse);
+}
+
+// Agent发送给Center的消息
+message AgentMessage {
+    string msg_id = 1;
+    int64 timestamp = 2;
+    oneof payload {
+        RegisterRequest register = 10;
+        HeartbeatRequest heartbeat = 11;
+        TaskResult task_result = 12;
+        AgentEvent event = 13;
+        MessageResponse message_response = 14;
+    }
+}
+
+// Center发送给Agent的消息
+message CenterMessage {
+    string msg_id = 1;
+    int64 timestamp = 2;
+    oneof payload {
+        RegisterResponse register = 10;
+        TaskAssignment task = 11;
+        ConfigUpdate config = 12;
+        Message message = 13;
+        CancelTaskRequest cancel_task = 14;
+    }
+}
+
+// 注册请求
+message RegisterRequest {
+    string agent_id = 1;            // 可选，首次为空，重连时携带
+    string name = 2;
+    AgentType type = 3;
+    DeviceInfo device_info = 4;
+    repeated Capability capabilities = 5;
+    map<string, string> metadata = 6;
+}
+
+// 注册响应
+message RegisterResponse {
+    bool success = 1;
+    string agent_id = 2;            // 分配的Agent ID
+    string error = 3;
+    string token = 4;               // 认证Token
+    int64 heartbeat_interval_ms = 5; // 心跳间隔
+    map<string, string> config = 6; // 初始配置
+}
+
+// 心跳请求
+message HeartbeatRequest {
+    string agent_id = 1;
+    AgentStatus status = 2;
+    ResourceUsage resources = 3;
+    int32 pending_tasks = 4;        // 待处理任务数
+}
+
+// 任务分配
+message TaskAssignment {
+    string task_id = 1;
+    string parent_task_id = 2;
+    string skill_id = 3;
+    bytes input = 4;
+    int32 priority = 5;
+    int64 timeout_ms = 6;
+    int64 created_at = 7;
+    map<string, string> metadata = 8;
+}
+
+// 任务结果
+message TaskResult {
+    string task_id = 1;
+    TaskStatus status = 2;
+    bytes output = 3;
+    string error = 4;
+    int64 duration_ms = 5;
+    map<string, string> metadata = 6;
+}
+
+// Agent事件
+message AgentEvent {
+    string event_type = 1;          // skill_loaded, skill_unloaded, error等
+    bytes data = 2;
+    int64 timestamp = 3;
+}
+
+// 配置更新
+message ConfigUpdate {
+    map<string, string> config = 1;
+    int64 version = 2;
+}
+
+// =====================================================
+// 任务API
+// =====================================================
+
+message SubmitTaskRequest {
+    string skill_id = 1;
+    bytes input = 2;
+    string target_agent = 3;        // 可选，指定目标Agent
+    int32 priority = 4;
+    int64 timeout_ms = 5;
+    string callback_url = 6;        // 可选，回调URL
+    map<string, string> metadata = 7;
+}
+
+message SubmitTaskResponse {
+    bool success = 1;
+    string task_id = 2;
+    string error = 3;
+}
+
+message GetTaskStatusRequest {
+    string task_id = 1;
+}
+
+message GetTaskStatusResponse {
+    bool success = 1;
+    Task task = 2;
+    string error = 3;
+}
+
+message CancelTaskRequest {
+    string task_id = 1;
+    string reason = 2;
+}
+
+message CancelTaskResponse {
+    bool success = 1;
+    string error = 2;
+}
+
+message SubscribeTaskRequest {
+    string task_id = 1;
+}
+
+message TaskEvent {
+    string task_id = 1;
+    string event_type = 2;          // created, assigned, started, completed, failed等
+    Task task = 3;
+    int64 timestamp = 4;
+}
+
+// =====================================================
+// 能力API
+// =====================================================
+
+message RegisterCapabilitiesRequest {
+    string agent_id = 1;
+    repeated Capability capabilities = 2;
+}
+
+message RegisterCapabilitiesResponse {
+    bool success = 1;
+    string error = 2;
+}
+
+message GetCapabilitiesRequest {
+    string agent_id = 1;            // 可选，为空则获取所有
+}
+
+message GetCapabilitiesResponse {
+    repeated Capability capabilities = 1;
+}
+
+// =====================================================
+// 消息API
+// =====================================================
+
+service MessageService {
+    // 发送消息
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+    // 广播消息
+    rpc Broadcast(BroadcastRequest) returns (BroadcastResponse);
+    // 组播消息
+    rpc Multicast(MulticastRequest) returns (MulticastResponse);
+    // 订阅消息
+    rpc Subscribe(SubscribeMessageRequest) returns (stream Message);
+}
+
+message SendMessageRequest {
+    Message message = 1;
+    bool require_ack = 2;
+    int64 timeout_ms = 3;
+}
+
+message SendMessageResponse {
+    bool success = 1;
+    string msg_id = 2;
+    string error = 3;
+}
+
+message BroadcastRequest {
+    string from_agent = 1;
+    string action = 2;
+    bytes payload = 3;
+    int32 ttl = 4;
+}
+
+message BroadcastResponse {
+    bool success = 1;
+    int32 delivered_count = 2;
+    string error = 3;
+}
+
+message MulticastRequest {
+    string from_agent = 1;
+    repeated string to_agents = 2;
+    string action = 3;
+    bytes payload = 4;
+    int32 ttl = 5;
+}
+
+message MulticastResponse {
+    bool success = 1;
+    int32 delivered_count = 2;
+    string error = 3;
+}
+
+message SubscribeMessageRequest {
+    string agent_id = 1;
+    repeated string actions = 2;    // 订阅的action列表，空表示全部
+}
+
+message MessageResponse {
+    string msg_id = 1;
+    bool success = 2;
+    string error = 3;
+}
+
+// =====================================================
+// 管理API
+// =====================================================
+
+service ManagementService {
+    // Agent管理
+    rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse);
+    rpc GetAgent(GetAgentRequest) returns (GetAgentResponse);
+    rpc DeleteAgent(DeleteAgentRequest) returns (DeleteAgentResponse);
+
+    // 任务管理
+    rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+    rpc GetTask(GetTaskRequest) returns (GetTaskResponse);
+
+    // 技能管理
+    rpc ListSkills(ListSkillsRequest) returns (ListSkillsResponse);
+    rpc InstallSkill(InstallSkillRequest) returns (InstallSkillResponse);
+
+    // 系统管理
+    rpc GetSystemInfo(GetSystemInfoRequest) returns (GetSystemInfoResponse);
+    rpc GetMetrics(GetMetricsRequest) returns (GetMetricsResponse);
+}
+
+message ListAgentsRequest {
+    AgentType type = 1;
+    AgentStatus status = 2;
+    int32 page = 3;
+    int32 page_size = 4;
+}
+
+message ListAgentsResponse {
+    repeated AgentStatusInfo agents = 1;
+    int32 total = 2;
+    int32 page = 3;
+    int32 page_size = 4;
+}
+
+message GetAgentRequest {
+    string agent_id = 1;
+}
+
+message GetAgentResponse {
+    bool success = 1;
+    AgentStatusInfo agent = 2;
+    string error = 3;
+}
+
+message DeleteAgentRequest {
+    string agent_id = 1;
+}
+
+message DeleteAgentResponse {
+    bool success = 1;
+    string error = 2;
+}
+
+message ListTasksRequest {
+    TaskStatus status = 1;
+    string agent_id = 2;
+    int32 page = 3;
+    int32 page_size = 4;
+}
+
+message ListTasksResponse {
+    repeated Task tasks = 1;
+    int32 total = 2;
+    int32 page = 3;
+    int32 page_size = 4;
+}
+
+message GetTaskRequest {
+    string task_id = 1;
+}
+
+message GetTaskResponse {
+    bool success = 1;
+    Task task = 2;
+    string error = 3;
+}
+
+message ListSkillsRequest {
+    string category = 1;
+}
+
+message ListSkillsResponse {
+    repeated Capability skills = 1;
+}
+
+message InstallSkillRequest {
+    string agent_id = 1;
+    string skill_id = 2;
+    string version = 3;
+}
+
+message InstallSkillResponse {
+    bool success = 1;
+    string error = 2;
+}
+
+message GetSystemInfoRequest {}
+
+message GetSystemInfoResponse {
+    string version = 1;
+    int64 uptime_seconds = 2;
+    int32 agent_count = 3;
+    int32 task_count = 4;
+    map<string, string> info = 5;
+}
+
+message GetMetricsRequest {
+    repeated string names = 1;      // 指标名称列表
+}
+
+message GetMetricsResponse {
+    map<string, double> metrics = 1;
+}
