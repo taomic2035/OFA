@@ -9,13 +9,15 @@ import Agents from './views/Agents.vue'
 import Tasks from './views/Tasks.vue'
 import Monitor from './views/Monitor.vue'
 import Messages from './views/Messages.vue'
+import Settings from './views/Settings.vue'
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
   { path: '/agents', name: 'Agents', component: Agents },
   { path: '/tasks', name: 'Tasks', component: Tasks },
   { path: '/monitor', name: 'Monitor', component: Monitor },
-  { path: '/messages', name: 'Messages', component: Messages }
+  { path: '/messages', name: 'Messages', component: Messages },
+  { path: '/settings', name: 'Settings', component: Settings }
 ]
 
 const router = createRouter({
