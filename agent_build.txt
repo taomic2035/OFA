@@ -1,0 +1,2 @@
+go: downloading golang.org/x/net v0.16.0
+go: downloading google.golang.org/protobuf v1.31.0

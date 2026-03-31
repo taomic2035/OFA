@@ -76,12 +76,34 @@ type Message struct {
 	ID        string            `json:"id"`
 	FromAgent string            `json:"from_agent"`
 	ToAgent   string            `json:"to_agent"`
+	Type      MessageType       `json:"type"`
 	Action    string            `json:"action"`
 	Payload   []byte            `json:"payload"`
-	Timestamp time.Time         `json:"timestamp"`
+	Status    MessageStatus     `json:"status"`
 	TTL       int32             `json:"ttl"`
 	Headers   map[string]string `json:"headers,omitempty"`
+	CreatedAt time.Time         `json:"created_at"`
+	Timestamp time.Time         `json:"timestamp"`
 }
+
+// MessageType defines message types
+type MessageType int
+
+const (
+	MessageTypeNormal   MessageType = 0
+	MessageTypeBroadcast MessageType = 1
+	MessageTypeRequest  MessageType = 2
+	MessageTypeResponse MessageType = 3
+)
+
+// MessageStatus defines message status
+type MessageStatus int
+
+const (
+	MessageStatusPending   MessageStatus = 1
+	MessageStatusDelivered MessageStatus = 2
+	MessageStatusFailed    MessageStatus = 3
+)
 
 // AgentConnection represents an active agent connection
 type AgentConnection struct {

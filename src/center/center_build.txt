@@ -1,0 +1,8 @@
+# github.com/ofa/center/internal/store
+internal\store\memory.go:176:20: duplicate case "sqlite" (constant of string type StoreType) in expression switch
+	internal\store\memory.go:176:7: previous case
+internal\store\sqlite.go:389:19: msg.Type undefined (type *models.Message has no field or method Type)
+internal\store\sqlite.go:390:36: msg.Status undefined (type *models.Message has no field or method Status)
+internal\store\sqlite.go:410:18: msg.Type undefined (type models.Message has no field or method Type)
+internal\store\sqlite.go:411:36: msg.Status undefined (type models.Message has no field or method Status)
+internal\store\sqlite.go:411:59: msg.CreatedAt undefined (type models.Message has no field or method CreatedAt)

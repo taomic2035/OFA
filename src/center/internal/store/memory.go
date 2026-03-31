@@ -173,7 +173,7 @@ func NewStore(cfg *config.Config) (StoreInterface, error) {
 	switch storeType {
 	case StoreMemory, "":
 		return NewMemoryStore()
-	case StoreSQLite, "sqlite":
+	case StoreSQLite:
 		return NewSQLiteStore(cfg)
 	default:
 		return nil, fmt.Errorf("unsupported store type: %s", storeType)

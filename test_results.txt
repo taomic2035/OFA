@@ -1,0 +1,241 @@
+go: downloading go1.25.0 (windows/amd64)
+# github.com/ofa/center/pkg/ai
+found packages distributed (distributed.go) and ai (handlers.go) in D:\vibecoding\OFA\src\center\pkg\ai
+FAIL	github.com/ofa/center/pkg/ai [setup failed]
+# github.com/ofa/center/pkg/federated
+found packages federated (learning.go) and securefl (secure.go) in D:\vibecoding\OFA\src\center\pkg\federated
+FAIL	github.com/ofa/center/pkg/federated [setup failed]
+# github.com/ofa/center/internal/store
+internal\store\memory.go:176:20: duplicate case "sqlite" (constant of string type StoreType) in expression switch
+	internal\store\memory.go:176:7: previous case
+internal\store\sqlite.go:389:19: msg.Type undefined (type *models.Message has no field or method Type)
+internal\store\sqlite.go:390:36: msg.Status undefined (type *models.Message has no field or method Status)
+internal\store\sqlite.go:410:18: msg.Type undefined (type models.Message has no field or method Type)
+internal\store\sqlite.go:411:36: msg.Status undefined (type models.Message has no field or method Status)
+internal\store\sqlite.go:411:59: msg.CreatedAt undefined (type models.Message has no field or method CreatedAt)
+# github.com/ofa/center/pkg/audit
+pkg\audit\security.go:20:6: AuditConfig redeclared in this block
+	pkg\audit\logger.go:123:6: other declaration of AuditConfig
+pkg\audit\security.go:32:6: AuditReport redeclared in this block
+	pkg\audit\logger.go:513:6: other declaration of AuditReport
+pkg\audit\security.go:138:12: config.Timeout undefined (type AuditConfig has no field or method Timeout)
+pkg\audit\security.go:139:10: config.Timeout undefined (type AuditConfig has no field or method Timeout)
+pkg\audit\security.go:145:20: config.Timeout undefined (type AuditConfig has no field or method Timeout)
+pkg\audit\security.go:159:3: unknown field Findings in struct literal of type AuditReport
+pkg\audit\security.go:163:15: sa.config.CheckSSL undefined (type AuditConfig has no field or method CheckSSL)
+pkg\audit\security.go:164:10: report.SSLCheck undefined (type *AuditReport has no field or method SSLCheck)
+pkg\audit\security.go:168:15: sa.config.CheckHeaders undefined (type AuditConfig has no field or method CheckHeaders)
+pkg\audit\security.go:169:10: report.HeaderCheck undefined (type *AuditReport has no field or method HeaderCheck)
+pkg\audit\security.go:169:10: too many errors
+FAIL	github.com/ofa/center/cmd/center [build failed]
+?   	github.com/ofa/center/internal/config	[no test files]
+?   	github.com/ofa/center/internal/models	[no test files]
+# github.com/ofa/center/pkg/auto
+pkg\auto\patrol.go:534:83: syntax error: missing parameter name
+# github.com/ofa/center/pkg/benchmark
+pkg\benchmark\benchmark.go:104:46: invalid operation: cannot take address of b.results.LatencyBuckets[bucket] (map index expression of type int64)
+pkg\benchmark\report.go:12:2: "sync/atomic" imported and not used
+FAIL	github.com/ofa/center/internal/scheduler [build failed]
+FAIL	github.com/ofa/center/internal/service [build failed]
+FAIL	github.com/ofa/center/internal/store [build failed]
+?   	github.com/ofa/center/pkg/assistant	[no test files]
+FAIL	github.com/ofa/center/pkg/audit [build failed]
+# github.com/ofa/center/pkg/cloud
+pkg\cloud\manager.go:6:2: "encoding/json" imported and not used
+# github.com/ofa/center/pkg/cluster
+pkg\cluster\failover.go:214:2: declared and not used: nodeInfo
+# github.com/ofa/center/pkg/codegen
+pkg\codegen\sdk.go:104:2: declared and not used: output
+pkg\codegen\sdk.go:105:21: g.generator.generator undefined (type *Generator has no field or method generator)
+pkg\codegen\sdk.go:170:2: declared and not used: output
+# github.com/ofa/center/pkg/collab
+pkg\collab\negotiator.go:119:2: StrategyVote redeclared in this block
+	pkg\collab\aggregator.go:23:2: other declaration of StrategyVote
+pkg\collab\negotiator.go:141:22: cannot use StrategyVote (constant "vote" of string type AggregationStrategy) as ResolutionStrategy value in map literal
+pkg\collab\negotiator.go:429:7: invalid case StrategyVote in switch on strategy (mismatched types AggregationStrategy and ResolutionStrategy)
+pkg\collab\negotiator.go:432:7: declared and not used: k
+pkg\collab\orchestrator.go:83:2: declared and not used: tasks
+pkg\collab\orchestrator.go:167:9: cannot use k (variable of type int) as string value in map index
+pkg\collab\orchestrator.go:179:4: declared and not used: taskInput
+pkg\collab\manager.go:7:2: "encoding/json" imported and not used
+=== RUN   TestNewJWTManager
+--- PASS: TestNewJWTManager (0.00s)
+=== RUN   TestGenerateAndValidateAccessToken
+--- PASS: TestGenerateAndValidateAccessToken (0.00s)
+=== RUN   TestGenerateAndValidateRefreshToken
+--- PASS: TestGenerateAndValidateRefreshToken (0.00s)
+=== RUN   TestValidateAccessTokenWithRefreshToken
+--- PASS: TestValidateAccessTokenWithRefreshToken (0.00s)
+=== RUN   TestValidateRefreshTokenWithAccessToken
+--- PASS: TestValidateRefreshTokenWithAccessToken (0.00s)
+=== RUN   TestGenerateTokenPair
+--- PASS: TestGenerateTokenPair (0.00s)
+=== RUN   TestRefreshAccessToken
+--- PASS: TestRefreshAccessToken (0.00s)
+=== RUN   TestInvalidToken
+--- PASS: TestInvalidToken (0.00s)
+=== RUN   TestCustomConfig
+--- PASS: TestCustomConfig (0.00s)
+PASS
+ok  	github.com/ofa/center/pkg/auth	1.587s
+FAIL	github.com/ofa/center/pkg/auto [build failed]
+FAIL	github.com/ofa/center/pkg/benchmark [build failed]
+# github.com/ofa/center/pkg/decentralized
+pkg\decentralized\trust.go:88:2: AlgorithmWeighted redeclared in this block
+	pkg\decentralized\consensus.go:30:2: other declaration of AlgorithmWeighted
+pkg\decentralized\trust.go:106:14: cannot use AlgorithmWeighted (constant "weighted" of string type ConsensusAlgorithm) as TrustAlgorithm value in struct literal
+pkg\decentralized\trust.go:213:7: invalid case AlgorithmWeighted in switch on tm.algorithm (mismatched types ConsensusAlgorithm and TrustAlgorithm)
+pkg\decentralized\sync.go:18:15: undefined: ConflictResolver
+pkg\decentralized\sync.go:86:16: undefined: NewConflictResolver
+pkg\decentralized\sync.go:168:9: declared and not used: targetNode
+pkg\decentralized\sync.go:259:53: undefined: ConflictType
+pkg\decentralized\manager.go:272:65: not enough arguments in call to m.consensus.CreateProposal
+	have (string, *DistributedTask, string)
+	want (string, string, interface{}, string)
+pkg\decentralized\peer.go:185:2: declared and not used: conn
+pkg\decentralized\replication.go:180:3: declared and not used: complete
+pkg\decentralized\trust.go:213:7: too many errors
+# github.com/ofa/center/pkg/config
+pkg\config\etcd.go:557:10: service.LeaseID undefined (type *ServiceNode has no field or method LeaseID)
+pkg\config\etcd.go:565:23: cannot use lease.ID (variable of int64 type clientv3.LeaseID) as int64 value in argument to ec.keepAlive
+# github.com/ofa/center/pkg/edge
+pkg\edge\preprocess.go:4:2: "encoding/json" imported and not used
+pkg\edge\preprocess.go:7:2: "image" imported and not used
+pkg\edge\preprocess.go:10:2: "io" imported and not used
+pkg\edge\preprocess.go:11:2: "os" imported and not used
+pkg\edge\preprocess.go:12:2: "path/filepath" imported and not used
+# github.com/ofa/center/pkg/cache
+pkg\cache\redis.go:138:3: unknown field IdleTimeout in struct literal of type redis.Options
+pkg\cache\redis.go:619:9: declared and not used: line
+FAIL	github.com/ofa/center/pkg/cache [build failed]
+FAIL	github.com/ofa/center/pkg/cloud [build failed]
+FAIL	github.com/ofa/center/pkg/cluster [build failed]
+FAIL	github.com/ofa/center/pkg/codegen [build failed]
+FAIL	github.com/ofa/center/pkg/collab [build failed]
+FAIL	github.com/ofa/center/pkg/config [build failed]
+FAIL	github.com/ofa/center/pkg/decentralized [build failed]
+FAIL	github.com/ofa/center/pkg/edge [build failed]
+# github.com/ofa/center/pkg/market
+pkg\market\version.go:282:6: declared and not used: pre
+# github.com/ofa/center/pkg/ha
+pkg\ha\backup.go:9:2: "io" imported and not used
+pkg\ha\backup.go:463:2: declared and not used: backup
+pkg\ha\mesh.go:7:2: "errors" imported and not used
+pkg\ha\mesh.go:445:2: declared and not used: policy
+pkg\ha\canary.go:6:2: "encoding/json" imported and not used
+pkg\ha\multidc.go:6:2: "encoding/json" imported and not used
+# github.com/ofa/center/pkg/llm
+pkg\llm\agent.go:216:2: declared and not used: tools
+pkg\llm\service.go:123:35: cannot use chatReq (variable of type *ChatRequest) as []Message value in argument to s.manager.Chat
+pkg\llm\service.go:363:2: declared and not used: httpReq
+# github.com/ofa/center/pkg/openapi
+pkg\openapi\generator.go:186:6: syntax error: unexpected keyword map, expected name
+# github.com/ofa/center/pkg/nlp
+pkg\nlp\dialog.go:378:3: cannot use EntityTaskID (constant "task_id" of string type EntityType) as string value in map literal
+pkg\nlp\dialog.go:379:3: cannot use EntitySkillName (constant "skill_name" of string type EntityType) as string value in map literal
+pkg\nlp\dialog.go:380:3: cannot use EntityParameter (constant "parameter" of string type EntityType) as string value in map literal
+pkg\nlp\dialog.go:384:3: cannot use EntitySkillName (constant "skill_name" of string type EntityType) as string value in map literal
+# github.com/ofa/center/pkg/observability
+pkg\observability\alerting.go:260:25: cannot use value (variable of type interface{}) as float64 value in assignment: need type assertion
+pkg\observability\alerting.go:261:8: rule.LastEvalAt undefined (type *AlertRule has no field or method LastEvalAt)
+pkg\observability\alerting.go:264:36: cannot use value (variable of type interface{}) as float64 value in argument to m.checkThreshold: need type assertion
+pkg\observability\alerting.go:267:30: cannot use value (variable of type interface{}) as float64 value in argument to m.handleFiring: need type assertion
+# github.com/ofa/center/pkg/plugin
+pkg\plugin\loader.go:83:6: declared and not used: data
+pkg\plugin\loader.go:84:6: declared and not used: checksum
+pkg\plugin\manager.go:224:30: cannot use config.PluginDir (variable of type string) as LoaderConfig value in argument to NewPluginLoader
+=== RUN   TestNewError
+--- PASS: TestNewError (0.00s)
+=== RUN   TestWithCause
+--- PASS: TestWithCause (0.00s)
+=== RUN   TestWithDetails
+--- PASS: TestWithDetails (0.00s)
+=== RUN   TestIs
+--- PASS: TestIs (0.00s)
+=== RUN   TestGetCode
+--- PASS: TestGetCode (0.00s)
+=== RUN   TestWrap
+--- PASS: TestWrap (0.00s)
+=== RUN   TestToJSON
+--- PASS: TestToJSON (0.00s)
+=== RUN   TestPredefinedErrors
+--- PASS: TestPredefinedErrors (0.00s)
+=== RUN   TestUnwrap
+--- PASS: TestUnwrap (0.00s)
+PASS
+ok  	github.com/ofa/center/pkg/errors	1.156s
+FAIL	github.com/ofa/center/pkg/grpc [build failed]
+FAIL	github.com/ofa/center/pkg/ha [build failed]
+FAIL	github.com/ofa/center/pkg/llm [build failed]
+FAIL	github.com/ofa/center/pkg/market [build failed]
+# github.com/ofa/center/pkg/metrics
+# [github.com/ofa/center/pkg/metrics]
+pkg\metrics\metrics.go:234:48: conversion from int to string yields a string of one rune, not a string of digits
+pkg\metrics\metrics.go:235:50: conversion from int to string yields a string of one rune, not a string of digits
+# github.com/ofa/center/pkg/rbac
+pkg\rbac\manager.go:453:2: declared and not used: role
+# github.com/ofa/center/pkg/messaging
+pkg\messaging\p2p.go:481:4: declared and not used: msg
+pkg\messaging\queue.go:251:2: declared and not used: msg
+pkg\messaging\queue.go:256:49: cannot use ackHandler (variable of type func(guid string, err error)) as nats.PubOpt value in argument to nm.js.PublishAsync: func(guid string, err error) does not implement nats.PubOpt (missing method configurePublish)
+pkg\messaging\queue.go:265:9: cannot use guid (variable of interface type nats.PubAckFuture) as string value in return statement
+pkg\messaging\queue.go:288:6: declared and not used: sub
+pkg\messaging\queue.go:293:3: declared and not used: start
+pkg\messaging\queue.go:302:21: msg.Redelivered undefined (type *nats.Msg has no field or method Redelivered)
+pkg\messaging\queue.go:408:2: declared and not used: sub
+pkg\messaging\queue.go:495:23: cannot use ch (variable of type chan *nats.StreamInfo) as nats.JSOpt value in argument to nm.js.Streams: chan *nats.StreamInfo does not implement nats.JSOpt (missing method configureJSContext)
+pkg\messaging\queue.go:497:15: cannot use err (variable of type <-chan *nats.StreamInfo) as error value in return statement: <-chan *nats.StreamInfo does not implement error (missing method Error)
+pkg\messaging\queue.go:497:15: too many errors
+FAIL	github.com/ofa/center/pkg/messaging [build failed]
+FAIL	github.com/ofa/center/pkg/metrics [build failed]
+FAIL	github.com/ofa/center/pkg/nlp [build failed]
+FAIL	github.com/ofa/center/pkg/observability [build failed]
+FAIL	github.com/ofa/center/pkg/openapi [build failed]
+?   	github.com/ofa/center/pkg/performance	[no test files]
+FAIL	github.com/ofa/center/pkg/plugin [build failed]
+FAIL	github.com/ofa/center/pkg/rbac [build failed]
+FAIL	github.com/ofa/center/pkg/rest [build failed]
+# github.com/ofa/center/pkg/scenario [github.com/ofa/center/pkg/scenario.test]
+pkg\scenario\validator.go:143:42: invalid character U+003F '?'
+pkg\scenario\validator.go:143:44: syntax error: unexpected literal "passed" at end of statement
+pkg\scenario\validator.go:280:42: invalid character U+003F '?'
+pkg\scenario\validator.go:280:44: syntax error: unexpected literal "passed" at end of statement
+pkg\scenario\validator.go:373:42: invalid character U+003F '?'
+pkg\scenario\validator.go:373:44: syntax error: unexpected literal "passed" at end of statement
+pkg\scenario\validator.go:460:42: invalid character U+003F '?'
+pkg\scenario\validator.go:460:44: syntax error: unexpected literal "passed" at end of statement
+FAIL	github.com/ofa/center/pkg/scenario [build failed]
+# github.com/ofa/center/pkg/smart
+pkg\smart\scheduler.go:443:36: invalid character U+003F '?'
+pkg\smart\scheduler.go:443:38: syntax error: unexpected name agentScores at end of statement
+# github.com/ofa/center/pkg/security
+pkg\security\e2e.go:171:37: cannot use ellipticP256() (value of type interface{}) as elliptic.Curve value in argument to ecdsa.GenerateKey: interface{} does not implement elliptic.Curve (missing method Add)
+pkg\security\kms.go:11:2: "errors" imported and not used
+FAIL	github.com/ofa/center/pkg/security [build failed]
+FAIL	github.com/ofa/center/pkg/smart [build failed]
+# github.com/ofa/center/pkg/stream
+pkg\stream\manager.go:8:2: "io" imported and not used
+pkg\stream\manager.go:519:2: declared and not used: stream
+# github.com/ofa/center/pkg/workflow
+pkg\workflow\scheduler.go:163:15: invalid operation: workflowID + "-" + trigger.Type (mismatched types string and TriggerType)
+# github.com/ofa/center/pkg/store
+pkg\store\postgres.go:209:9: multiple-value ps.db.ExecContext(ctx, query, id, data) (value of type (sql.Result, error)) in single-value context
+pkg\store\postgres.go:257:9: multiple-value ps.db.ExecContext(ctx, query, id) (value of type (sql.Result, error)) in single-value context
+pkg\store\postgres.go:300:9: multiple-value ps.db.ExecContext(ctx, query, id, data) (value of type (sql.Result, error)) in single-value context
+pkg\store\postgres.go:361:9: multiple-value ps.db.ExecContext(ctx, query, id) (value of type (sql.Result, error)) in single-value context
+pkg\store\postgres.go:583:9: multiple-value ps.db.ExecContext(ctx, sql, args...) (value of type (sql.Result, error)) in single-value context
+pkg\store\postgres.go:590:19: row.Columns undefined (type *sql.Row has no field or method Columns)
+pkg\store\postgres.go:712:2: declared and not used: query
+pkg\store\agent_store.go:10:2: "math" imported and not used
+FAIL	github.com/ofa/center/pkg/store [build failed]
+FAIL	github.com/ofa/center/pkg/stream [build failed]
+?   	github.com/ofa/center/pkg/tenant	[no test files]
+?   	github.com/ofa/center/pkg/transfer	[no test files]
+?   	github.com/ofa/center/pkg/version	[no test files]
+# github.com/ofa/center/pkg/wasm
+pkg\wasm\runtime.go:122:3: wazero.NewModuleConfig().WithName(skill.ID).WithMemoryLimitPages undefined (type wazero.ModuleConfig has no field or method WithMemoryLimitPages)
+pkg\wasm\runtime.go:238:25: w.runtime.Context undefined (type wazero.Runtime has no field or method Context)
+FAIL	github.com/ofa/center/pkg/wasm [build failed]
+FAIL	github.com/ofa/center/pkg/workflow [build failed]
+?   	github.com/ofa/center/proto	[no test files]
+FAIL
