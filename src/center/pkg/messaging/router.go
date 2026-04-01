@@ -195,7 +195,6 @@ func (mr *MessageRouter) Route(ctx context.Context, msg *Message) error {
 	}
 
 	// 执行路由动作
-	start := time.Now()
 	err := mr.executeAction(ctx, msg, rule)
 
 	// 更新统计

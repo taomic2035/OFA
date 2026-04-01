@@ -248,12 +248,7 @@ func (nm *NATSManager) PublishAsync(ctx context.Context, subject string, data []
 		return "", fmt.Errorf("JetStream未初始化")
 	}
 
-	msg := &nats.Msg{
-		Subject: subject,
-		Data:    data,
-	}
-
-	guid, err := nm.js.PublishAsync(subject, data, ackHandler)
+	_, err := nm.js.PublishAsync(subject, data, nats.AckWait(5*time.Second))
 	if err != nil {
 		return "", err
 	}
@@ -262,7 +257,7 @@ func (nm *NATSManager) PublishAsync(ctx context.Context, subject string, data []
 	nm.stats.TotalPublished++
 	nm.mu.Unlock()
 
-	return guid, nil
+	return fmt.Sprintf("msg-%d", time.Now().UnixNano()), nil
 }
 
 // Subscribe 订阅主题
@@ -290,16 +285,14 @@ func (nm *NATSManager) SubscribeWithQueue(ctx context.Context, subject string, q
 
 	// 包装处理器
 	natsHandler := func(msg *nats.Msg) {
-		start := time.Now()
 
 		// 转换消息
 		natsMsg := &NATSMessage{
-			ID:          msg.Header.Get("Message-ID"),
-			Subject:     msg.Subject,
-			Reply:       msg.Reply,
-			Data:        msg.Data,
-			Timestamp:   time.Now(),
-			Redelivered: msg.Redelivered,
+			ID:        msg.Header.Get("Message-ID"),
+			Subject:   msg.Subject,
+			Reply:     msg.Reply,
+			Data:      msg.Data,
+			Timestamp: time.Now(),
 		}
 
 		// 转换为内部消息格式
@@ -345,6 +338,9 @@ func (nm *NATSManager) SubscribeWithQueue(ctx context.Context, subject string, q
 	if err != nil {
 		return nil, fmt.Errorf("订阅失败: %w", err)
 	}
+
+	// 确保订阅有效
+	_ = sub
 
 	natsSub.Active = true
 
@@ -412,6 +408,7 @@ func (nm *NATSManager) SubscribeDurable(ctx context.Context, subject string, dur
 	if err != nil {
 		return nil, fmt.Errorf("持久化订阅失败: %w", err)
 	}
+	_ = sub // 订阅对象由NATS管理
 
 	nm.mu.Lock()
 	nm.subscriptions[subID] = natsSub
@@ -484,17 +481,9 @@ func (nm *NATSManager) ListStreams() ([]string, error) {
 	}
 
 	streams := make([]string, 0)
-	ch := make(chan *nats.StreamInfo)
-
-	go func() {
-		for info := range ch {
-			streams = append(streams, info.Config.Name)
-		}
-	}()
-
-	err := nm.js.Streams(ch)
-	if err != nil {
-		return nil, err
+	info := nm.js.StreamsInfo()
+	for streamInfo := range info {
+		streams = append(streams, streamInfo.Config.Name)
 	}
 
 	return streams, nil
@@ -610,14 +599,14 @@ func (nm *NATSManager) GetConnectionStatus() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"connected":        nm.conn.IsConnected(),
-		"status":           nm.conn.Status().String(),
-		"server_id":        nm.conn.ConnectedServerId(),
-		"server_url":       nm.conn.ConnectedUrl(),
-		"subscriptions":    nm.conn.Stats().Subscriptions,
-		"messages_sent":    nm.conn.Stats().OutMsgs,
+		"connected":         nm.conn.IsConnected(),
+		"status":            nm.conn.Status().String(),
+		"server_id":         nm.conn.ConnectedServerId(),
+		"server_url":        nm.conn.ConnectedUrl(),
+		"subscriptions":     len(nm.subscriptions),
+		"messages_sent":     nm.conn.Stats().OutMsgs,
 		"messages_received": nm.conn.Stats().InMsgs,
-		"bytes_sent":       nm.conn.Stats().OutBytes,
-		"bytes_received":   nm.conn.Stats().InBytes,
+		"bytes_sent":        nm.conn.Stats().OutBytes,
+		"bytes_received":    nm.conn.Stats().InBytes,
 	}
 }

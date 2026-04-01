@@ -118,7 +118,7 @@ func (e *Engine) loadDefaultRules() {
 			ID:        "allow_task_collab",
 			Name:      "允许任务协作",
 			Category:  ActionTaskCollaboration,
-			Pattern:   `task\.(submit|execute|cancel|query)`,
+			Pattern:   `task\.(submit|execute|cancel|query|collaboration)`,
 			Allowed:   true,
 			OfflineOK: true,
 			P2POK:     true,
@@ -129,6 +129,16 @@ func (e *Engine) loadDefaultRules() {
 			Name:      "允许技能调用",
 			Category:  ActionSkillInvocation,
 			Pattern:   `skill\.(execute|query|list)`,
+			Allowed:   true,
+			OfflineOK: true,
+			P2POK:     true,
+			Priority:  100,
+		},
+		{
+			ID:        "allow_skill_local",
+			Name:      "允许本地技能",
+			Category:  ActionSkillInvocation,
+			Pattern:   `skill\.execute\.local`,
 			Allowed:   true,
 			OfflineOK: true,
 			P2POK:     true,
@@ -149,6 +159,16 @@ func (e *Engine) loadDefaultRules() {
 			Name:      "允许心跳检测",
 			Category:  ActionHeartbeat,
 			Pattern:   `heartbeat\.(ping|pong)`,
+			Allowed:   true,
+			OfflineOK: true,
+			P2POK:     true,
+			Priority:  100,
+		},
+		{
+			ID:        "allow_data_transfer",
+			Name:      "允许数据传输",
+			Category:  ActionDataTransfer,
+			Pattern:   `data\.transfer`,
 			Allowed:   true,
 			OfflineOK: true,
 			P2POK:     true,
@@ -321,11 +341,32 @@ func (e *Engine) Check(ctx context.Context, action string, data []byte, opts ...
 // checkSensitiveData 检查敏感数据
 func (e *Engine) checkSensitiveData(data []byte) []ConstraintType {
 	var violations []ConstraintType
+	seen := make(map[ConstraintType]bool)
 
 	dataStr := string(data)
+
+	// 优先检查银行卡号（使用JSON字段上下文匹配，排除idcard）
+	// 银行卡号字段：card, bankcard, bank_card, bankCard 等
+	bankCardRegex := regexp.MustCompile(`"(card|bankcard|bank_card|bankCard)"\s*:\s*"\d{16,19}"`)
+	if bankCardRegex.MatchString(dataStr) {
+		if !seen[ConstraintFinancial] {
+			violations = append(violations, ConstraintFinancial)
+			seen[ConstraintFinancial] = true
+		}
+	}
+
+	// 然后检查其他敏感模式
 	for _, sp := range e.sensitivePatterns {
+		// 跳过BankCard，已经单独处理
+		if sp.Name == "BankCard" {
+			continue
+		}
+
 		if sp.Pattern.MatchString(dataStr) {
-			violations = append(violations, sp.Type)
+			if !seen[sp.Type] {
+				violations = append(violations, sp.Type)
+				seen[sp.Type] = true
+			}
 		}
 	}
 

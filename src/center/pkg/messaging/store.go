@@ -358,7 +358,7 @@ func (ms *MessageStore) matchQuery(msg *StoredMessage, query MessageQuery) bool 
 	if query.CreatedAfter != nil && msg.CreatedAt.Before(*query.CreatedAfter) {
 		return false
 	}
-	if query.CreatedBefore != nil && msg.CreatedAfter(*query.CreatedBefore) {
+	if query.CreatedBefore != nil && msg.CreatedAt.After(*query.CreatedBefore) {
 		return false
 	}
 

@@ -143,6 +143,7 @@ type P2PManager struct {
 	mu            sync.RWMutex
 	wg            sync.WaitGroup
 	notifyFunc    func(msg *Message)
+	cancel        context.CancelFunc // 取消函数
 }
 
 // MessageHandler 消息处理函数
@@ -169,11 +170,16 @@ func (pm *P2PManager) Start(ctx context.Context) error {
 	pm.running = true
 	pm.mu.Unlock()
 
+	// 创建可取消的上下文
+	ctx, cancel := context.WithCancel(ctx)
+	pm.cancel = cancel
+
 	// 启动监听
 	if pm.config.LocalAddress != "" {
 		addr := fmt.Sprintf("%s:%d", pm.config.LocalAddress, pm.config.Port)
 		listener, err := net.Listen("tcp", addr)
 		if err != nil {
+			cancel()
 			return fmt.Errorf("监听失败: %w", err)
 		}
 		pm.listener = listener
@@ -205,6 +211,11 @@ func (pm *P2PManager) Stop() error {
 	pm.running = false
 	pm.mu.Unlock()
 
+	// 取消上下文以停止所有goroutine
+	if pm.cancel != nil {
+		pm.cancel()
+	}
+
 	// 关闭监听
 	if pm.listener != nil {
 		pm.listener.Close()
@@ -217,7 +228,10 @@ func (pm *P2PManager) Stop() error {
 		}
 	}
 
+	// 等待所有goroutine完成
 	pm.wg.Wait()
+
+	// 关闭通道
 	close(pm.messageQueue)
 	close(pm.ackQueue)
 
@@ -478,8 +492,7 @@ func (pm *P2PManager) processAcks(ctx context.Context) {
 			}
 
 			pm.mu.Lock()
-			msg, ok := pm.pendingAcks[ack.MessageID]
-			if ok {
+			if _, exists := pm.pendingAcks[ack.MessageID]; exists {
 				delete(pm.pendingAcks, ack.MessageID)
 				// 可以触发回调
 			}
