@@ -31,14 +31,15 @@
 
 | 任务 | 文件 | 状态 |
 |------|------|------|
-| 头文件定义 | `include/ofa/agent.h` | ✅ 完成 |
+| 头文件定义 | `include/ofa/agent.h` | ✅ 完成 (含所有新增接口) |
 | Agent核心实现 | `core/agent.cpp` | ✅ 完成 |
-| 连接管理 | `core/connection.cpp` | 待开始 |
-| 本地调度器 | `core/local_scheduler.cpp` | 待开始 |
-| 离线缓存 | `core/offline_cache.cpp` | 待开始 |
-| NAPI接口层 | `napi/agent_napi.cpp` | 待开始 |
-| 设备发现 | `p2p/discovery.cpp` | 待开始 |
-| 构建配置 | `BUILD.gn` | 待开始 |
+| 连接管理 | `core/connection.cpp` | ✅ 完成 |
+| 本地调度器 | `core/local_scheduler.cpp` | ✅ 完成 |
+| 离线缓存 | `core/offline_cache.cpp` | ✅ 完成 |
+| NAPI接口层 | `napi/agent_napi.cpp` | ✅ 完成 (骨架) |
+| 设备发现 | `p2p/discovery.cpp` | ✅ 完成 |
+| 内置离线技能 | `skills/builtin.cpp` | ✅ 完成 |
+| 构建配置 | `BUILD.gn` | ✅ 完成 |
 
 ### 1.2 Go Agent SDK 离线增强
 

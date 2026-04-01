@@ -159,9 +159,10 @@ Phase 4: 集成验证
 
 ## 当前进度
 
-**Phase**: Phase 1 完成，开始 SDK 补齐
-**已完成**: 约束引擎测试 (18 tests), 本地调度器测试 (22 tests), P2P通信测试 (18 tests)
-**下一个任务**: SDK 平台补齐 (见 SDK_ROADMAP.md)
+**Phase**: Phase 1 完成，Phase 2 SDK开发进行中
+**已完成**: 约束引擎测试 (18 tests), 本地调度器测试 (22 tests), P2P通信测试 (18 tests), 离线模式测试 (5 tests)
+**OpenHarmony SDK**: ✅ 核心实现完成 (agent, connection, scheduler, cache, napi, p2p, skills)
+**下一个任务**: Python SDK 离线增强
 
 ---
 

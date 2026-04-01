@@ -1,0 +1,157 @@
+# OpenHarmony OFA SDK Build Configuration
+# GN build system for HarmonyOS
+
+import("//build/ohos.gni")
+
+# OFA Agent Core Library
+ohos_shared_library("ofa_agent") {
+  sources = [
+    "core/agent.cpp",
+    "core/connection.cpp",
+    "core/local_scheduler.cpp",
+    "core/offline_cache.cpp",
+    "skills/builtin.cpp",
+  ]
+
+  include_dirs = [
+    "include",
+    "//third_party/json/include",
+  ]
+
+  deps = [
+    "//third_party/json:json_static",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "distributedsoftbus:dsoftbus_sdk",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility=hidden",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+  ]
+
+  defines = [
+    "OFA_SDK_VERSION=\"0.9.0\"",
+  ]
+
+  subsystem_name = "ofa"
+  part_name = "ofa_sdk"
+}
+
+# NAPI Interface Library (for ArkTS/JS)
+ohos_shared_library("ofa_napi") {
+  sources = [
+    "napi/agent_napi.cpp",
+    "core/agent.cpp",
+    "core/connection.cpp",
+    "core/local_scheduler.cpp",
+    "core/offline_cache.cpp",
+    "skills/builtin.cpp",
+  ]
+
+  include_dirs = [
+    "include",
+    "//third_party/json/include",
+  ]
+
+  deps = [
+    "//third_party/json:json_static",
+  ]
+
+  external_deps = [
+    "ace_napi:napi",
+    "hiviewdfx_hilog_native:libhilog",
+    "distributedsoftbus:dsoftbus_sdk",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility=hidden",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+  ]
+
+  defines = [
+    "OFA_SDK_VERSION=\"0.9.0\"",
+    "NAPI_ENABLED",
+  ]
+
+  subsystem_name = "ofa"
+  part_name = "ofa_sdk"
+}
+
+# P2P Discovery Library
+ohos_shared_library("ofa_p2p") {
+  sources = [
+    "p2p/discovery.cpp",
+  ]
+
+  include_dirs = [
+    "include",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "distributedsoftbus:dsoftbus_sdk",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility=hidden",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+  ]
+
+  subsystem_name = "ofa"
+  part_name = "ofa_sdk"
+}
+
+# Test executable
+ohos_executable("ofa_test") {
+  sources = [
+    "tests/test_main.cpp",
+    "tests/test_agent.cpp",
+    "tests/test_offline.cpp",
+    "tests/test_p2p.cpp",
+  ]
+
+  include_dirs = [
+    "include",
+    "tests",
+  ]
+
+  deps = [
+    ":ofa_agent",
+    ":ofa_p2p",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-Wall",
+    "-Wextra",
+  ]
+
+  subsystem_name = "ofa"
+  part_name = "ofa_sdk"
+}
+
+# All targets group
+group("ofa_all") {
+  deps = [
+    ":ofa_agent",
+    ":ofa_napi",
+    ":ofa_p2p",
+    ":ofa_test",
+  ]
+}
