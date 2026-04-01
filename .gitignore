@@ -95,6 +95,9 @@ logs/
 err.txt
 out.txt
 
+# Build directory
+build/
+
 # Temporary scripts (keep scripts/ folder for official scripts)
 check_git.bat
 commit_v1.bat
@@ -102,6 +105,17 @@ git_push.bat
 do_push.bat
 test_build.bat
 test_build.sh
+start-dashboard.bat
+check_git.ps1
+do_commit.ps1
+check_status.ps1
+prepare_commit.ps1
+do_push.ps1
+git_push.ps1
+git_push_final.ps1
+
+# Duplicate configs (keep root configs/)
+src/center/configs/
 
 # Database
 *.db
