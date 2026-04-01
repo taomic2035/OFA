@@ -94,6 +94,7 @@ logs/
 *_version.txt
 err.txt
 out.txt
+DvibecodingOFAgit_output.txt
 
 # Build directory
 build/
