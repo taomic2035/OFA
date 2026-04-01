@@ -86,6 +86,23 @@ yarn-error.log*
 logs/
 *.log
 
+# Build/test output files
+*_output.txt
+*_build.txt
+*_test.txt
+*_results.txt
+*_version.txt
+err.txt
+out.txt
+
+# Temporary scripts (keep scripts/ folder for official scripts)
+check_git.bat
+commit_v1.bat
+git_push.bat
+do_push.bat
+test_build.bat
+test_build.sh
+
 # Database
 *.db
 *.sqlite
