@@ -58,6 +58,13 @@ dependencies {
     // JSON
     implementation 'com.google.code.gson:gson:2.10.1'
 
+    // TensorFlow Lite (本地 LLM)
+    implementation 'org.tensorflow:tensorflow-lite:2.14.0'
+    implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
+
+    // OkHttp (云端 LLM HTTP 客户端)
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
     // Testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

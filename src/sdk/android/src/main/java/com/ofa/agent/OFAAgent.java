@@ -21,6 +21,12 @@ import com.ofa.agent.ai.ToolCallingAdapter;
 import com.ofa.agent.constraint.ConstraintChecker;
 import com.ofa.agent.grpc.AgentGrpc;
 import com.ofa.agent.grpc.AgentOuterClass;
+import com.ofa.agent.llm.LLMConfig;
+import com.ofa.agent.llm.LLMProvider;
+import com.ofa.agent.llm.cloud.CloudLLMProvider;
+import com.ofa.agent.llm.local.LocalLLMProvider;
+import com.ofa.agent.llm.orchestrator.LLMOrchestrator;
+import com.ofa.agent.llm.tool.LLMChatTool;
 import com.ofa.agent.mcp.MCPServer;
 import com.ofa.agent.mcp.MCPServerImpl;
 import com.ofa.agent.mcp.ToolDefinition;
@@ -79,6 +85,10 @@ public class OFAAgent {
     private OfflineManager offlineManager;
     private ToolCallingAdapter aiAdapter;
 
+    // LLM
+    private LLMProvider llmProvider;
+    private LLMOrchestrator llmOrchestrator;
+
     // State
     private volatile boolean connected = false;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -122,6 +132,13 @@ public class OFAAgent {
         private OfflineLevel offlineLevel = OfflineLevel.L4;
         private boolean enableTools = true;
 
+        // LLM 配置
+        private LLMProvider llmProvider;
+        private LLMProvider fallbackLLMProvider;
+        private LLMConfig cloudLLMConfig;
+        private LLMConfig localLLMConfig;
+        private boolean autoLLMFailover = true;
+
         public Builder(Context context) {
             this.context = context.getApplicationContext();
         }
@@ -161,6 +178,72 @@ public class OFAAgent {
             return this;
         }
 
+        // ===== LLM 配置方法 =====
+
+        /**
+         * 设置云端 LLM 提供者
+         */
+        public Builder llmProvider(LLMProvider provider) {
+            this.llmProvider = provider;
+            return this;
+        }
+
+        /**
+         * 设置备用 LLM 提供者 (通常用于离线)
+         */
+        public Builder fallbackLLMProvider(LLMProvider provider) {
+            this.fallbackLLMProvider = provider;
+            return this;
+        }
+
+        /**
+         * 配置云端 LLM (便捷方法)
+         */
+        public Builder cloudLLM(String endpoint, String apiKey, String model) {
+            this.cloudLLMConfig = new LLMConfig.Builder()
+                    .providerType(LLMProvider.ProviderType.CLOUD)
+                    .endpoint(endpoint)
+                    .apiKey(apiKey)
+                    .model(model)
+                    .build();
+            return this;
+        }
+
+        /**
+         * 配置云端 LLM (完整配置)
+         */
+        public Builder cloudLLM(LLMConfig config) {
+            this.cloudLLMConfig = config;
+            return this;
+        }
+
+        /**
+         * 配置本地 LLM (便捷方法)
+         */
+        public Builder localLLM(String modelPath) {
+            this.localLLMConfig = new LLMConfig.Builder()
+                    .providerType(LLMProvider.ProviderType.LOCAL)
+                    .modelPath(modelPath)
+                    .build();
+            return this;
+        }
+
+        /**
+         * 配置本地 LLM (完整配置)
+         */
+        public Builder localLLM(LLMConfig config) {
+            this.localLLMConfig = config;
+            return this;
+        }
+
+        /**
+         * 启用/禁用自动 LLM 故障转移
+         */
+        public Builder autoLLMFailover(boolean enable) {
+            this.autoLLMFailover = enable;
+            return this;
+        }
+
         public OFAAgent build() {
             if (agentId == null) {
                 agentId = UUID.randomUUID().toString();
@@ -191,9 +274,53 @@ public class OFAAgent {
         // Register built-in skills
         registerBuiltInSkills();
 
+        // Initialize LLM
+        initializeLLM(builder);
+
         // Initialize MCP & Tools if enabled
         if (builder.enableTools) {
             initializeTools(builder.offlineLevel);
+        }
+    }
+
+    /**
+     * Initialize LLM providers
+     */
+    private void initializeLLM(Builder builder) {
+        // 如果直接提供了提供者
+        if (builder.llmProvider != null) {
+            this.llmProvider = builder.llmProvider;
+            if (builder.fallbackLLMProvider != null) {
+                llmOrchestrator = new LLMOrchestrator();
+                llmOrchestrator.setPrimaryProvider(builder.llmProvider);
+                llmOrchestrator.setFallbackProvider(builder.fallbackLLMProvider);
+                llmOrchestrator.setAutoFailover(builder.autoLLMFailover);
+                this.llmProvider = llmOrchestrator;
+            }
+            return;
+        }
+
+        // 从配置创建
+        boolean hasCloud = builder.cloudLLMConfig != null;
+        boolean hasLocal = builder.localLLMConfig != null;
+
+        if (hasCloud || hasLocal) {
+            llmOrchestrator = new LLMOrchestrator();
+            llmOrchestrator.setAutoFailover(builder.autoLLMFailover);
+
+            if (hasCloud) {
+                CloudLLMProvider cloudProvider = new CloudLLMProvider(builder.cloudLLMConfig);
+                llmOrchestrator.setPrimaryProvider(cloudProvider);
+            }
+
+            if (hasLocal) {
+                LocalLLMProvider localProvider = new LocalLLMProvider(context, builder.localLLMConfig);
+                localProvider.initialize();
+                llmOrchestrator.setFallbackProvider(localProvider);
+            }
+
+            this.llmProvider = llmOrchestrator;
+            Log.i(TAG, "LLM initialized with orchestrator");
         }
     }
 
@@ -216,6 +343,19 @@ public class OFAAgent {
 
         // Register built-in tools
         BuiltInTools.registerAll(context, toolRegistry);
+
+        // Register LLM tool if available
+        if (llmProvider != null) {
+            toolRegistry.register(
+                    new com.ofa.agent.mcp.ToolDefinition(
+                            "llm.chat",
+                            "Chat with AI language model",
+                            "{}"
+                    ),
+                    new LLMChatTool(llmProvider)
+            );
+            Log.i(TAG, "LLM tool registered");
+        }
 
         // Create MCP Server
         mcpServer = new MCPServerImpl(context, toolRegistry, permissionManager, constraintChecker, offlineManager);
@@ -366,6 +506,29 @@ public class OFAAgent {
     }
 
     /**
+     * Get LLM Provider
+     */
+    @Nullable
+    public LLMProvider getLLMProvider() {
+        return llmProvider;
+    }
+
+    /**
+     * Check if LLM is available
+     */
+    public boolean hasLLM() {
+        return llmProvider != null && llmProvider.isAvailable();
+    }
+
+    /**
+     * Chat with LLM directly
+     */
+    @Nullable
+    public LLMProvider getLLM() {
+        return llmProvider;
+    }
+
+    /**
      * Call a tool by name
      */
     @NonNull
@@ -433,6 +596,10 @@ public class OFAAgent {
 
         if (aiAdapter != null) {
             aiAdapter.shutdown();
+        }
+
+        if (llmProvider != null) {
+            llmProvider.shutdown();
         }
 
         Log.i(TAG, "Agent shutdown complete");

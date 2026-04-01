@@ -1,6 +1,15 @@
 # OFA Android Agent SDK
 
-Android SDK for building OFA Agent applications with MCP (Model Context Protocol) support.
+Android SDK for building OFA Agent applications with MCP (Model Context Protocol) support and dual LLM capabilities.
+
+## Features
+
+- **Dual LLM Support**: Cloud LLM (OpenAI/Claude) + Local LLM (TensorFlow Lite)
+- **Auto Failover**: Automatic switching between cloud and local LLM
+- **Offline Capable**: Run LLM inference entirely on-device
+- **MCP Protocol**: Full Model Context Protocol support
+- **30+ Built-in Tools**: System, device, data, and AI tools
+- **P2P Communication**: Agent-to-agent messaging
 
 ## Requirements
 
@@ -20,7 +29,7 @@ dependencies {
 
 ## Quick Start
 
-### 1. Initialize Agent
+### 1. Initialize Agent with Cloud LLM
 
 ```java
 OFAAgent agent = new OFAAgent.Builder(context)
@@ -29,61 +38,87 @@ OFAAgent agent = new OFAAgent.Builder(context)
     .centerAddress("192.168.1.100")
     .centerPort(9090)
     .type(OFAAgent.AgentType.MOBILE)
-    .offlineLevel(OfflineLevel.L4)   // Set offline level
-    .enableTools(true)                // Enable MCP/Tool support
+    // Configure cloud LLM
+    .cloudLLM("https://api.openai.com/v1", "sk-xxx", "gpt-4-turbo")
     .build();
-```
-
-### 2. Connect to Center
-
-```java
-agent.setConnectionListener(new OFAAgent.ConnectionListener() {
-    @Override
-    public void onConnected() {
-        Log.i("Agent", "Connected to Center");
-    }
-
-    @Override
-    public void onDisconnected() {
-        Log.i("Agent", "Disconnected from Center");
-    }
-
-    @Override
-    public void onError(String message) {
-        Log.e("Agent", "Error: " + message);
-    }
-});
 
 agent.connect();
 ```
 
-### 3. Use MCP Tools
+### 2. Initialize with Cloud + Local LLM (Recommended)
 
 ```java
-// Call a tool directly
-Map<String, Object> args = new HashMap<>();
-args.put("operation", "capture");
-args.put("cameraId", "0");
+OFAAgent agent = new OFAAgent.Builder(context)
+    .agentId("my-android-agent")
+    .centerAddress("192.168.1.100")
+    .centerPort(9090)
+    // Cloud LLM (primary)
+    .cloudLLM("https://api.openai.com/v1", "sk-xxx", "gpt-4-turbo")
+    // Local LLM (fallback/offline)
+    .localLLM("/data/local/tmp/gemma-2b.tflite")
+    .autoLLMFailover(true)  // Auto-switch on failure
+    .offlineLevel(OfflineLevel.L4)
+    .build();
 
-ToolResult result = agent.callTool("camera.capture", args);
+agent.connect();
+```
 
-if (result.isSuccess()) {
-    String savedPath = result.getOutput().getString("savedPath");
-    Log.i("Camera", "Photo saved: " + savedPath);
+### 3. Use LLM Directly
+
+```java
+// Check LLM availability
+if (agent.hasLLM()) {
+    LLMProvider llm = agent.getLLMProvider();
+
+    // Chat
+    LLMResponse response = llm.chat("Hello, how are you?").join();
+    if (response.isSuccess()) {
+        Log.i("LLM", response.getContent());
+    }
+
+    // Stream chat
+    llm.streamChat(messages, new StreamCallback() {
+        @Override
+        public void onToken(String token) {
+            // Handle streaming token
+        }
+        @Override
+        public void onComplete(LLMResponse response) {
+            // Chat complete
+        }
+    });
 }
 ```
 
-### 4. AI Agent Integration
+### 4. Use LLM as MCP Tool
 
 ```java
-// Get AI interface for tool calling
-AIAgentInterface ai = agent.getAIAgentInterface();
+// Call LLM through tool interface
+Map<String, Object> args = new HashMap<>();
+args.put("message", "Translate 'hello' to Chinese");
+args.put("system", "You are a helpful translator");
 
-// Get tools as OpenAI functions format
-JSONArray functions = ai.getToolsAsFunctions();
+ToolResult result = agent.callTool("llm.chat", args);
+if (result.isSuccess()) {
+    JSONObject output = result.getOutput();
+    String content = output.getString("content");
+}
+```
 
-// Call tool from AI function call
-ToolResult result = ai.callTool("battery.status", new HashMap<>());
+### 5. Handle Offline Mode
+
+```java
+OfflineManager om = agent.getOfflineManager();
+
+om.addOfflineModeListener(offline -> {
+    if (offline) {
+        // Switched to local LLM automatically
+        Log.i("Agent", "Offline mode - using local LLM");
+    } else {
+        // Back online - syncing
+        om.syncNow();
+    }
+});
 ```
 
 ## MCP Tools
