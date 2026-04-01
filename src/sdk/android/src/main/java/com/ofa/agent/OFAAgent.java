@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
@@ -15,9 +16,23 @@ import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.ofa.agent.ai.AIAgentInterface;
+import com.ofa.agent.ai.ToolCallingAdapter;
+import com.ofa.agent.constraint.ConstraintChecker;
 import com.ofa.agent.grpc.AgentGrpc;
 import com.ofa.agent.grpc.AgentOuterClass;
+import com.ofa.agent.mcp.MCPServer;
+import com.ofa.agent.mcp.MCPServerImpl;
+import com.ofa.agent.mcp.ToolDefinition;
+import com.ofa.agent.offline.OfflineLevel;
+import com.ofa.agent.offline.OfflineManager;
 import com.ofa.agent.skill.SkillExecutor;
+import com.ofa.agent.tool.BuiltInTools;
+import com.ofa.agent.tool.PermissionManager;
+import com.ofa.agent.tool.ToolRegistry;
+import com.ofa.agent.tool.ToolResult;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,6 +70,14 @@ public class OFAAgent {
 
     // Skills
     private final Map<String, SkillExecutor> skills = new ConcurrentHashMap<>();
+
+    // MCP & Tools
+    private ToolRegistry toolRegistry;
+    private MCPServer mcpServer;
+    private ConstraintChecker constraintChecker;
+    private PermissionManager permissionManager;
+    private OfflineManager offlineManager;
+    private ToolCallingAdapter aiAdapter;
 
     // State
     private volatile boolean connected = false;
@@ -96,6 +119,8 @@ public class OFAAgent {
         private AgentType type = AgentType.MOBILE;
         private String centerAddress = "localhost";
         private int centerPort = 9090;
+        private OfflineLevel offlineLevel = OfflineLevel.L4;
+        private boolean enableTools = true;
 
         public Builder(Context context) {
             this.context = context.getApplicationContext();
@@ -123,6 +148,16 @@ public class OFAAgent {
 
         public Builder centerPort(int port) {
             this.centerPort = port;
+            return this;
+        }
+
+        public Builder offlineLevel(OfflineLevel level) {
+            this.offlineLevel = level;
+            return this;
+        }
+
+        public Builder enableTools(boolean enable) {
+            this.enableTools = enable;
             return this;
         }
 
@@ -155,6 +190,41 @@ public class OFAAgent {
 
         // Register built-in skills
         registerBuiltInSkills();
+
+        // Initialize MCP & Tools if enabled
+        if (builder.enableTools) {
+            initializeTools(builder.offlineLevel);
+        }
+    }
+
+    /**
+     * Initialize MCP Server and Tools
+     */
+    private void initializeTools(@NonNull OfflineLevel offlineLevel) {
+        // Create tool registry
+        toolRegistry = new ToolRegistry(context);
+
+        // Create permission manager
+        permissionManager = new PermissionManager(context);
+
+        // Create constraint checker
+        constraintChecker = new ConstraintChecker();
+
+        // Create offline manager
+        offlineManager = new OfflineManager(context, offlineLevel);
+        offlineManager.start();
+
+        // Register built-in tools
+        BuiltInTools.registerAll(context, toolRegistry);
+
+        // Create MCP Server
+        mcpServer = new MCPServerImpl(context, toolRegistry, permissionManager, constraintChecker, offlineManager);
+        ((MCPServerImpl) mcpServer).start();
+
+        // Create AI adapter
+        aiAdapter = new ToolCallingAdapter(mcpServer);
+
+        Log.i(TAG, "MCP Server initialized with " + toolRegistry.getCount() + " tools");
     }
 
     /**
@@ -267,6 +337,105 @@ public class OFAAgent {
      */
     public String getAgentId() {
         return agentId;
+    }
+
+    // ===== MCP & Tool Methods =====
+
+    /**
+     * Get MCP Server instance
+     */
+    @Nullable
+    public MCPServer getMCPServer() {
+        return mcpServer;
+    }
+
+    /**
+     * Get Tool Registry
+     */
+    @Nullable
+    public ToolRegistry getToolRegistry() {
+        return toolRegistry;
+    }
+
+    /**
+     * Get AI Agent Interface for tool calling
+     */
+    @Nullable
+    public AIAgentInterface getAIAgentInterface() {
+        return aiAdapter;
+    }
+
+    /**
+     * Call a tool by name
+     */
+    @NonNull
+    public ToolResult callTool(@NonNull String toolName, @NonNull Map<String, Object> args) {
+        if (mcpServer == null) {
+            return new ToolResult(toolName, "MCP Server not initialized");
+        }
+        return mcpServer.callTool(toolName, args);
+    }
+
+    /**
+     * Get list of available tools
+     */
+    @NonNull
+    public List<ToolDefinition> getAvailableTools() {
+        if (mcpServer == null) {
+            return new ArrayList<>();
+        }
+        return mcpServer.listTools();
+    }
+
+    /**
+     * Get Offline Manager
+     */
+    @Nullable
+    public OfflineManager getOfflineManager() {
+        return offlineManager;
+    }
+
+    /**
+     * Set offline mode
+     */
+    public void setOfflineMode(boolean offline) {
+        if (offlineManager != null) {
+            offlineManager.setOfflineMode(offline);
+        }
+        if (constraintChecker != null) {
+            constraintChecker.setOfflineMode(offline);
+        }
+    }
+
+    /**
+     * Check if in offline mode
+     */
+    public boolean isOfflineMode() {
+        if (offlineManager != null) {
+            return offlineManager.isOfflineMode();
+        }
+        return false;
+    }
+
+    /**
+     * Shutdown the agent
+     */
+    public void shutdown() {
+        disconnect();
+
+        if (mcpServer != null) {
+            mcpServer.shutdown();
+        }
+
+        if (offlineManager != null) {
+            offlineManager.stop();
+        }
+
+        if (aiAdapter != null) {
+            aiAdapter.shutdown();
+        }
+
+        Log.i(TAG, "Agent shutdown complete");
     }
 
     // ===== Private Methods =====
