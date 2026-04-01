@@ -29,6 +29,9 @@ set(OFA_SOURCES
     src/message.cpp
     src/protocol.cpp
     src/builtin.cpp
+    src/offline.cpp
+    src/p2p.cpp
+    src/constraint.cpp
 )
 
 # Library headers
@@ -41,6 +44,9 @@ set(OFA_HEADERS
     include/ofa/protocol.hpp
     include/ofa/types.hpp
     include/ofa/error.hpp
+    include/ofa/offline.hpp
+    include/ofa/p2p.hpp
+    include/ofa/constraint.hpp
 )
 
 # Create library

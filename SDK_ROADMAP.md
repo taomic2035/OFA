@@ -9,13 +9,13 @@
 
 | SDK | 语言 | 文件数 | 离线支持 | P2P支持 | 状态 |
 |-----|------|--------|----------|---------|------|
-| Go Agent | Go | 1 | ❌ | ❌ | 基础框架 |
+| Go Agent | Go | 4 | ✅ | ✅ | 离线完成 |
 | Desktop | Go | 7 | ❌ | ❌ | 基础+系统托盘 |
 | Python | Python | 11 | ✅ | ✅ | 离线完成 |
 | Node.js | TypeScript | 12 | ✅ | ✅ | 离线完成 |
 | Web | TypeScript | 1 | ❌ | ❌ | 最小化 |
 | Rust | Rust | 10 | ✅ | ✅ | 离线完成 |
-| C++ | C++ | 7 | ❌ | ❌ | 基础框架 |
+| C++ | C++ | 13 | ✅ | ✅ | 离线完成 |
 | iOS | Swift | 10 | ✅ | ✅ | 离线完成 |
 | Android | Java | 10 | ✅ | ✅ | 离线完成 |
 | Lite (手表) | Go | 3 | ❌ | ❌ | 最小化 |
@@ -45,9 +45,9 @@
 
 | 任务 | 文件 | 状态 |
 |------|------|------|
-| 离线调度器集成 | `pkg/offline/scheduler.go` | 待开始 |
-| P2P客户端 | `pkg/p2p/client.go` | 待开始 |
-| 约束检查客户端 | `pkg/constraint/client.go` | 待开始 |
+| 离线调度器 | `offline.go` | ✅ 完成 |
+| P2P客户端 | `p2p.go` | ✅ 完成 |
+| 约束检查客户端 | `constraint.go` | ✅ 完成 |
 
 ### 1.3 Python SDK 离线增强
 
@@ -108,9 +108,9 @@
 
 | 任务 | 文件 | 状态 |
 |------|------|------|
-| 离线调度器 | `src/offline_scheduler.cpp` | 待开始 |
-| P2P客户端 | `src/p2p_client.cpp` | 待开始 |
-| 约束检查 | `src/constraint_checker.cpp` | 待开始 |
+| 离线调度器 | `src/offline.cpp`, `include/ofa/offline.hpp` | ✅ 完成 |
+| P2P客户端 | `src/p2p.cpp`, `include/ofa/p2p.hpp` | ✅ 完成 |
+| 约束检查 | `src/constraint.cpp`, `include/ofa/constraint.hpp` | ✅ 完成 |
 
 ### 3.4 Desktop SDK 离线增强
 
