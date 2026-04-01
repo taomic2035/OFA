@@ -1,0 +1,52 @@
+=== Git Log ===
+c1e9d0d feat(openharmony): OpenHarmony SDK 鏍稿績瀹炵幇瀹屾垚
+82285e6 feat: Phase 1 完成 + OpenHarmony SDK 骨架
+027d617 feat: v0.10.0 Phase 1 - 离线能力与约束引擎
+384edf1 feat: OpenHarmony SDK + 去中心化增强
+a6c0925 docs: 文档示例使用版本占位符
+92e02ed refactor: 优化版本号管理，移除冗余版本引用
+24fb9a2 fix: 修复代码编译错误
+71c230d 规范版本号: 全面更新为 0.x.x 格式 (第二次补充)
+f47bf39 规范版本号: 统一使用 0.x.x 格式
+ecccf18 docs: 整合和更新项目文档
+
+=== Git Status ===
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ROADMAP.md
+	modified:   SDK_ROADMAP.md
+	modified:   src/sdk/nodejs/ofa-agent/src/index.ts
+	modified:   src/sdk/python/ofa_agent/__init__.py
+	modified:   src/sdk/rust/ofa_agent/src/lib.rs
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	"D\357\200\272vibecodingOFAgit_output.txt"
+	check_git.ps1
+	src/sdk/android/src/main/java/com/ofa/agent/constraint/
+	src/sdk/android/src/main/java/com/ofa/agent/offline/
+	src/sdk/android/src/main/java/com/ofa/agent/p2p/
+	src/sdk/ios/Sources/OFAAgent/Builtins.swift
+	src/sdk/ios/Sources/OFAAgent/Constraint/
+	src/sdk/ios/Sources/OFAAgent/Offline/
+	src/sdk/ios/Sources/OFAAgent/P2P/
+	src/sdk/nodejs/ofa-agent/src/constraint.ts
+	src/sdk/nodejs/ofa-agent/src/offline.ts
+	src/sdk/nodejs/ofa-agent/src/p2p.ts
+	src/sdk/python/examples/offline_example.py
+	src/sdk/python/ofa_agent/constraint.py
+	src/sdk/python/ofa_agent/offline.py
+	src/sdk/python/ofa_agent/p2p.py
+	src/sdk/rust/ofa_agent/src/constraint.rs
+	src/sdk/rust/ofa_agent/src/offline.rs
+	src/sdk/rust/ofa_agent/src/p2p.rs
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+=== Git Remote ===
+origin	https://github.com/taomic2035/OFA.git (fetch)
+origin	https://github.com/taomic2035/OFA.git (push)

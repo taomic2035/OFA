@@ -11,16 +11,16 @@
 |-----|------|--------|----------|---------|------|
 | Go Agent | Go | 1 | ❌ | ❌ | 基础框架 |
 | Desktop | Go | 7 | ❌ | ❌ | 基础+系统托盘 |
-| Python | Python | 8 | ❌ | ❌ | 基础框架 |
-| Node.js | TypeScript | 9 | ❌ | ❌ | 基础框架 |
+| Python | Python | 11 | ✅ | ✅ | 离线完成 |
+| Node.js | TypeScript | 12 | ✅ | ✅ | 离线完成 |
 | Web | TypeScript | 1 | ❌ | ❌ | 最小化 |
-| Rust | Rust | 7 | ❌ | ❌ | 基础框架 |
+| Rust | Rust | 10 | ✅ | ✅ | 离线完成 |
 | C++ | C++ | 7 | ❌ | ❌ | 基础框架 |
-| iOS | Swift | 2 | ❌ | ❌ | 最小化 |
-| Android | Java | 5 | ❌ | ❌ | 基础框架 |
+| iOS | Swift | 10 | ✅ | ✅ | 离线完成 |
+| Android | Java | 10 | ✅ | ✅ | 离线完成 |
 | Lite (手表) | Go | 3 | ❌ | ❌ | 最小化 |
 | IoT | Go | 3 | ❌ | ❌ | MQTT支持 |
-| OpenHarmony | C++ | 0 | 📝文档 | 📝文档 | 仅文档 |
+| OpenHarmony | C++ | 10 | ✅ | ✅ | 核心完成 |
 
 ---
 
@@ -53,9 +53,10 @@
 
 | 任务 | 文件 | 状态 |
 |------|------|------|
-| 离线模块 | `ofa/offline.py` | 待开始 |
-| P2P模块 | `ofa/p2p.py` | 待开始 |
-| 约束模块 | `ofa/constraint.py` | 待开始 |
+| 离线模块 | `ofa/offline.py` | ✅ 完成 |
+| P2P模块 | `ofa/p2p.py` | ✅ 完成 |
+| 约束模块 | `ofa/constraint.py` | ✅ 完成 |
+| 示例代码 | `examples/offline_example.py` | ✅ 完成 |
 
 ---
 
@@ -65,21 +66,23 @@
 
 | 任务 | 文件 | 状态 |
 |------|------|------|
-| 离线管理器 | `java/.../offline/OfflineManager.java` | 待开始 |
-| 本地调度器 | `java/.../offline/LocalScheduler.java` | 待开始 |
-| P2P客户端 | `java/.../p2p/P2PClient.java` | 待开始 |
-| 约束检查 | `java/.../constraint/ConstraintChecker.java` | 待开始 |
+| 离线管理器 | `java/.../offline/OfflineManager.java` | ✅ 完成 |
+| 本地调度器 | `java/.../offline/LocalScheduler.java` | ✅ 完成 |
+| P2P客户端 | `java/.../p2p/P2PClient.java` | ✅ 完成 |
+| 约束检查 | `java/.../constraint/ConstraintChecker.java` | ✅ 完成 |
+| 离线缓存 | `java/.../offline/OfflineCache.java` | ✅ 完成 |
 | 内置离线技能 | `java/.../skill/builtin/OfflineSkills.java` | 待开始 |
 
 ### 2.2 iOS SDK 增强
 
 | 任务 | 文件 | 状态 |
 |------|------|------|
-| 完整Agent实现 | `Sources/OFAAgent/OFAAgent.swift` | 需完善 |
-| 连接管理 | `Sources/OFAAgent/Connection.swift` | 待开始 |
-| 离线支持 | `Sources/OFAAgent/Offline.swift` | 待开始 |
-| P2P支持 | `Sources/OFAAgent/P2P.swift` | 待开始 |
-| 内置技能 | `Sources/OFAAgent/Builtins.swift` | 待开始 |
+| 完整Agent实现 | `Sources/OFAAgent/OFAAgent.swift` | ✅ 已有基础 |
+| 连接管理 | `Sources/OFAAgent/OFAAgent.swift` | ✅ 已有基础 |
+| 离线支持 | `Sources/OFAAgent/Offline/` | ✅ 完成 |
+| P2P支持 | `Sources/OFAAgent/P2P/` | ✅ 完成 |
+| 约束检查 | `Sources/OFAAgent/Constraint/` | ✅ 完成 |
+| 内置技能 | `Sources/OFAAgent/Builtins.swift` | ✅ 完成 |
 
 ---
 
@@ -89,17 +92,17 @@
 
 | 任务 | 文件 | 状态 |
 |------|------|------|
-| 离线模块 | `src/offline.ts` | 待开始 |
-| P2P模块 | `src/p2p.ts` | 待开始 |
-| 约束模块 | `src/constraint.ts` | 待开始 |
+| 离线模块 | `src/offline.ts` | ✅ 完成 |
+| P2P模块 | `src/p2p.ts` | ✅ 完成 |
+| 约束模块 | `src/constraint.ts` | ✅ 完成 |
 
 ### 3.2 Rust SDK 离线增强
 
 | 任务 | 文件 | 状态 |
 |------|------|------|
-| 离线模块 | `src/offline.rs` | 待开始 |
-| P2P模块 | `src/p2p.rs` | 待开始 |
-| 约束模块 | `src/constraint.rs` | 待开始 |
+| 离线模块 | `src/offline.rs` | ✅ 完成 |
+| P2P模块 | `src/p2p.rs` | ✅ 完成 |
+| 约束模块 | `src/constraint.rs` | ✅ 完成 |
 
 ### 3.3 C++ SDK 离线增强
 
