@@ -26,7 +26,7 @@ Phase 4: 集成验证
 - [x] 约束检查引擎单元测试
 - [x] 本地调度器单元测试
 - [x] P2P 通信测试
-- [ ] 离线模式集成测试
+- [x] 离线模式集成测试
 
 ### 1.2 文档更新
 - [ ] 架构设计文档 (更新去中心化架构)
@@ -92,7 +92,7 @@ Phase 4: 集成验证
 | 约束引擎测试 | `pkg/constraint/engine_test.go` | ✅ 完成 |
 | 本地调度器测试 | `pkg/local/scheduler_test.go` | ✅ 完成 |
 | P2P 通信测试 | `pkg/messaging/p2p_test.go` | ✅ 完成 |
-| 离线模式测试 | `pkg/local/offline_test.go` | 待开始 |
+| 离线模式测试 | `pkg/local/offline_test.go` | ✅ 完成 |
 
 ### Phase 1.2: 文档更新
 
@@ -159,11 +159,11 @@ Phase 4: 集成验证
 
 ## 当前进度
 
-**Phase**: Phase 1.1 进行中
-**已完成**: 约束引擎测试 (18 tests), 本地调度器测试 (13 tests), P2P通信测试 (18 tests)
-**下一个任务**: 离线模式集成测试
+**Phase**: Phase 1 完成，开始 SDK 补齐
+**已完成**: 约束引擎测试 (18 tests), 本地调度器测试 (22 tests), P2P通信测试 (18 tests)
+**下一个任务**: SDK 平台补齐 (见 SDK_ROADMAP.md)
 
 ---
 
 *创建时间: 2026-03-31*
-*最后更新: 2026-03-31*
+*最后更新: 2026-04-01*
