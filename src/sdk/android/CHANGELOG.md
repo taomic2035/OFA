@@ -69,12 +69,22 @@
 - ✅ 约束检查器离线模式
 - ✅ 工具降级策略
 
+### 内置离线技能 (v1.0.1 新增)
+| 技能 | ID | 功能 |
+|------|-----|------|
+| Echo | echo | 回显测试 |
+| Text Process | text.process | 文本处理 (大小写/反转/长度) |
+| Calculator | calculator | 数学运算 (加减乘除/三角函数) |
+| Timestamp | timestamp | 时间格式化 |
+| JSON Format | json.format | JSON 美化验证 |
+| Hash | hash | 哈希计算 (MD5/SHA) |
+
 ## 文件变更统计
 
 ```
-新增文件: 30 个
+新增文件: 35 个
 修改文件: 2 个 (OFAAgent.java, build.gradle)
-代码行数: ~4500 行
+代码行数: ~5000 行
 ```
 
 ## API 变更

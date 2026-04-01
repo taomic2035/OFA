@@ -190,6 +190,25 @@ ToolRegistry registry = agent.getToolRegistry();
 registry.register(definition, new MyTool());
 ```
 
+## Built-in Offline Skills
+
+The SDK includes several offline-capable skills:
+
+| Skill | ID | Description |
+|-------|-----|-------------|
+| Echo | `echo` | Echo input for testing |
+| Text Process | `text.process` | Text operations (uppercase, lowercase, reverse, length) |
+| Calculator | `calculator` | Math operations (add, sub, mul, div, sqrt, sin, cos, etc.) |
+| Timestamp | `timestamp` | Time formatting and conversion |
+| JSON Format | `json.format` | JSON beautification and validation |
+| Hash | `hash` | Hash calculation (MD5, SHA-1, SHA-256, SHA-512) |
+
+Register offline skills:
+
+```java
+OfflineSkills.registerAll(offlineManager);
+```
+
 ## Offline Support
 
 | Level | Description | Tool Availability |
