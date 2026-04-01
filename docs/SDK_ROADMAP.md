@@ -71,7 +71,10 @@
 | P2P客户端 | `java/.../p2p/P2PClient.java` | ✅ 完成 |
 | 约束检查 | `java/.../constraint/ConstraintChecker.java` | ✅ 完成 |
 | 离线缓存 | `java/.../offline/OfflineCache.java` | ✅ 完成 |
-| 内置离线技能 | `java/.../skill/builtin/OfflineSkills.java` | 待开始 |
+| 内置离线技能 | `java/.../skill/builtin/OfflineSkills.java` | ✅ 完成 |
+| 单元测试 | `src/test/.../OfflineSkillsTest.java` | ✅ 完成 |
+| 示例代码 | `java/.../sample/OFAAgentSample.java` | ✅ 完成 |
+| 快速入门文档 | `docs/QUICK_START.md` | ✅ 完成 |
 
 ### 2.2 iOS SDK 增强
 
