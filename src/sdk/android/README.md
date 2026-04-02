@@ -4,6 +4,7 @@ Android SDK for building OFA Agent applications with MCP (Model Context Protocol
 
 ## Features
 
+- **Skill Orchestration**: Create multi-step automation tasks (order food, morning routine, etc.)
 - **Intent Understanding**: Parse natural language to structured intents and execute tools
 - **Dual LLM Support**: Cloud LLM (OpenAI/Claude) + Local LLM (TensorFlow Lite)
 - **Auto Failover**: Automatic switching between cloud and local LLM
@@ -489,9 +490,10 @@ test_build.bat
 
 ## Documentation
 
-- [Intent Understanding System](docs/INTENT_SYSTEM.md)
-- [MCP Tools Guide](docs/MCP_TOOLS_GUIDE.md)
-- [LLM Integration Plan](docs/LLM_INTEGRATION_PLAN.md)
+- [Skill System Guide](docs/SKILL_SYSTEM.md) - 创建自定义技能
+- [Intent Understanding System](docs/INTENT_SYSTEM.md) - 意图识别
+- [MCP Tools Guide](docs/MCP_TOOLS_GUIDE.md) - 工具使用
+- [LLM Integration Plan](docs/LLM_INTEGRATION_PLAN.md) - LLM集成
 - [Changelog](CHANGELOG.md)
 
 ## License

@@ -1,4 +1,90 @@
-# OFA Android SDK v1.0.2 - Intent Understanding System
+# OFA Android SDK v1.0.3 - Skill Orchestration System
+
+## 发布日期: 2026-04-02
+
+## 更新概述
+
+本次更新为 OFA Android SDK 添加了完整的技能编排系统，用户可以创建复杂的多步骤自动化任务，如"点奶茶"、"早安问候"等场景。
+
+## 新增功能
+
+### 技能编排系统
+
+#### 核心组件
+- ✅ `SkillDefinition` - 技能定义，包含步骤、触发器、输入输出
+- ✅ `SkillStep` - 步骤定义，支持12种步骤类型
+- ✅ `SkillContext` - 执行上下文，管理状态和变量
+- ✅ `SkillResult` - 执行结果
+- ✅ `CompositeSkillExecutor` - 复合技能执行器
+- ✅ `SkillRegistry` - 技能注册表（支持持久化）
+
+#### 步骤类型
+
+| 类型 | 描述 | 用途 |
+|------|------|------|
+| TOOL | 工具调用 | 执行MCP工具 |
+| INTENT | 意图执行 | 解析自然语言 |
+| DELAY | 延迟等待 | 等待APP加载 |
+| WAIT_FOR | 等待条件 | 等待订单确认 |
+| CONDITION | 条件判断 | 分支逻辑 |
+| ASSIGN | 变量赋值 | 保存中间结果 |
+| INPUT | 用户输入 | 请求用户选择 |
+| CONFIRM | 用户确认 | 确认支付等 |
+| NOTIFY | 通知 | 发送状态通知 |
+| PARALLEL | 并行执行 | 同时执行多操作 |
+| LOOP | 循环 | 重复执行 |
+| SUB_SKILL | 子技能 | 调用其他技能 |
+
+#### 特性
+- **条件分支**：根据变量值选择不同执行路径
+- **错误处理**：重试、错误跳转、可选步骤
+- **用户交互**：输入、确认、选择
+- **变量引用**：`${var}` 和 `${step.output.field}` 语法
+- **触发器**：语音、定时、事件触发
+- **持久化**：用户自定义技能自动保存
+
+### 预置技能
+
+#### 外卖订购技能
+- `food_order.bubble_tea` - 点奶茶（完整流程：打开APP→搜索→选择→支付→跟踪）
+- `food_order.track_delivery` - 配送跟踪（实时状态更新、到货提醒）
+
+### 使用示例
+
+```java
+// 创建"点奶茶"技能执行
+SkillDefinition skill = skillRegistry.getSkill("food_order.bubble_tea");
+
+Map<String, Object> inputs = new HashMap<>();
+inputs.put("drinkName", "珍珠奶茶");
+inputs.put("sweetness", "五分糖");
+inputs.put("temperature", "少冰");
+inputs.put("size", "中杯");
+
+executor.execute(skill, inputs, context);
+```
+
+### 项目结构更新
+
+```
+sdk/src/main/java/com/ofa/agent/skill/
+├── SkillDefinition.java      # 技能定义
+├── SkillStep.java            # 步骤定义
+├── SkillContext.java         # 执行上下文
+├── SkillResult.java          # 执行结果
+├── SkillRegistry.java        # 技能注册表
+├── CompositeSkillExecutor.java # 执行器
+├── SkillExecutor.java        # 简单执行器接口
+├── SkillExecutionException.java
+└── builtin/
+    ├── FoodDeliverySkills.java # 外卖技能
+    ├── OfflineSkills.java
+    └── ...
+```
+
+---
+
+## v1.0.2 - Intent Understanding System
 
 ## 发布日期: 2026-04-02
 
