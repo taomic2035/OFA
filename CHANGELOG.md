@@ -7,6 +7,100 @@
 
 ---
 
+## [1.3.0] - 2026-04-03 🏗️ Center Service Integration
+
+### 新增 - Center v1.2.x + v1.3.x
+
+**用户画像服务完整实现:**
+
+| 版本 | 模块 | 功能 |
+|------|------|------|
+| v1.2.1 | Memory System | 三层记忆架构 (L1/L2/L3)，7种记忆类型 |
+| v1.2.2 | Voice Profile | 语音配置、TTS、克隆、识别接口 |
+| v1.2.3 | Preference Engine | 偏好学习、评分、事件监听 |
+| v1.2.4 | Decision Engine | 多因素决策、解释生成、历史记录 |
+| v1.3.1 | Proto API | 用户/会话/记忆/偏好/决策/语音接口定义 |
+| v1.3.2 | gRPC Service | 服务实现、类型转换器 |
+| v1.3.3 | User/Session Store | 内存存储实现 |
+| v1.3.4 | REST API | 完整的用户画像 REST 端点 |
+
+**核心模型:**
+- `Personality` - MBTI + Big Five 性格模型，带收敛机制
+- `ValueSystem` - 10维度价值观系统
+- `Interest` - 兴趣爱好追踪
+- `VoiceProfile` - 语音配置和克隆
+- `WritingStyle` - 写作风格定义
+- `Decision` - 决策记录与解释
+
+**REST API 端点:**
+- `/api/v1/users/*` - 用户管理
+- `/api/v1/users/{id}/identity` - 身份画像
+- `/api/v1/users/{id}/personality` - 性格管理
+- `/api/v1/users/{id}/memories/*` - 记忆服务
+- `/api/v1/users/{id}/preferences/*` - 偏好服务
+- `/api/v1/users/{id}/decisions/*` - 决策服务
+- `/api/v1/users/{id}/voice/*` - 语音服务
+- `/api/v1/sessions/*` - 会话管理
+
+**MBTI 收敛机制:**
+- 学习率随观察次数衰减: `rate = baseRate / (1 + count * speed)`
+- 性格趋于稳定，不再随机变化
+- 支持用户手动设置 MBTI 类型
+
+新增文件:
+- `src/center/internal/memory/service.go` - 记忆服务
+- `src/center/internal/voice/service.go` - 语音服务
+- `src/center/internal/preference/service.go` - 偏好服务
+- `src/center/internal/preference/learner.go` - 偏好学习引擎
+- `src/center/internal/decision/engine.go` - 决策引擎
+- `src/center/internal/decision/scorer.go` - 多因素评分器
+- `src/center/internal/decision/explainer.go` - 决策解释生成
+- `src/center/proto/api.go` - API 定义
+- `src/center/proto/helpers.go` - 辅助函数
+- `src/center/pkg/grpc/ofa_service.go` - gRPC 服务
+- `src/center/pkg/grpc/converters.go` - 类型转换
+- `src/center/pkg/rest/user_profile_api.go` - REST API
+
+---
+
+## [1.2.1] - 2026-04-03 🛠️ Android SDK Tools Enhancement
+
+### 新增 - Android SDK v1.1.0
+
+完整的支付和订单工具支持:
+
+| 工具 | 功能 |
+|------|------|
+| PaymentTool | 支付操作 (pay, status, cancel) |
+| OrderTool | 订单管理 (getStatus, list, cancel, track) |
+| UITool 扩展 | search, configure, setAddress |
+
+**PaymentTool 支持的操作:**
+- `payment.pay` - 发起支付 (微信/支付宝)
+- `payment.status` - 查询支付状态
+- `payment.cancel` - 取消支付
+
+**OrderTool 支持的操作:**
+- `order.getStatus` - 获取订单状态
+- `order.list` - 列出订单
+- `order.cancel` - 取消订单
+- `order.track` - 跟踪配送
+
+**UITool 新增操作:**
+- `ui.search` - 搜索商品/店铺
+- `ui.configure` - 配置规格 (甜度/温度/杯型/小料)
+- `ui.setAddress` - 设置收货地址
+
+**BySelector 增强:**
+- 新增 `or()` 方法支持多选择器
+
+新增文件:
+- `sdk/src/main/java/com/ofa/agent/automation/PaymentTool.java`
+- `sdk/src/main/java/com/ofa/agent/automation/OrderTool.java`
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationToolRegistry.java`
+
+---
+
 ## [1.2.0] - 2026-04-02 🤖 Agent Mode Architecture
 
 ### 新增 - Android SDK Agent Running Mode System
@@ -834,9 +928,9 @@ UI 自动化增强层，提供高级操作能力：
 ## 版本路线图
 
 ```
-0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9 → 1.1.0 → 1.2.0
-原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM     Integ   AI Agent  Social   Mode
-✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅        ✅       ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9 → 1.1.0 → 1.2.0 → 1.2.1 → 1.3.0
+原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM     Integ   AI Agent  Social   Mode     Tools    Center
+✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅        ✅       ✅       ✅       ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
@@ -854,7 +948,9 @@ UI 自动化增强层，提供高级操作能力：
 | **1.0.8** | **Integration & Optimization** | ✅ |
 | **1.0.9** | **AI Agent Enhancement** | ✅ |
 | **1.1.0** | **Social Notification System** | ✅ |
-| **1.2.0** | **Agent Mode Architecture** | ✅ 当前 |
+| **1.2.0** | **Agent Mode Architecture** | ✅ |
+| **1.2.1** | **SDK Tools Enhancement** | ✅ |
+| **1.3.0** | **Center Service Integration** | ✅ 当前 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
 ---
@@ -863,13 +959,13 @@ UI 自动化增强层，提供高级操作能力：
 
 | 指标 | 数值 |
 |------|------|
-| Go源文件 | 119+ |
-| Android SDK | 130+ Java类 |
+| Go源文件 | 130+ |
+| Android SDK | 140+ Java类 |
 | 内置意图 | 22 |
 | 步骤类型 | 12 |
 | SDK平台 | 10 |
 | 内置技能 | 7+ |
-| UI工具 | 14 |
+| UI工具 | 17 |
 | 系统工具 | 7 |
 | 社交工具 | 10 |
 | 核心组件 | 8 |
@@ -884,7 +980,10 @@ UI 自动化增强层，提供高级操作能力：
 | 消息类型 | 10 |
 | 运行模式 | 3 |
 | 能力类型 | 8 |
+| 记忆类型 | 7 |
+| 决策因素 | 4 |
+| 性格维度 | 10 |
 
 ---
 
-*更新时间: 2026-04-02*
+*更新时间: 2026-04-03*
