@@ -7,6 +7,72 @@
 
 ---
 
+## [1.0.4] - 2026-04-02 🤖 Automation System
+
+### 新增 - Android SDK UI Automation
+
+基于 AccessibilityService 的 UI 自动化系统，支持跨应用操作：
+
+| 组件 | 功能 |
+|------|------|
+| AutomationEngine | 自动化引擎接口 |
+| AccessibilityEngine | 无障碍服务实现 |
+| OFAAccessibilityService | 无障碍服务 |
+| NodeFinder | UI节点查找器 |
+| GesturePerformer | 手势执行器 |
+| AutomationManager | 统一管理器 |
+| UITool | UI操作工具集 |
+
+**工具定义：**
+
+| 工具 | 功能 |
+|------|------|
+| ui.click | 点击元素（坐标/文本） |
+| ui.longClick | 长按元素 |
+| ui.swipe | 滑动手势（方向/坐标） |
+| ui.input | 文本输入 |
+| ui.find | 查找元素 |
+| ui.wait | 等待元素出现 |
+| ui.scrollFind | 滚动查找元素 |
+
+**核心特性：**
+- 坐标点击、文本点击、选择器点击
+- 四向滑动、自定义滑动路径
+- 剪贴板输入、ACTION_SET_TEXT输入
+- 元素查找（文本、ID、类名、描述）
+- 等待元素、等待页面稳定
+- 滚动查找（支持最大滚动次数）
+
+**能力层级：**
+
+| 层级 | 说明 |
+|------|------|
+| BASIC | 基础点击、查找 |
+| ENHANCED | 手势执行、滚动查找 |
+| FULL_ACCESSIBILITY | 完整无障碍能力 |
+| SYSTEM_LEVEL | 系统级能力（需Root） |
+
+新增文件：
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationEngine.java` - 引擎接口
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationResult.java` - 操作结果
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationConfig.java` - 配置
+- `sdk/src/main/java/com/ofa/agent/automation/BySelector.java` - 元素选择器
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationNode.java` - UI节点
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationCapability.java` - 能力层级
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationListener.java` - 事件监听
+- `sdk/src/main/java/com/ofa/agent/automation/Direction.java` - 滑动方向
+- `sdk/src/main/java/com/ofa/agent/automation/ScreenDimension.java` - 屏幕尺寸
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationManager.java` - 管理器
+- `sdk/src/main/java/com/ofa/agent/automation/UITool.java` - UI工具
+- `sdk/src/main/java/com/ofa/agent/automation/accessibility/OFAAccessibilityService.java` - 无障碍服务
+- `sdk/src/main/java/com/ofa/agent/automation/accessibility/AccessibilityEngine.java` - 引擎实现
+- `sdk/src/main/java/com/ofa/agent/automation/accessibility/NodeFinder.java` - 节点查找
+- `sdk/src/main/java/com/ofa/agent/automation/accessibility/GesturePerformer.java` - 手势执行
+- `sdk/src/main/res/xml/accessibility_config.xml` - 服务配置
+- `sdk/src/main/java/com/ofa/agent/sample/AutomationSample.java` - 使用示例
+
+---
+
 ## [1.0.3] - 2026-04-02 🧠 Memory System
 
 ### 新增 - Android SDK Memory System
@@ -274,9 +340,9 @@
 ## 版本路线图
 
 ```
-0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3
-原型         Beta    Intent   Skill   Memory
-✅           ✅      ✅       ✅       ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4
+原型         Beta    Intent   Skill   Memory  Automation
+✅           ✅      ✅       ✅       ✅       ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
@@ -286,7 +352,8 @@
 | **0.9.0** | **Beta** | ✅ |
 | **1.0.1** | **Intent System** | ✅ |
 | **1.0.2** | **Skill System** | ✅ |
-| **1.0.3** | **Memory System** | ✅ 当前 |
+| **1.0.3** | **Memory System** | ✅ |
+| **1.0.4** | **Automation System** | ✅ 当前 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
 ---
@@ -296,11 +363,12 @@
 | 指标 | 数值 |
 |------|------|
 | Go源文件 | 119+ |
-| Android SDK | 50+ Java类 |
+| Android SDK | 65+ Java类 |
 | 内置意图 | 22 |
 | 步骤类型 | 12 |
 | SDK平台 | 10 |
 | 内置技能 | 7+ |
+| UI工具 | 7 |
 
 ---
 

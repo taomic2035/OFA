@@ -6,6 +6,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.ofa.agent.mcp.ToolDefinition;
+import com.ofa.agent.automation.UITool;
 import com.ofa.agent.tool.builtin.ai.SpeechTool;
 import com.ofa.agent.tool.builtin.data.CalendarTool;
 import com.ofa.agent.tool.builtin.data.ContactsTool;
@@ -48,6 +49,9 @@ public class BuiltInTools {
 
         // AI tools
         registerAITools(context, registry);
+
+        // Automation tools (UI automation)
+        registerAutomationTools(context, registry);
 
         Log.i(TAG, "Registered " + registry.getCount() + " built-in tools");
     }
@@ -168,6 +172,23 @@ public class BuiltInTools {
     }
 
     /**
+     * Register automation tools (UI automation)
+     */
+    public static void registerAutomationTools(@NonNull Context context, @NonNull ToolRegistry registry) {
+        // UI Tool - provides UI automation operations
+        UITool uiTool = new UITool(context);
+        registry.register(UITool.getClickDefinition(), uiTool);
+        registry.register(UITool.getLongClickDefinition(), uiTool);
+        registry.register(UITool.getSwipeDefinition(), uiTool);
+        registry.register(UITool.getInputDefinition(), uiTool);
+        registry.register(UITool.getFindDefinition(), uiTool);
+        registry.register(UITool.getWaitDefinition(), uiTool);
+        registry.register(UITool.getScrollFindDefinition(), uiTool);
+
+        Log.d(TAG, "Registered automation tools");
+    }
+
+    /**
      * Get list of all tool definitions (for documentation/discovery)
      */
     @NonNull
@@ -208,7 +229,15 @@ public class BuiltInTools {
             MediaTool.getVideosDefinition(),
 
             // AI
-            SpeechTool.getSpeakDefinition()
+            SpeechTool.getSpeakDefinition(),
+
+            // Automation
+            UITool.getClickDefinition(),
+            UITool.getSwipeDefinition(),
+            UITool.getInputDefinition(),
+            UITool.getFindDefinition(),
+            UITool.getWaitDefinition(),
+            UITool.getScrollFindDefinition()
         };
     }
 }

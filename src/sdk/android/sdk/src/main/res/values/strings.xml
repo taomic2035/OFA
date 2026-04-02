@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_description">OFA UI Automation Service - Enables automated UI interactions for accessibility purposes.</string>
+</resources>
