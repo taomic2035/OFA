@@ -7,6 +7,73 @@
 
 ---
 
+## [1.0.6] - 2026-04-02 📱 App Adapter Layer
+
+### 新增 - Android SDK App Adapter Layer (Phase 3)
+
+应用适配层，为主流应用提供预定义操作：
+
+| 适配器 | 包名 | 支持操作 |
+|--------|------|----------|
+| MeituanAdapter | com.sankuai.meituan | 美团外卖全流程 |
+| ElemeAdapter | me.ele | 饿了么全流程 |
+| TaobaoAdapter | com.taobao.taobao | 淘宝购物全流程 |
+| JDAdapter | com.jingdong.app.mall | 京东购物全流程 |
+
+**适配器支持的操作：**
+
+| 操作 | 功能 |
+|------|------|
+| search | 搜索商品/店铺 |
+| selectShop | 选择店铺 |
+| selectProduct | 选择商品 |
+| configureOptions | 配置规格（颜色、尺码、口味等） |
+| addToCart | 加入购物车 |
+| goToCart | 进入购物车 |
+| goToCheckout | 去结算 |
+| selectAddress | 选择收货地址 |
+| submitOrder | 提交订单 |
+| pay | 支付（支付宝/微信/银行卡） |
+| getOrderStatus | 获取订单状态 |
+
+**页面检测：**
+- 自动识别当前页面类型（首页/搜索/商品详情/购物车/结算/订单）
+- 智能判断操作可行性
+
+**AppAdapterManager 特性：**
+- 自动检测最适合的适配器
+- 置信度评分机制
+- 统一操作接口
+- 动态注册/注销适配器
+
+**操作模板系统：**
+
+| 模板 | 用途 |
+|------|------|
+| food_delivery | 点外卖完整流程 |
+| shopping | 购物下单完整流程 |
+| search_and_add | 搜索并加入购物车 |
+
+**模板特性：**
+- 参数化操作序列
+- 默认参数支持
+- 必填参数验证
+- 条件步骤（可选执行）
+- 等待时间控制
+
+新增文件：
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/AppAdapter.java` - 适配器接口
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/AppAdapterManager.java` - 适配器管理
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/BaseAppAdapter.java` - 基础适配器
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/food/MeituanAdapter.java` - 美团适配器
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/food/ElemeAdapter.java` - 饿了么适配器
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/shopping/TaobaoAdapter.java` - 淘宝适配器
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/shopping/JDAdapter.java` - 京东适配器
+- `sdk/src/main/java/com/ofa/agent/automation/template/OperationTemplate.java` - 操作模板
+- `sdk/src/main/java/com/ofa/agent/automation/template/TemplateRegistry.java` - 模板注册表
+
+---
+
 ## [1.0.5] - 2026-04-02 🚀 Automation Enhanced
 
 ### 新增 - Android SDK UI Automation Phase 2
@@ -402,9 +469,9 @@ UI 自动化增强层，提供高级操作能力：
 ## 版本路线图
 
 ```
-0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5
-原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2
-✅           ✅      ✅       ✅       ✅       ✅       ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6
+原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter
+✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
@@ -416,7 +483,10 @@ UI 自动化增强层，提供高级操作能力：
 | **1.0.2** | **Skill System** | ✅ |
 | **1.0.3** | **Memory System** | ✅ |
 | **1.0.4** | **Automation v1 (Basic)** | ✅ |
-| **1.0.5** | **Automation v2 (Enhanced)** | ✅ 当前 |
+| **1.0.5** | **Automation v2 (Enhanced)** | ✅ |
+| **1.0.6** | **App Adapter Layer** | ✅ 当前 |
+| 1.0.7 | ROM System Layer | 🔜 计划中 |
+| 1.0.8 | Integration & Optimization | 🔜 计划中 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
 ---
@@ -426,12 +496,14 @@ UI 自动化增强层，提供高级操作能力：
 | 指标 | 数值 |
 |------|------|
 | Go源文件 | 119+ |
-| Android SDK | 75+ Java类 |
+| Android SDK | 84+ Java类 |
 | 内置意图 | 22 |
 | 步骤类型 | 12 |
 | SDK平台 | 10 |
 | 内置技能 | 7+ |
 | UI工具 | 14 |
+| App适配器 | 4 |
+| 操作模板 | 3 |
 
 ---
 
