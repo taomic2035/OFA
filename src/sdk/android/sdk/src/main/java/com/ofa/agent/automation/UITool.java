@@ -136,6 +136,14 @@ public class UITool implements ToolExecutor {
             case "findtext":
                 return executeFindText(args);
 
+            // Phase 3 operations - Food delivery specific
+            case "search":
+                return executeSearch(args);
+            case "configure":
+                return executeConfigure(args);
+            case "setaddress":
+                return executeSetAddress(args);
+
             default:
                 return new ToolResult(getToolId(), "Unknown operation: " + operation);
         }
@@ -196,6 +204,11 @@ public class UITool implements ToolExecutor {
                 return true;
             case "replay":
                 return args.containsKey("file");
+            case "search":
+                return args.containsKey("query");
+            case "configure":
+            case "setaddress":
+                return true;
             default:
                 return false;
         }
@@ -719,6 +732,235 @@ public class UITool implements ToolExecutor {
         } finally {
             bitmap.recycle();
         }
+    }
+
+    // ===== Phase 3 Operations - Food Delivery Specific =====
+
+    @NonNull
+    private ToolResult executeSearch(@NonNull Map<String, Object> args) {
+        AutomationEngine engine = automationManager.getEngine();
+        if (!engine.isAvailable()) {
+            return new ToolResult(getToolId(), "Automation engine not available");
+        }
+
+        String query = getStringArg(args, "query", null);
+        if (query == null) {
+            return new ToolResult(getToolId(), "Missing query");
+        }
+
+        Log.i(TAG, "Searching for: " + query);
+
+        // Step 1: Find and click search box
+        String[] searchBoxHints = {"搜索", "搜一搜", "输入搜索内容", "搜索店铺、商品"};
+        boolean searchClicked = false;
+
+        for (String hint : searchBoxHints) {
+            AutomationResult result = engine.click(hint);
+            if (result.isSuccess()) {
+                searchClicked = true;
+                break;
+            }
+        }
+
+        if (!searchClicked) {
+            // Try to find search icon by description
+            AutomationNode searchIcon = engine.findElement(
+                BySelector.descContains("搜索").or(BySelector.descContains("search")));
+            if (searchIcon != null) {
+                searchIcon.click();
+                searchClicked = true;
+            }
+        }
+
+        if (!searchClicked) {
+            return new ToolResult(getToolId(), "Could not find search box");
+        }
+
+        // Step 2: Wait for search input field
+        engine.waitForPageStable(1000);
+
+        // Step 3: Input search query
+        AutomationResult inputResult = engine.inputText(query);
+
+        // Step 4: Submit search (click search button or press enter)
+        String[] submitButtons = {"搜索", "搜一搜", "确定"};
+        for (String button : submitButtons) {
+            AutomationResult result = engine.click(button);
+            if (result.isSuccess()) {
+                break;
+            }
+        }
+
+        // Step 5: Wait for results
+        engine.waitForPageStable(2000);
+
+        JSONObject output = new JSONObject();
+        try {
+            output.put("success", true);
+            output.put("query", query);
+            output.put("message", "Search executed: " + query);
+        } catch (Exception e) {}
+
+        return new ToolResult(getToolId(), output, 3000);
+    }
+
+    @NonNull
+    private ToolResult executeConfigure(@NonNull Map<String, Object> args) {
+        AutomationEngine engine = automationManager.getEngine();
+        if (!engine.isAvailable()) {
+            return new ToolResult(getToolId(), "Automation engine not available");
+        }
+
+        // Extract configuration options
+        String sweetness = getStringArg(args, "sweetness", null);  // 甜度
+        String temperature = getStringArg(args, "temperature", null);  // 温度/冰度
+        String size = getStringArg(args, "size", null);  // 杯型
+        Object toppingsObj = args.get("toppings");  // 小料
+        Integer quantity = getIntArg(args, "quantity");  // 数量
+
+        Log.i(TAG, "Configuring: sweetness=" + sweetness + ", temp=" + temperature +
+              ", size=" + size + ", qty=" + quantity);
+
+        boolean anyConfigured = false;
+
+        // Configure sweetness (甜度)
+        if (sweetness != null) {
+            boolean clicked = clickOptionByText(engine,
+                new String[]{sweetness, sweetness + "糖", "甜度：" + sweetness});
+            if (clicked) anyConfigured = true;
+        }
+
+        // Configure temperature/ice (温度/冰度)
+        if (temperature != null) {
+            boolean clicked = clickOptionByText(engine,
+                new String[]{temperature, "温度：" + temperature, "冰度：" + temperature});
+            if (clicked) anyConfigured = true;
+        }
+
+        // Configure size (杯型)
+        if (size != null) {
+            boolean clicked = clickOptionByText(engine,
+                new String[]{size, "杯型：" + size, size + "杯"});
+            if (clicked) anyConfigured = true;
+        }
+
+        // Configure toppings (小料)
+        if (toppingsObj != null) {
+            if (toppingsObj instanceof java.util.List) {
+                for (Object topping : (java.util.List<?>) toppingsObj) {
+                    boolean clicked = clickOptionByText(engine, new String[]{topping.toString()});
+                    if (clicked) anyConfigured = true;
+                }
+            } else {
+                boolean clicked = clickOptionByText(engine, new String[]{toppingsObj.toString()});
+                if (clicked) anyConfigured = true;
+            }
+        }
+
+        // Configure quantity (数量)
+        if (quantity != null && quantity > 1) {
+            // Find +/- buttons
+            for (int i = 1; i < quantity; i++) {
+                AutomationResult result = engine.click("+");
+                if (!result.isSuccess()) {
+                    // Try alternative button texts
+                    engine.click("加");
+                }
+            }
+            anyConfigured = true;
+        }
+
+        JSONObject output = new JSONObject();
+        try {
+            output.put("success", anyConfigured);
+            output.put("sweetness", sweetness);
+            output.put("temperature", temperature);
+            output.put("size", size);
+            output.put("quantity", quantity);
+            output.put("message", anyConfigured ? "Configuration applied" : "No options configured");
+        } catch (Exception e) {}
+
+        return new ToolResult(getToolId(), output, 3000);
+    }
+
+    @NonNull
+    private ToolResult executeSetAddress(@NonNull Map<String, Object> args) {
+        AutomationEngine engine = automationManager.getEngine();
+        if (!engine.isAvailable()) {
+            return new ToolResult(getToolId(), "Automation engine not available");
+        }
+
+        String address = getStringArg(args, "address", null);
+        if (address == null) {
+            return new ToolResult(getToolId(), "Missing address");
+        }
+
+        Log.i(TAG, "Setting address: " + address);
+
+        // Step 1: Click on address section
+        String[] addressButtons = {"选择收货地址", "收货地址", "配送至", "修改地址"};
+        boolean addressClicked = false;
+
+        for (String button : addressButtons) {
+            AutomationResult result = engine.click(button);
+            if (result.isSuccess()) {
+                addressClicked = true;
+                break;
+            }
+        }
+
+        if (!addressClicked) {
+            // Try to find address by text contains
+            AutomationNode addressNode = engine.findElement(BySelector.textContains("配送至"));
+            if (addressNode != null) {
+                addressNode.click();
+                addressClicked = true;
+            }
+        }
+
+        // Step 2: If we need to search for address
+        if (addressClicked) {
+            engine.waitForPageStable(1000);
+
+            // Try to find search box in address selection
+            AutomationResult searchResult = engine.click("搜索地址");
+            if (searchResult.isSuccess()) {
+                engine.inputText(address);
+                engine.waitForPageStable(1000);
+
+                // Click on matching address
+                engine.click(address);
+            } else {
+                // Try to find matching address directly
+                AutomationResult clickResult = engine.click(address);
+                if (!clickResult.isSuccess()) {
+                    // Try partial match
+                    engine.click(BySelector.textContains(address.substring(0, Math.min(4, address.length()))));
+                }
+            }
+        }
+
+        JSONObject output = new JSONObject();
+        try {
+            output.put("success", addressClicked);
+            output.put("address", address);
+            output.put("message", addressClicked ? "Address set" : "Could not set address");
+        } catch (Exception e) {}
+
+        return new ToolResult(getToolId(), output, 3000);
+    }
+
+    /**
+     * Helper to click an option by trying multiple text variations
+     */
+    private boolean clickOptionByText(AutomationEngine engine, String[] texts) {
+        for (String text : texts) {
+            AutomationResult result = engine.click(text);
+            if (result.isSuccess()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ===== Helper Methods =====

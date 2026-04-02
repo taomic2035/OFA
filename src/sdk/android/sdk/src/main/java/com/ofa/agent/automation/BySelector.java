@@ -266,6 +266,25 @@ public class BySelector {
         return scrollable;
     }
 
+    // Alternative selectors (OR condition)
+    @Nullable
+    private BySelector alternative;
+
+    /**
+     * Add alternative selector (OR condition)
+     * Matches either this selector OR the alternative
+     */
+    @NonNull
+    public BySelector or(@NonNull BySelector alternative) {
+        this.alternative = alternative;
+        return this;
+    }
+
+    @Nullable
+    public BySelector getAlternative() {
+        return alternative;
+    }
+
     /**
      * Check if selector has any criteria
      */
