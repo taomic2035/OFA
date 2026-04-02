@@ -7,6 +7,74 @@
 
 ---
 
+## [1.0.7] - 2026-04-02 🔧 ROM System Layer
+
+### 新增 - Android SDK ROM System Layer (Phase 4)
+
+系统级自动化能力，提供静默安装、权限授权、后台保活等 ROM 内置功能：
+
+| 组件 | 功能 |
+|------|------|
+| SystemPermissionManager | 权限检测、能力评估、优雅降级 |
+| SilentInstaller | 静默安装/卸载 (多方法支持) |
+| KeepAliveManager | 后台保活 (5种策略) |
+| SystemAutomationEngine | 系统级自动化引擎 |
+| HybridAutomationEngine | 混合引擎 (无障碍+系统级) |
+| SystemTool | 系统级工具定义 |
+
+**权限管理特性：**
+- 检测系统级权限 (INSTALL_PACKAGES, WRITE_SECURE_SETTINGS 等)
+- 检测 Root 访问权限
+- 检测 System App 状态
+- 自动评估能力层级 (BASIC/ENHANCED/SYSTEM_LEVEL)
+- 生成能力报告
+
+**静默安装特性：**
+- Package Manager 方式 (System App)
+- Root Shell 方式
+- PackageInstaller Session 方式
+- 用户引导方式 (降级)
+- 自动选择最佳方法
+
+**保活策略：**
+
+| 策略 | 说明 |
+|------|------|
+| ForegroundService | 前台服务 + 持久通知 |
+| WakeLock | CPU 唤醒锁 |
+| BatteryOptimization | 电池优化白名单 |
+| SystemApp | 系统应用特权 |
+| RootKeepAlive | Root 修改进程策略 |
+
+**新增工具：**
+
+| 工具 | 功能 |
+|------|------|
+| system.install | 静默安装 APK |
+| system.uninstall | 静默卸载应用 |
+| system.grantPermission | 静默授权 |
+| system.setSecureSetting | 修改安全设置 |
+| system.enableAccessibility | 启用无障碍服务 |
+| system.keepAlive | 启用/禁用保活 |
+| system.getCapability | 获取系统能力报告 |
+
+**HybridAutomationEngine 特性：**
+- 自动选择最佳引擎 (系统级/无障碍)
+- 能力感知切换
+- 优雅降级机制
+- 统一操作接口
+
+新增文件：
+- `sdk/src/main/java/com/ofa/agent/automation/system/SystemPermissionManager.java` - 权限管理
+- `sdk/src/main/java/com/ofa/agent/automation/system/SilentInstaller.java` - 静默安装
+- `sdk/src/main/java/com/ofa/agent/automation/system/KeepAliveManager.java` - 保活管理
+- `sdk/src/main/java/com/ofa/agent/automation/system/SystemAutomationEngine.java` - 系统引擎
+- `sdk/src/main/java/com/ofa/agent/automation/hybrid/HybridAutomationEngine.java` - 混合引擎
+- `sdk/src/main/java/com/ofa/agent/automation/SystemTool.java` - 系统工具
+- `sdk/src/main/java/com/ofa/agent/sample/SystemAutomationSample.java` - 使用示例
+
+---
+
 ## [1.0.6] - 2026-04-02 📱 App Adapter Layer
 
 ### 新增 - Android SDK App Adapter Layer (Phase 3)
@@ -469,9 +537,9 @@ UI 自动化增强层，提供高级操作能力：
 ## 版本路线图
 
 ```
-0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6
-原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter
-✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7
+原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM
+✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
@@ -484,8 +552,8 @@ UI 自动化增强层，提供高级操作能力：
 | **1.0.3** | **Memory System** | ✅ |
 | **1.0.4** | **Automation v1 (Basic)** | ✅ |
 | **1.0.5** | **Automation v2 (Enhanced)** | ✅ |
-| **1.0.6** | **App Adapter Layer** | ✅ 当前 |
-| 1.0.7 | ROM System Layer | 🔜 计划中 |
+| **1.0.6** | **App Adapter Layer** | ✅ |
+| **1.0.7** | **ROM System Layer** | ✅ 当前 |
 | 1.0.8 | Integration & Optimization | 🔜 计划中 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
@@ -496,14 +564,16 @@ UI 自动化增强层，提供高级操作能力：
 | 指标 | 数值 |
 |------|------|
 | Go源文件 | 119+ |
-| Android SDK | 84+ Java类 |
+| Android SDK | 91+ Java类 |
 | 内置意图 | 22 |
 | 步骤类型 | 12 |
 | SDK平台 | 10 |
 | 内置技能 | 7+ |
 | UI工具 | 14 |
+| 系统工具 | 7 |
 | App适配器 | 4 |
 | 操作模板 | 3 |
+| 保活策略 | 5 |
 
 ---
 

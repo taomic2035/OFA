@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 
 import com.ofa.agent.mcp.ToolDefinition;
 import com.ofa.agent.automation.UITool;
+import com.ofa.agent.automation.SystemTool;
 import com.ofa.agent.tool.builtin.ai.SpeechTool;
 import com.ofa.agent.tool.builtin.data.CalendarTool;
 import com.ofa.agent.tool.builtin.data.ContactsTool;
@@ -197,6 +198,29 @@ public class BuiltInTools {
         registry.register(UITool.getFindTextDefinition(), uiTool);
 
         Log.d(TAG, "Registered automation tools");
+    }
+
+    /**
+     * Register system automation tools (Phase 4 - ROM System Layer)
+     * Requires system-level permissions or root access
+     */
+    public static void registerSystemAutomationTools(@NonNull Context context,
+                                                      @NonNull ToolRegistry registry,
+                                                      @NonNull com.ofa.agent.automation.hybrid.HybridAutomationEngine engine) {
+        // System Tool - provides system-level operations
+        SystemTool systemTool = new SystemTool(context);
+        systemTool.setHybridEngine(engine);
+
+        // Register each system tool definition
+        registry.register(SystemTool.getInstallDefinition(), systemTool);
+        registry.register(SystemTool.getUninstallDefinition(), systemTool);
+        registry.register(SystemTool.getGrantPermissionDefinition(), systemTool);
+        registry.register(SystemTool.getSetSecureSettingDefinition(), systemTool);
+        registry.register(SystemTool.getEnableAccessibilityDefinition(), systemTool);
+        registry.register(SystemTool.getKeepAliveDefinition(), systemTool);
+        registry.register(SystemTool.getCapabilityDefinition(), systemTool);
+
+        Log.d(TAG, "Registered system automation tools");
     }
 
     /**

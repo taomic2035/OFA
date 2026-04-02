@@ -40,6 +40,7 @@ public class AutomationConfig {
     private long retryDelay = 1000;
     private boolean enableLogging = true;
     private boolean enableScreenshotOnError = true;
+    private boolean enableKeepAlive = false;
 
     // Package filter (null = all packages)
     @Nullable
@@ -49,6 +50,14 @@ public class AutomationConfig {
      * Default constructor
      */
     public AutomationConfig() {}
+
+    /**
+     * Get default configuration
+     */
+    @NonNull
+    public static AutomationConfig getDefault() {
+        return new AutomationConfig();
+    }
 
     /**
      * Builder pattern
@@ -114,6 +123,10 @@ public class AutomationConfig {
 
     public boolean isScreenshotOnErrorEnabled() {
         return enableScreenshotOnError;
+    }
+
+    public boolean enableKeepAlive() {
+        return enableKeepAlive;
     }
 
     @Nullable
@@ -207,6 +220,12 @@ public class AutomationConfig {
         @NonNull
         public Builder enableScreenshotOnError(boolean enabled) {
             config.enableScreenshotOnError = enabled;
+            return this;
+        }
+
+        @NonNull
+        public Builder enableKeepAlive(boolean enabled) {
+            config.enableKeepAlive = enabled;
             return this;
         }
 
