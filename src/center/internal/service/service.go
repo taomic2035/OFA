@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ofa/center/internal/config"
+	identity "github.com/ofa/center/internal/identity"
 	"github.com/ofa/center/internal/models"
 	"github.com/ofa/center/internal/scheduler"
 	"github.com/ofa/center/internal/store"
@@ -22,6 +23,7 @@ type CenterService struct {
 	cfg      *config.Config
 	store    *store.Store
 	scheduler *scheduler.Scheduler
+	identity *identity.Service // v1.2.0: Identity Service
 
 	// Active agent connections
 	connections sync.Map // map[string]*models.AgentConnection
@@ -56,6 +58,10 @@ func NewCenterService(ctx context.Context, cfg *config.Config) (*CenterService, 
 	service.scheduler = scheduler.NewScheduler(store, cfg.Scheduler.DefaultStrategy)
 	service.scheduler.SetTaskQueue(service.taskQueue)
 
+	// v1.2.0: Initialize Identity Service
+	identityStore := identity.NewMemoryStore() // Use memory store for now, can be FileStore
+	service.identity = identity.NewService(identityStore)
+
 	// Start background workers
 	go service.taskDispatcher()
 	go service.messageDispatcher()
@@ -81,6 +87,11 @@ func (s *CenterService) GetStore() *store.Store {
 // GetScheduler returns the scheduler instance
 func (s *CenterService) GetScheduler() *scheduler.Scheduler {
 	return s.scheduler
+}
+
+// GetIdentity returns the identity service instance (v1.2.0)
+func (s *CenterService) GetIdentity() *identity.Service {
+	return s.identity
 }
 
 // GetTaskQueue returns the task queue channel
@@ -832,4 +843,506 @@ func convertTasksToProto(tasks []*models.Task) []*pb.Task {
 		result[i] = convertTaskToProto(t)
 	}
 	return result
+}
+
+// ===== Identity API Methods (v1.2.0) =====
+
+// CreateIdentity creates a new personal identity
+func (s *CenterService) CreateIdentity(ctx context.Context, req *pb.CreateIdentityRequest) (*pb.CreateIdentityResponse, error) {
+	createReq := &identity.CreateIdentityRequest{
+		ID:         req.Id,
+		Name:       req.Name,
+		Nickname:   req.Nickname,
+		Avatar:     req.Avatar,
+		Birthday:   time.Unix(req.Birthday, 0),
+		Gender:     req.Gender,
+		Location:   req.Location,
+		Occupation: req.Occupation,
+		Languages:  req.Languages,
+		Timezone:   req.Timezone,
+	}
+
+	ident, err := s.identity.CreateIdentity(ctx, createReq)
+	if err != nil {
+		return &pb.CreateIdentityResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.CreateIdentityResponse{
+		Success:  true,
+		Identity: convertIdentityToProto(ident),
+	}, nil
+}
+
+// GetIdentity retrieves a personal identity
+func (s *CenterService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest) (*pb.GetIdentityResponse, error) {
+	ident, err := s.identity.GetIdentity(ctx, req.Id)
+	if err != nil {
+		return &pb.GetIdentityResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.GetIdentityResponse{
+		Success:  true,
+		Identity: convertIdentityToProto(ident),
+	}, nil
+}
+
+// UpdateIdentity updates a personal identity
+func (s *CenterService) UpdateIdentity(ctx context.Context, req *pb.UpdateIdentityRequest) (*pb.UpdateIdentityResponse, error) {
+	ident, err := s.identity.UpdateIdentity(ctx, req.Id, req.Updates)
+	if err != nil {
+		return &pb.UpdateIdentityResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.UpdateIdentityResponse{
+		Success:  true,
+		Identity: convertIdentityToProto(ident),
+	}, nil
+}
+
+// DeleteIdentity deletes a personal identity
+func (s *CenterService) DeleteIdentity(ctx context.Context, req *pb.DeleteIdentityRequest) (*pb.DeleteIdentityResponse, error) {
+	err := s.identity.DeleteIdentity(ctx, req.Id)
+	if err != nil {
+		return &pb.DeleteIdentityResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.DeleteIdentityResponse{Success: true}, nil
+}
+
+// ListIdentities lists all identities
+func (s *CenterService) ListIdentities(ctx context.Context, req *pb.ListIdentitiesRequest) (*pb.ListIdentitiesResponse, error) {
+	page := req.Page
+	if page == 0 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize == 0 {
+		pageSize = 20
+	}
+
+	idents, total, err := s.identity.ListIdentities(ctx, int(page), int(pageSize))
+	if err != nil {
+		return &pb.ListIdentitiesResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.ListIdentitiesResponse{
+		Success:    true,
+		Identities: convertIdentitiesToProto(idents),
+		Total:      int32(total),
+		Page:       page,
+		PageSize:   pageSize,
+	}, nil
+}
+
+// UpdatePersonality updates personality traits
+func (s *CenterService) UpdatePersonality(ctx context.Context, req *pb.UpdatePersonalityRequest) (*pb.UpdatePersonalityResponse, error) {
+	personality, err := s.identity.UpdatePersonality(ctx, req.Id, req.Updates)
+	if err != nil {
+		return &pb.UpdatePersonalityResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.UpdatePersonalityResponse{
+		Success:    true,
+		Personality: convertPersonalityToProto(personality),
+	}, nil
+}
+
+// SetSpeakingTone sets speaking tone preferences
+func (s *CenterService) SetSpeakingTone(ctx context.Context, req *pb.SetSpeakingToneRequest) (*pb.SetSpeakingToneResponse, error) {
+	err := s.identity.SetSpeakingTone(ctx, req.Id, req.Tone, req.ResponseLength, req.EmojiUsage)
+	if err != nil {
+		return &pb.SetSpeakingToneResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.SetSpeakingToneResponse{Success: true}, nil
+}
+
+// UpdateValueSystem updates value system
+func (s *CenterService) UpdateValueSystem(ctx context.Context, req *pb.UpdateValueSystemRequest) (*pb.UpdateValueSystemResponse, error) {
+	valueSystem, err := s.identity.UpdateValueSystem(ctx, req.Id, req.Updates)
+	if err != nil {
+		return &pb.UpdateValueSystemResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.UpdateValueSystemResponse{
+		Success:     true,
+		ValueSystem: convertValueSystemToProto(valueSystem),
+	}, nil
+}
+
+// AddInterest adds an interest
+func (s *CenterService) AddInterest(ctx context.Context, req *pb.AddInterestRequest) (*pb.AddInterestResponse, error) {
+	interest := convertProtoToInterest(req.Interest)
+	err := s.identity.AddInterest(ctx, req.Id, interest)
+	if err != nil {
+		return &pb.AddInterestResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.AddInterestResponse{Success: true}, nil
+}
+
+// RemoveInterest removes an interest
+func (s *CenterService) RemoveInterest(ctx context.Context, req *pb.RemoveInterestRequest) (*pb.RemoveInterestResponse, error) {
+	err := s.identity.RemoveInterest(ctx, req.Id, req.InterestId)
+	if err != nil {
+		return &pb.RemoveInterestResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.RemoveInterestResponse{Success: true}, nil
+}
+
+// GetInterests retrieves interests
+func (s *CenterService) GetInterests(ctx context.Context, req *pb.GetInterestsRequest) (*pb.GetInterestsResponse, error) {
+	var interests []models.Interest
+	var err error
+
+	if req.Category != "" {
+		interests, err = s.identity.GetInterestsByCategory(ctx, req.Id, req.Category)
+	} else {
+		interests, err = s.identity.GetInterests(ctx, req.Id)
+	}
+
+	if err != nil {
+		return &pb.GetInterestsResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.GetInterestsResponse{
+		Success:   true,
+		Interests: convertInterestsToProto(interests),
+	}, nil
+}
+
+// GetVoiceProfile retrieves voice profile
+func (s *CenterService) GetVoiceProfile(ctx context.Context, req *pb.GetVoiceProfileRequest) (*pb.GetVoiceProfileResponse, error) {
+	profile, err := s.identity.GetVoiceProfile(ctx, req.Id)
+	if err != nil {
+		return &pb.GetVoiceProfileResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.GetVoiceProfileResponse{
+		Success:     true,
+		VoiceProfile: convertVoiceProfileToProto(profile),
+	}, nil
+}
+
+// UpdateVoiceProfile updates voice profile
+func (s *CenterService) UpdateVoiceProfile(ctx context.Context, req *pb.UpdateVoiceProfileRequest) (*pb.UpdateVoiceProfileResponse, error) {
+	profile := convertProtoToVoiceProfile(req.Profile)
+	err := s.identity.UpdateVoiceProfile(ctx, req.Id, profile)
+	if err != nil {
+		return &pb.UpdateVoiceProfileResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.UpdateVoiceProfileResponse{Success: true}, nil
+}
+
+// GetWritingStyle retrieves writing style
+func (s *CenterService) GetWritingStyle(ctx context.Context, req *pb.GetWritingStyleRequest) (*pb.GetWritingStyleResponse, error) {
+	style, err := s.identity.GetWritingStyle(ctx, req.Id)
+	if err != nil {
+		return &pb.GetWritingStyleResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.GetWritingStyleResponse{
+		Success:      true,
+		WritingStyle: convertWritingStyleToProto(style),
+	}, nil
+}
+
+// UpdateWritingStyle updates writing style
+func (s *CenterService) UpdateWritingStyle(ctx context.Context, req *pb.UpdateWritingStyleRequest) (*pb.UpdateWritingStyleResponse, error) {
+	style := convertProtoToWritingStyle(req.Style)
+	err := s.identity.UpdateWritingStyle(ctx, req.Id, style)
+	if err != nil {
+		return &pb.UpdateWritingStyleResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.UpdateWritingStyleResponse{Success: true}, nil
+}
+
+// GetDecisionContext retrieves decision context for AI decision engine
+func (s *CenterService) GetDecisionContext(ctx context.Context, req *pb.GetDecisionContextRequest) (*pb.GetDecisionContextResponse, error) {
+	decisionCtx, err := s.identity.GetDecisionContext(ctx, req.Id)
+	if err != nil {
+		return &pb.GetDecisionContextResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &pb.GetDecisionContextResponse{
+		Success:         true,
+		DecisionContext: convertDecisionContextToProto(decisionCtx),
+	}, nil
+}
+
+// ===== Identity Conversion Helpers =====
+
+func convertIdentityToProto(i *models.PersonalIdentity) *pb.PersonalIdentity {
+	if i == nil {
+		return nil
+	}
+
+	return &pb.PersonalIdentity{
+		Id:         i.ID,
+		Name:       i.Name,
+		Nickname:   i.Nickname,
+		Avatar:     i.Avatar,
+		Birthday:   i.Birthday.Unix(),
+		Gender:     i.Gender,
+		Location:   i.Location,
+		Occupation: i.Occupation,
+		Languages:  i.Languages,
+		Timezone:   i.Timezone,
+		Personality:    convertPersonalityToProto(i.Personality),
+		ValueSystem:    convertValueSystemToProto(i.ValueSystem),
+		Interests:      convertInterestsToProto(i.Interests),
+		VoiceProfile:   convertVoiceProfileToProto(i.VoiceProfile),
+		WritingStyle:   convertWritingStyleToProto(i.WritingStyle),
+		CreatedAt:      i.CreatedAt.Unix(),
+		UpdatedAt:      i.UpdatedAt.Unix(),
+	}
+}
+
+func convertIdentitiesToProto(idents []*models.PersonalIdentity) []*pb.PersonalIdentity {
+	result := make([]*pb.PersonalIdentity, len(idents))
+	for i, ident := range idents {
+		result[i] = convertIdentityToProto(ident)
+	}
+	return result
+}
+
+func convertPersonalityToProto(p *models.Personality) *pb.Personality {
+	if p == nil {
+		return nil
+	}
+	return &pb.Personality{
+		Openness:          p.Openness,
+		Conscientiousness: p.Conscientiousness,
+		Extraversion:      p.Extraversion,
+		Agreeableness:     p.Agreeableness,
+		Neuroticism:       p.Neuroticism,
+		CustomTraits:      p.CustomTraits,
+		SpeakingTone:      p.SpeakingTone,
+		ResponseLength:    p.ResponseLength,
+		EmojiUsage:        p.EmojiUsage,
+		Summary:           p.Summary,
+	}
+}
+
+func convertValueSystemToProto(v *models.ValueSystem) *pb.ValueSystem {
+	if v == nil {
+		return nil
+	}
+	return &pb.ValueSystem{
+		Privacy:        v.Privacy,
+		Efficiency:     v.Efficiency,
+		Health:         v.Health,
+		Family:         v.Family,
+		Career:         v.Career,
+		Entertainment:  v.Entertainment,
+		Learning:       v.Learning,
+		Social:         v.Social,
+		Finance:        v.Finance,
+		Environment:    v.Environment,
+		RiskTolerance:  v.RiskTolerance,
+		Impulsiveness:  v.Impulsiveness,
+		Patience:       v.Patience,
+		CustomValues:   v.CustomValues,
+		Summary:        v.Summary,
+	}
+}
+
+func convertInterestsToProto(interests []models.Interest) []*pb.Interest {
+	result := make([]*pb.Interest, len(interests))
+	for i, interest := range interests {
+		result[i] = &pb.Interest{
+			Id:          interest.ID,
+			Category:    interest.Category,
+			Name:        interest.Name,
+			Level:       interest.Level,
+			Keywords:    interest.Keywords,
+			Description: interest.Description,
+			Since:       interest.Since.Unix(),
+			LastActive:  interest.LastActive.Unix(),
+		}
+	}
+	return result
+}
+
+func convertVoiceProfileToProto(v *models.VoiceProfile) *pb.VoiceProfile {
+	if v == nil {
+		return nil
+	}
+	return &pb.VoiceProfile{
+		Id:               v.ID,
+		VoiceType:        v.VoiceType,
+		PresetVoiceId:    v.PresetVoiceID,
+		CloneReferenceId: v.CloneReferenceID,
+		Pitch:            v.Pitch,
+		Speed:            v.Speed,
+		Volume:           v.Volume,
+		Tone:             v.Tone,
+		Accent:           v.Accent,
+		EmotionLevel:     v.EmotionLevel,
+		PausePattern:     v.PausePattern,
+		EmphasisStyle:    v.EmphasisStyle,
+		CreatedAt:        v.CreatedAt.Unix(),
+		UpdatedAt:        v.UpdatedAt.Unix(),
+	}
+}
+
+func convertWritingStyleToProto(w *models.WritingStyle) *pb.WritingStyle {
+	if w == nil {
+		return nil
+	}
+	return &pb.WritingStyle{
+		Formality:         w.Formality,
+		Verbosity:         w.Verbosity,
+		Humor:             w.Humor,
+		Technicality:      w.Technicality,
+		UseEmoji:          w.UseEmoji,
+		UseGifs:           w.UseGIFs,
+		UseMarkdown:       w.UseMarkdown,
+		SignaturePhrase:   w.SignaturePhrase,
+		FrequentWords:     w.FrequentWords,
+		AvoidWords:        w.AvoidWords,
+		PreferredGreeting: w.PreferredGreeting,
+		PreferredClosing:  w.PreferredClosing,
+	}
+}
+
+func convertDecisionContextToProto(d *identity.DecisionContext) *pb.DecisionContext {
+	if d == nil {
+		return nil
+	}
+
+	interests := make([]*pb.Interest, len(d.Interests))
+	for i, interest := range d.Interests {
+		interests[i] = &pb.Interest{
+			Id:          interest.ID,
+			Category:    interest.Category,
+			Name:        interest.Name,
+			Level:       interest.Level,
+			Keywords:    interest.Keywords,
+			Description: interest.Description,
+			Since:       interest.Since.Unix(),
+			LastActive:  interest.LastActive.Unix(),
+		}
+	}
+
+	return &pb.DecisionContext{
+		UserId:         d.UserID,
+		Personality:    convertPersonalityToProto(d.Personality),
+		ValueSystem:    convertValueSystemToProto(d.ValueSystem),
+		Interests:      interests,
+		SpeakingTone:   d.SpeakingTone,
+		ResponseLength: d.ResponseLength,
+		ValuePriority:  d.ValuePriority,
+	}
+}
+
+// Proto to Model conversions
+
+func convertProtoToInterest(i *pb.Interest) models.Interest {
+	if i == nil {
+		return models.Interest{}
+	}
+	return models.Interest{
+		ID:          i.Id,
+		Category:    i.Category,
+		Name:        i.Name,
+		Level:       i.Level,
+		Keywords:    i.Keywords,
+		Description: i.Description,
+		Since:       time.Unix(i.Since, 0),
+		LastActive:  time.Unix(i.LastActive, 0),
+	}
+}
+
+func convertProtoToVoiceProfile(v *pb.VoiceProfile) *models.VoiceProfile {
+	if v == nil {
+		return nil
+	}
+	return &models.VoiceProfile{
+		ID:               v.Id,
+		VoiceType:        v.VoiceType,
+		PresetVoiceID:    v.PresetVoiceId,
+		CloneReferenceID: v.CloneReferenceId,
+		Pitch:            v.Pitch,
+		Speed:            v.Speed,
+		Volume:           v.Volume,
+		Tone:             v.Tone,
+		Accent:           v.Accent,
+		EmotionLevel:     v.EmotionLevel,
+		PausePattern:     v.PausePattern,
+		EmphasisStyle:    v.EmphasisStyle,
+		CreatedAt:        time.Unix(v.CreatedAt, 0),
+		UpdatedAt:        time.Unix(v.UpdatedAt, 0),
+	}
+}
+
+func convertProtoToWritingStyle(w *pb.WritingStyle) *models.WritingStyle {
+	if w == nil {
+		return nil
+	}
+	return &models.WritingStyle{
+		Formality:         w.Formality,
+		Verbosity:         w.Verbosity,
+		Humor:             w.Humor,
+		Technicality:      w.Technicality,
+		UseEmoji:          w.UseEmoji,
+		UseGIFs:           w.UseGifs,
+		UseMarkdown:       w.UseMarkdown,
+		SignaturePhrase:   w.SignaturePhrase,
+		FrequentWords:     w.FrequentWords,
+		AvoidWords:        w.AvoidWords,
+		PreferredGreeting: w.PreferredGreeting,
+		PreferredClosing:  w.PreferredClosing,
+	}
 }
