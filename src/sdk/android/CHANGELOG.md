@@ -1,3 +1,152 @@
+# OFA Android SDK v1.1.0 - Distributed Agent System
+
+## 发布日期: 2026-04-02
+
+## 更新概述
+
+本次更新为 OFA Android SDK 添加了完整的分布式 Agent 系统，支持多设备协同、场景感知、跨设备消息路由和健康数据联动。
+
+## 新增功能
+
+### 分布式 Agent 系统
+
+#### 核心组件
+
+| 组件 | 说明 |
+|------|------|
+| `DistributedOrchestrator` | 分布式协调器，统一管理分布式功能 |
+| `SceneDetector` | 场景检测器，识别用户当前场景 |
+| `SceneContext` | 场景上下文，定义场景类型和属性 |
+| `CrossDeviceRouter` | 跨设备路由器，智能消息路由 |
+| `EventBus` | 事件总线，订阅/发布机制 |
+| `HealthDataBridge` | 健康数据桥接，传感器数据联动 |
+| `DeviceRole` | 设备角色定义 |
+
+#### 场景感知
+
+支持检测的场景类型：
+
+| 场景 | 说明 | 推荐显示 |
+|------|------|----------|
+| running | 跑步 | watch |
+| walking | 步行 | watch |
+| cycling | 骑行 | watch |
+| driving | 驾驶 | phone(语音) |
+| meeting | 会议 | phone(静音) |
+| sleeping | 睡眠 | none |
+| focus | 专注 | phone(静音) |
+
+#### 设备角色
+
+```java
+// 设备角色定义
+SOURCE      // 数据源：手表传感器
+DISPLAY     // 显示设备：手机、手表
+EXECUTOR    // 执行设备：手机操作
+COORDINATOR // 协调器：主设备
+RELAY       // 中继：消息转发
+```
+
+#### 跨设备消息路由
+
+智能路由规则：
+
+| 场景 | 消息类型 | 目标设备 |
+|------|----------|----------|
+| 跑步 | 微信消息 | 手表 |
+| 跑步 | 外卖/快递 | 手表 |
+| 会议 | 任意 | 手表(静音) |
+| 驾驶 | 任意 | 手机(语音) |
+| 紧急 | 任意 | 手机 |
+
+#### 健康数据联动
+
+| 数据类型 | 告警阈值 |
+|----------|----------|
+| 心率 | >180 危险, >120 警告, <50 异常 |
+| 体温 | >37.5°C 发烧, <35°C 过低 |
+| 血氧 | <90% 危险, <95% 异常 |
+
+### 典型应用场景
+
+1. **跑步场景联动**
+   - 手表检测跑步 → 自动通知手机
+   - 微信消息自动转到手表显示
+   - 外卖/打车通知在手表快速查看
+
+2. **健康异常提醒**
+   - 手表心率异常 → 手机主动提醒
+   - 体温异常 → 发送健康建议
+
+3. **会议静音模式**
+   - 会议期间消息静音振动
+   - 仅在手表显示简短通知
+
+### API 更新
+
+```java
+// 启用分布式功能
+OFAAndroidAgent agent = new OFAAndroidAgent.Builder(context)
+    .enableDistributed(true)
+    .enablePeerNetwork(true)
+    .build();
+
+// 获取分布式协调器
+DistributedOrchestrator distributed = agent.getDistributedOrchestrator();
+
+// 获取当前场景
+SceneContext scene = distributed.getCurrentScene();
+
+// 订阅场景变化
+distributed.addSceneListener((oldScene, newScene) -> {
+    // 场景变化处理
+});
+
+// 订阅健康告警
+distributed.subscribeHealthAlerts(alert -> {
+    // 健康告警处理
+});
+
+// 路由通知到最佳设备
+String deviceId = distributed.routeNotification("wechat", 2, messageData);
+```
+
+### 架构更新
+
+在原有分层架构中新增 **Distributed Layer**：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Distributed Layer                        │
+│  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐    │
+│  │ SceneDetector │ │   EventBus    │ │CrossDeviceRouter│   │
+│  │   场景感知    │ │   事件订阅    │ │   跨设备路由   │    │
+│  └───────────────┘ └───────────────┘ └───────────────┘    │
+│  ┌───────────────┐ ┌───────────────┐                      │
+│  │HealthDataBridge│ │  DeviceRole  │                      │
+│  │   健康数据    │ │   设备角色   │                      │
+│  └───────────────┘ └───────────────┘                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 文件变更
+
+**新增文件**：
+- `sdk/src/main/java/com/ofa/agent/distributed/DistributedOrchestrator.java`
+- `sdk/src/main/java/com/ofa/agent/distributed/SceneDetector.java`
+- `sdk/src/main/java/com/ofa/agent/distributed/SceneContext.java`
+- `sdk/src/main/java/com/ofa/agent/distributed/CrossDeviceRouter.java`
+- `sdk/src/main/java/com/ofa/agent/distributed/EventBus.java`
+- `sdk/src/main/java/com/ofa/agent/distributed/HealthDataBridge.java`
+- `sdk/src/main/java/com/ofa/agent/distributed/DeviceRole.java`
+
+**修改文件**：
+- `OFAAndroidAgent.java` - 添加 `getDistributedOrchestrator()`, `getPeerNetwork()` 方法
+- `AgentModeManager.java` - 添加 `getPeerNetwork()` 方法
+- `docs/ARCHITECTURE.md` - 添加分布式Agent架构章节
+
+---
+
 # OFA Android SDK v1.0.3 - Skill Orchestration System
 
 ## 发布日期: 2026-04-02

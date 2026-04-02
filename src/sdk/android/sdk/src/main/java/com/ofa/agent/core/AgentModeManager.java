@@ -511,6 +511,14 @@ public class AgentModeManager {
     }
 
     /**
+     * Get peer network instance
+     */
+    @Nullable
+    public PeerNetwork getPeerNetwork() {
+        return peerNetwork;
+    }
+
+    /**
      * Get status report
      */
     @NonNull

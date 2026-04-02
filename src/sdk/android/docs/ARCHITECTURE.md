@@ -7,6 +7,7 @@ OFA Android SDK 是一个完整的智能 Agent 开发框架，支持：
 - **独立运行**: 完全本地执行，无需网络
 - **云端协作**: 连接 OFA Center，接收远程任务
 - **Agent 通信**: 与其他 Agent 直接通信协作
+- **分布式协同**: 多设备场景感知、消息路由、健康数据联动
 - **智能自动化**: UI 自动化、意图理解、技能编排
 - **社交通知**: 智能消息分发到多个社交渠道
 
@@ -28,6 +29,13 @@ OFA Android SDK 是一个完整的智能 Agent 开发框架，支持：
 │  │  │  独立运行     │ │   连接Center  │ │   混合模式        │      │   │
 │  │  └───────────────┘ └───────────────┘ └───────────────────┘      │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                       Distributed Layer (新增)                           │
+│  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌─────────────┐ │
+│  │    Scene      │ │    Event      │ │   Cross-      │ │   Health    │ │
+│  │   Detector    │ │     Bus       │ │Device Router  │ │Data Bridge  │ │
+│  │  场景感知     │ │  事件订阅     │ │  跨设备路由   │ │  健康数据   │ │
+│  └───────────────┘ └───────────────┘ └───────────────┘ └─────────────┘ │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                        Communication Layer                               │
 │  ┌───────────────┐ ┌───────────────┐ ┌───────────────────────────────┐ │
@@ -504,3 +512,227 @@ manager.registerAdapter(new MyAppAdapter(context));
 - 用户数据本地优先
 - 明确的数据使用说明
 - 用户可删除所有数据
+
+---
+
+## 10. 分布式 Agent 架构 (新增)
+
+### 10.1 概述
+
+分布式 Agent 架构支持多设备协同工作，实现场景感知、消息智能路由、健康数据联动等能力。
+
+**典型场景**：
+
+| 场景 | 描述 |
+|------|------|
+| 跑步模式 | 手表检测跑步场景 → 通知手机 → 微信消息自动转到手表显示 |
+| 健康异常 | 手表心率异常 → 自动推送到手机提醒用户 |
+| 外卖通知 | 跑步时外卖/快递消息 → 在手表上快速查看 |
+| 会议模式 | 会议中消息 → 静音振动通知 |
+
+### 10.2 核心组件
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    DistributedOrchestrator                               │
+│                      (统一协调入口)                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐         │
+│  │  SceneDetector  │  │    EventBus     │  │ CrossDeviceRouter│         │
+│  │    场景检测器    │  │    事件总线     │  │   跨设备路由器   │         │
+│  │                 │  │                 │  │                 │         │
+│  │ - 运动检测      │  │ - 订阅/发布     │  │ - 消息路由      │         │
+│  │ - 位置感知      │  │ - 事件推送      │  │ - 设备选择      │         │
+│  │ - 状态识别      │  │ - 历史记录      │  │ - 规则引擎      │         │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘         │
+│                                                                          │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐         │
+│  │ HealthDataBridge│  │   DeviceRole    │  │  SceneContext   │         │
+│  │   健康数据桥接   │  │    设备角色     │  │    场景上下文   │         │
+│  │                 │  │                 │  │                 │         │
+│  │ - 心率监测      │  │ - SOURCE        │  │ - running       │         │
+│  │ - 体温监测      │  │ - DISPLAY       │  │ - driving       │         │
+│  │ - 异常告警      │  │ - EXECUTOR      │  │ - meeting       │         │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 10.3 设备角色定义
+
+```java
+// 设备角色类型
+public class DeviceRole {
+    public static final int SOURCE = 1;      // 数据源：手表传感器、手机GPS
+    public static final int DISPLAY = 2;     // 显示设备：手机屏幕、手表、电视
+    public static final int EXECUTOR = 3;    // 执行设备：手机操作、智能家居控制
+    public static final int COORDINATOR = 4; // 协调器：Center、主手机
+    public static final int RELAY = 5;       // 中继：消息转发
+}
+```
+
+**角色分配示例**：
+
+| 设备类型 | 角色 | 优先级 |
+|----------|------|--------|
+| 手机 | DISPLAY(8), EXECUTOR(9), COORDINATOR(7) | 高 |
+| 手表 | SOURCE(8), DISPLAY(6) | 中 |
+| 平板 | DISPLAY(9), EXECUTOR(6) | 中 |
+| TV | DISPLAY(10) | 低 |
+
+### 10.4 场景感知系统
+
+**支持的场景类型**：
+
+| 场景 | 触发条件 | 推荐显示 | 通知风格 |
+|------|----------|----------|----------|
+| running | 心率>120 + 运动 | watch | MINIMAL |
+| walking | 心率>80 + 运动 | watch | MINIMAL |
+| cycling | 运动 + 低心率 | watch | MINIMAL |
+| driving | 速度检测 | phone | VOICE |
+| meeting | 日历事件 | phone | SILENT |
+| sleeping | 时间 + 低活动 | none | NONE |
+| focus | 用户设置 | phone | SILENT |
+
+**检测来源**：
+1. 运动传感器（加速度计、陀螺仪）
+2. 心率传感器
+3. GPS/位置
+4. 日历事件
+5. 蓝牙设备连接
+
+### 10.5 跨设备消息路由
+
+**路由规则（优先级从高到低）**：
+
+| 规则 | 条件 | 目标设备 |
+|------|------|----------|
+| running_to_watch | 跑步场景 | 手表 |
+| urgent_to_phone | 紧急消息(urgency>=3) | 手机 |
+| delivery_to_watch | 外卖/快递/打车 | 手表 |
+| meeting_silent | 会议场景 | 手表(静音) |
+| driving_voice | 驾驶场景 | 手机(语音) |
+| casual_physical_to_watch | 运动 + 非紧急 | 手表 |
+
+**路由决策流程**：
+
+```
+消息到达
+    ↓
+获取当前场景
+    ↓
+应用路由规则 (按优先级)
+    ↓
+匹配规则? → 选择目标设备
+    ↓
+无匹配 → 选择最佳显示设备
+    ↓
+转发到目标设备
+```
+
+### 10.6 健康数据联动
+
+**健康数据类型**：
+
+| 数据类型 | 单位 | 告警阈值 |
+|----------|------|----------|
+| heart_rate | bpm | >180 (危险), >120 (警告), <50 (异常) |
+| temperature | °C | >37.5 (发烧), <35 (体温过低) |
+| blood_oxygen | % | <90 (危险), <95 (异常) |
+| steps | steps | - |
+| calories | cal | - |
+
+**告警流程**：
+
+```
+手表检测心率异常
+    ↓
+HealthDataBridge 检测
+    ↓
+EventBus 发布 HEALTH_ALERT
+    ↓
+手机订阅接收
+    ↓
+显示健康提醒
+```
+
+### 10.7 使用示例
+
+```java
+// 初始化分布式Agent
+OFAAndroidAgent agent = new OFAAndroidAgent.Builder(context)
+    .runMode(AgentProfile.RunMode.HYBRID)
+    .enablePeerNetwork(true)
+    .enableDistributed(true)  // 启用分布式功能
+    .build();
+
+agent.initialize();
+
+// 获取分布式协调器
+DistributedOrchestrator distributed = agent.getDistributedOrchestrator();
+
+// 获取当前场景
+SceneContext scene = distributed.getCurrentScene();
+if (scene.getSceneType().equals(SceneContext.RUNNING)) {
+    // 跑步场景处理
+}
+
+// 订阅场景变化
+distributed.addSceneListener((oldScene, newScene) -> {
+    Log.i(TAG, "场景变化: " + oldScene.getSceneType() + " → " + newScene.getSceneType());
+});
+
+// 订阅健康告警
+distributed.subscribeHealthAlerts(alert -> {
+    showHealthWarning(alert.alertType, alert.value, alert.recommendation);
+});
+
+// 路由通知到最佳设备
+Map<String, Object> notification = new HashMap<>();
+notification.put("message", "外卖已送达");
+notification.put("type", "delivery");
+
+String targetDevice = distributed.routeNotification("delivery", 2, notification);
+// 返回手表设备ID（如果当前在跑步）
+
+// 获取已发现的穿戴设备
+List<DeviceInfo> wearables = distributed.getWearableDevices();
+```
+
+### 10.8 事件订阅模型
+
+```java
+// 订阅事件类型
+distributed.subscribe(EventBus.HEALTH_ALERT, event -> {
+    // 处理健康告警
+});
+
+distributed.subscribe(EventBus.SCENE_CHANGE, event -> {
+    // 处理场景变化
+});
+
+distributed.subscribe(EventBus.NOTIFICATION, event -> {
+    // 处理转发通知
+});
+
+// 发布事件
+distributed.publish("custom_event", eventData, priority);
+```
+
+### 10.9 设备发现与注册
+
+```
+设备启动
+    ↓
+PeerNetwork 广播服务 (NSD)
+    ↓
+其他设备发现
+    ↓
+交换设备信息:
+  - 设备ID、名称、类型
+  - 角色、能力
+  - 当前场景
+    ↓
+注册到 CrossDeviceRouter
+    ↓
+开始消息路由
+```

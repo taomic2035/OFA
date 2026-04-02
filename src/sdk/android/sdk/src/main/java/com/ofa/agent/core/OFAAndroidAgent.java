@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ofa.agent.automation.AutomationOrchestrator;
+import com.ofa.agent.distributed.DistributedOrchestrator;
 import com.ofa.agent.intent.IntentEngine;
 import com.ofa.agent.memory.UserMemoryManager;
 import com.ofa.agent.skill.SkillDefinition;
@@ -59,9 +60,11 @@ public class OFAAndroidAgent {
     private AutomationOrchestrator automationOrchestrator;
     private SocialOrchestrator socialOrchestrator;
     private ToolRegistry toolRegistry;
+    private DistributedOrchestrator distributedOrchestrator;
 
     // State
     private boolean initialized = false;
+    private boolean enableDistributed = true;
 
     /**
      * Builder for OFAAndroidAgent
@@ -74,6 +77,7 @@ public class OFAAndroidAgent {
         private boolean enableAutomation = true;
         private boolean enableSocial = true;
         private boolean enablePeerNetwork = true;
+        private boolean enableDistributed = true;  // Enable distributed agent features
 
         public Builder(@NonNull Context context) {
             this.context = context.getApplicationContext();
@@ -105,6 +109,11 @@ public class OFAAndroidAgent {
             return this;
         }
 
+        public Builder enableDistributed(boolean enable) {
+            this.enableDistributed = enable;
+            return this;
+        }
+
         public OFAAndroidAgent build() {
             if (instance != null) {
                 instance.shutdown();
@@ -124,6 +133,7 @@ public class OFAAndroidAgent {
 
     private OFAAndroidAgent(Builder builder) {
         this.context = builder.context;
+        this.enableDistributed = builder.enableDistributed;
 
         // Create profile
         this.profile = new AgentProfile.Builder()
@@ -159,7 +169,17 @@ public class OFAAndroidAgent {
         this.modeManager = new AgentModeManager(
             context, profile, memoryManager, automationOrchestrator, socialOrchestrator);
 
-        Log.i(TAG, "OFA Android Agent created with mode: " + builder.runMode);
+        // Initialize distributed orchestrator if enabled
+        if (builder.enableDistributed && builder.enablePeerNetwork) {
+            PeerNetwork peerNetwork = modeManager.getPeerNetwork();
+            if (peerNetwork != null) {
+                this.distributedOrchestrator = new DistributedOrchestrator(
+                    context, profile, this, peerNetwork);
+            }
+        }
+
+        Log.i(TAG, "OFA Android Agent created with mode: " + builder.runMode +
+              ", distributed: " + builder.enableDistributed);
     }
 
     /**
@@ -180,6 +200,12 @@ public class OFAAndroidAgent {
 
         // Initialize mode manager
         modeManager.initialize();
+
+        // Initialize distributed orchestrator
+        if (distributedOrchestrator != null) {
+            distributedOrchestrator.initialize();
+            Log.i(TAG, "Distributed orchestrator initialized");
+        }
 
         initialized = true;
         Log.i(TAG, "OFA Android Agent initialized");
@@ -377,6 +403,22 @@ public class OFAAndroidAgent {
         return socialOrchestrator;
     }
 
+    /**
+     * Get distributed orchestrator
+     */
+    @Nullable
+    public DistributedOrchestrator getDistributedOrchestrator() {
+        return distributedOrchestrator;
+    }
+
+    /**
+     * Get peer network
+     */
+    @Nullable
+    public PeerNetwork getPeerNetwork() {
+        return modeManager.getPeerNetwork();
+    }
+
     // ===== Status =====
 
     /**
@@ -408,6 +450,11 @@ public class OFAAndroidAgent {
         if (!initialized) return;
 
         Log.i(TAG, "Shutting down OFA Android Agent...");
+
+        // Shutdown distributed orchestrator first
+        if (distributedOrchestrator != null) {
+            distributedOrchestrator.shutdown();
+        }
 
         modeManager.shutdown();
 
