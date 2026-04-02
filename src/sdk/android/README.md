@@ -50,7 +50,34 @@ dependencies {
 
 ## Quick Start
 
-### 1. AI-Enhanced Automation (Recommended)
+### 1. Unified Agent Entry (Recommended)
+
+```java
+// Initialize agent with HYBRID mode (recommended)
+OFAAndroidAgent agent = new OFAAndroidAgent.Builder(context)
+    .runMode(AgentProfile.RunMode.HYBRID)
+    .center("center.example.com", 9090)
+    .enableAutomation(true)
+    .enableSocial(true)
+    .enablePeerNetwork(true)
+    .build();
+
+agent.initialize();
+
+// Execute natural language input
+CompletableFuture<TaskResult> result = agent.execute("帮我点一杯珍珠奶茶");
+
+// Execute skill
+result = agent.executeSkill("food_order.bubble_tea", Map.of("shop", "喜茶"));
+
+// Send social notification
+result = agent.sendNotification("约你明天吃饭", "张三", "13812345678");
+
+// Check status
+String report = agent.getStatusReport();
+```
+
+### 2. AI-Enhanced Automation
 
 ```java
 // Initialize with memory support
@@ -68,7 +95,7 @@ List<Recommendation> recommendations = orchestrator.getRecommendations();
 result = orchestrator.executeSmart("search", Map.of("query", "奶茶"));
 ```
 
-### 2. Basic Automation
+### 3. Basic Automation
 
 ```java
 AutomationOrchestrator orchestrator = new AutomationOrchestrator(context);
@@ -148,24 +175,92 @@ record = social.sendPaymentReminder("50", "借款人", "13555556666");
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│                    AIEnhancedOrchestrator                           │
-│  ┌─────────────┐ ┌────────────────┐ ┌────────────────────────────┐ │
-│  │ LocalAI     │ │ SmartDecision  │ │ OperationRecommender       │ │
-│  │ Engine      │ │ Engine (MAB)   │ │                            │ │
-│  └─────────────┘ └────────────────┘ └────────────────────────────┘ │
+│                      OFAAndroidAgent                                │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │                    AgentModeManager                          │  │
+│  │  STANDALONE │ CONNECTED │ HYBRID                             │  │
+│  └─────────────────────────────────────────────────────────────┘  │
 ├────────────────────────────────────────────────────────────────────┤
-│                    AutomationOrchestrator                           │
-│  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────────────┐   │
-│  │ Memory    │ │ Intent    │ │ Skill     │ │ Recovery + Retry  │   │
-│  │ Aware     │ │ Triggered │ │ Bridge    │ │                   │   │
-│  └───────────┘ └───────────┘ └───────────┘ └───────────────────┘   │
+│  ┌───────────────┐ ┌───────────────┐ ┌───────────────────────┐   │
+│  │ Center        │ │ Peer          │ │ Local                 │   │
+│  │ Connection    │ │ Network       │ │ Execution Engine      │   │
+│  │ (gRPC)        │ │ (NSD/P2P)     │ │                       │   │
+│  └───────────────┘ └───────────────┘ └───────────────────────┘   │
 ├────────────────────────────────────────────────────────────────────┤
-│                    HybridAutomationEngine                           │
-│         AccessibilityEngine + SystemAutomationEngine                │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │                   LocalExecutionEngine                       │  │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────────────┐   │  │
+│  │  │ Intent  │ │ Skill   │ │ Auto-   │ │ Social          │   │  │
+│  │  │ Engine  │ │ Executor│ │ mation  │ │ Orchestrator    │   │  │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────────────┘   │  │
+│  └─────────────────────────────────────────────────────────────┘  │
 ├────────────────────────────────────────────────────────────────────┤
-│  AppAdapterManager (4 adapters)  │ TemplateRegistry (3 templates)  │
-│  美团 | 饿了么 | 淘宝 | 京东      │ 外卖 | 购物 | 搜索           │
+│  ┌───────────────┐ ┌───────────────┐ ┌───────────────────────┐   │
+│  │ Memory        │ │ AI Enhanced   │ │ App Adapters          │   │
+│  │ System        │ │ Orchestrator  │ │ (4 apps)              │   │
+│  │ (L1/L2/L3)    │ │ (MAB/LLM)     │ │                       │   │
+│  └───────────────┘ └───────────────┘ └───────────────────────┘   │
 └────────────────────────────────────────────────────────────────────┘
+```
+
+## Running Modes
+
+The Android Agent supports three running modes:
+
+### 1. STANDALONE Mode
+- Complete local execution
+- No network dependency
+- All capabilities work offline
+- Best for: Privacy-focused apps, offline scenarios
+
+### 2. CONNECTED Mode
+- Always connected to Center
+- Receives remote tasks
+- Reports status to Center
+- Best for: Managed device fleets, enterprise scenarios
+
+### 3. HYBRID Mode (Recommended)
+- Local-first execution
+- Cloud enhancement when available
+- Automatic fallback to local
+- Best for: Consumer apps, mixed connectivity
+
+```java
+// Initialize with HYBRID mode (default)
+OFAAndroidAgent agent = new OFAAndroidAgent.Builder(context)
+    .runMode(AgentProfile.RunMode.HYBRID)
+    .center("center.example.com", 9090)
+    .enableAutomation(true)
+    .enableSocial(true)
+    .enablePeerNetwork(true)
+    .build();
+
+agent.initialize();
+
+// Switch mode at runtime
+agent.switchMode(AgentProfile.RunMode.STANDALONE);
+
+// Check status
+boolean connected = agent.isCenterConnected();
+List<AgentProfile> peers = agent.getPeers();
+```
+
+## Task Execution Flow
+
+```
+User Input → TaskRequest → AgentModeManager
+                                ↓
+            ┌───────────────────┼───────────────────┐
+            ↓                   ↓                   ↓
+        STANDALONE          CONNECTED            HYBRID
+            ↓                   ↓                   ↓
+     LocalExecution      CenterConnection    Intelligent
+        Engine                │               Routing
+            ↓                  ↓                   ↓
+     ┌──────┴──────┐     ┌─────┴─────┐     ┌──────┴──────┐
+     ↓             ↓     ↓           ↓     ↓             ↓
+   Intent     Skill   Task      Result  Local      Center
+   Engine    Executor Assigned  Returned  First      Fallback
 ```
 
 ## App Adapters
