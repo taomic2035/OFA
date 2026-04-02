@@ -682,10 +682,11 @@ List<ContactInfo> contacts = social.searchContacts("李");
 
 | Metric | Count |
 |--------|-------|
-| Java Classes | 120+ |
+| Java Classes | 130+ |
 | Built-in Intents | 22 |
 | Step Types | 12 |
 | Built-in Tools | 50+ |
+| Core Components | 8 |
 | App Adapters | 4 |
 | Operation Templates | 3 |
 | Recovery Strategies | 6 |
@@ -694,11 +695,14 @@ List<ContactInfo> contacts = social.searchContacts("李");
 | Decision Strategies | 3 |
 | Social Channels | 9 |
 | Message Types | 10 |
+| Running Modes | 3 |
+| Capability Types | 8 |
 
 ## Version History
 
 | Version | Feature |
 |---------|---------|
+| v1.2.0 | Agent Mode Architecture (STANDALONE/CONNECTED/HYBRID, Peer Network) |
 | v1.1.0 | Social Notification System (Smart messaging across 9 channels) |
 | v1.0.9 | AI Agent Enhancement (LocalAI, MAB, Recommendations) |
 | v1.0.8 | Integration & Optimization (Memory, Intent, Skill bridges) |

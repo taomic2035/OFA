@@ -7,6 +7,79 @@
 
 ---
 
+## [1.2.0] - 2026-04-02 🤖 Agent Mode Architecture
+
+### 新增 - Android SDK Agent Running Mode System
+
+统一的 Agent 运行模式架构，支持独立运行、云端连接和混合模式：
+
+| 组件 | 功能 |
+|------|------|
+| OFAAndroidAgent | 统一入口，替代原 OFAAgent |
+| AgentProfile | Agent 身份、能力、配置定义 |
+| AgentModeManager | 运行模式管理和智能任务路由 |
+| LocalExecutionEngine | 本地执行引擎 (Intent/Skill/Auto/Social) |
+| CenterConnection | Center 连接 (gRPC 双向流) |
+| PeerNetwork | Agent 间通信 (NSD 发现 + P2P) |
+| TaskRequest | 任务请求模型 |
+| TaskResult | 任务结果模型 |
+
+**三种运行模式：**
+
+| 模式 | 描述 | 网络依赖 | 适用场景 |
+|------|------|---------|---------|
+| STANDALONE | 完全独立运行 | 无 | 隐私敏感、离线场景 |
+| CONNECTED | 连接 Center | 必需 | 企业设备管理 |
+| HYBRID | 本地优先，云端增强 | 可选 | 消费者应用 (推荐) |
+
+**任务来源：**
+- 本地触发 (Intent、UI、定时)
+- Center 分配
+- Peer 请求
+
+**AgentProfile 能力定义：**
+- `ui_automation` - UI 自动化
+- `social_notification` - 社交通知
+- `local_llm` - 本地 LLM
+- `cloud_llm` - 云端 LLM
+- `intent_understanding` - 意图理解
+- `memory_system` - 记忆系统
+- `skill_orchestration` - 技能编排
+- `contact_access` - 联系人访问
+
+**PeerNetwork 特性：**
+- NSD/mDNS 服务发现
+- P2P 直接通信
+- 能力感知 Peer 选择
+- 任务委托给 Peer
+
+**架构图：**
+```
+┌─────────────────────────────────────────┐
+│           OFAAndroidAgent               │
+│  ┌─────────────────────────────────┐   │
+│  │       AgentModeManager          │   │
+│  │  STANDALONE|CONNECTED|HYBRID    │   │
+│  └─────────────────────────────────┘   │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐  │
+│  │ Center  │ │  Peer   │ │  Local  │  │
+│  │ gRPC    │ │  NSD    │ │ Engine  │  │
+│  └─────────┘ └─────────┘ └─────────┘  │
+└─────────────────────────────────────────┘
+```
+
+新增文件：
+- `sdk/src/main/java/com/ofa/agent/core/OFAAndroidAgent.java` - 统一入口
+- `sdk/src/main/java/com/ofa/agent/core/AgentProfile.java` - Agent 身份定义
+- `sdk/src/main/java/com/ofa/agent/core/AgentModeManager.java` - 模式管理
+- `sdk/src/main/java/com/ofa/agent/core/LocalExecutionEngine.java` - 本地执行
+- `sdk/src/main/java/com/ofa/agent/core/CenterConnection.java` - Center 连接
+- `sdk/src/main/java/com/ofa/agent/core/PeerNetwork.java` - Peer 网络
+- `sdk/src/main/java/com/ofa/agent/core/TaskRequest.java` - 任务请求
+- `sdk/src/main/java/com/ofa/agent/core/TaskResult.java` - 任务结果
+
+---
+
 ## [1.1.0] - 2026-04-02 💬 Social Notification System
 
 ### 新增 - Android SDK Social Notification System
@@ -761,9 +834,9 @@ UI 自动化增强层，提供高级操作能力：
 ## 版本路线图
 
 ```
-0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9 → 1.1.0
-原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM     Integ   AI Agent  Social
-✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅        ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9 → 1.1.0 → 1.2.0
+原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM     Integ   AI Agent  Social   Mode
+✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅        ✅       ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
@@ -780,7 +853,8 @@ UI 自动化增强层，提供高级操作能力：
 | **1.0.7** | **ROM System Layer** | ✅ |
 | **1.0.8** | **Integration & Optimization** | ✅ |
 | **1.0.9** | **AI Agent Enhancement** | ✅ |
-| **1.1.0** | **Social Notification System** | ✅ 当前 |
+| **1.1.0** | **Social Notification System** | ✅ |
+| **1.2.0** | **Agent Mode Architecture** | ✅ 当前 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
 ---
@@ -790,7 +864,7 @@ UI 自动化增强层，提供高级操作能力：
 | 指标 | 数值 |
 |------|------|
 | Go源文件 | 119+ |
-| Android SDK | 120+ Java类 |
+| Android SDK | 130+ Java类 |
 | 内置意图 | 22 |
 | 步骤类型 | 12 |
 | SDK平台 | 10 |
@@ -798,6 +872,7 @@ UI 自动化增强层，提供高级操作能力：
 | UI工具 | 14 |
 | 系统工具 | 7 |
 | 社交工具 | 10 |
+| 核心组件 | 8 |
 | App适配器 | 4 |
 | 操作模板 | 3 |
 | 保活策略 | 5 |
@@ -807,6 +882,8 @@ UI 自动化增强层，提供高级操作能力：
 | 决策策略 | 3 |
 | 社交渠道 | 9 |
 | 消息类型 | 10 |
+| 运行模式 | 3 |
+| 能力类型 | 8 |
 
 ---
 
