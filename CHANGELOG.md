@@ -7,6 +7,84 @@
 
 ---
 
+## [1.0.8] - 2026-04-02 🔗 Integration & Optimization
+
+### 新增 - Android SDK Integration Layer (Phase 5)
+
+完整的集成优化层，整合所有自动化组件：
+
+| 组件 | 功能 |
+|------|------|
+| AutomationOrchestrator | 统一编排入口 |
+| MemoryAwareAutomation | 记忆感知自动化 |
+| IntentTriggeredAutomation | 意图触发自动化 |
+| SkillAutomationBridge | 技能桥接 |
+| ErrorRecovery | 错误恢复 (6种策略) |
+| RetryPolicy | 重试策略 (指数退避) |
+| PerformanceMonitor | 性能监控 |
+| AutomationLogger | 操作日志 |
+
+**MemoryAwareAutomation 特性：**
+- 记住用户偏好 (店铺、商品、地址、支付方式)
+- 智能搜索建议
+- 自动应用历史选项
+- 订单历史记录
+
+**IntentTriggeredAutomation 特性：**
+- 自然语言 → 自动化操作
+- 意图处理器注册
+- 异步执行支持
+- 置信度过滤
+
+**SkillAutomationBridge 特性：**
+- 技能 → 适配器/模板
+- 步骤类型支持 (TOOL/DELAY/CONDITION/ASSIGN)
+- 上下文变量传递
+- 执行记录
+
+**ErrorRecovery 策略：**
+
+| 策略 | 场景 |
+|------|------|
+| ScrollToFind | 元素未找到 |
+| WaitAndRetry | 超时 |
+| DismissOverlay | 弹窗阻挡 |
+| WaitForPage | 页面加载中 |
+| HandlePermission | 权限问题 |
+| HandleNetwork | 网络错误 |
+
+**RetryPolicy 预设：**
+- `noRetry()` - 不重试
+- `quick()` - 快速重试 (3次, 500ms起)
+- `standard()` - 标准重试 (3次, 1s起)
+- `aggressive()` - 激进重试 (5次, 2s起)
+- `network()` - 网络优化 (5次, 抖动30%)
+- `ui()` - UI优化 (3次, 500ms起)
+
+**PerformanceMonitor 特性：**
+- 操作耗时统计
+- 成功率追踪
+- 慢操作告警
+- 报告生成
+
+**AutomationLogger 特性：**
+- 多级别日志 (DEBUG/INFO/WARN/ERROR)
+- 文件持久化
+- 自动轮转
+- JSON导出
+
+新增文件：
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationOrchestrator.java` - 统一编排
+- `sdk/src/main/java/com/ofa/agent/automation/integration/MemoryAwareAutomation.java` - 记忆集成
+- `sdk/src/main/java/com/ofa/agent/automation/integration/IntentTriggeredAutomation.java` - 意图集成
+- `sdk/src/main/java/com/ofa/agent/automation/integration/SkillAutomationBridge.java` - 技能集成
+- `sdk/src/main/java/com/ofa/agent/automation/recovery/ErrorRecovery.java` - 错误恢复
+- `sdk/src/main/java/com/ofa/agent/automation/recovery/RetryPolicy.java` - 重试策略
+- `sdk/src/main/java/com/ofa/agent/automation/monitor/PerformanceMonitor.java` - 性能监控
+- `sdk/src/main/java/com/ofa/agent/automation/monitor/AutomationLogger.java` - 操作日志
+
+---
+
 ## [1.0.7] - 2026-04-02 🔧 ROM System Layer
 
 ### 新增 - Android SDK ROM System Layer (Phase 4)
@@ -537,9 +615,9 @@ UI 自动化增强层，提供高级操作能力：
 ## 版本路线图
 
 ```
-0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7
-原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM
-✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8
+原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM     Integration
+✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
@@ -553,8 +631,8 @@ UI 自动化增强层，提供高级操作能力：
 | **1.0.4** | **Automation v1 (Basic)** | ✅ |
 | **1.0.5** | **Automation v2 (Enhanced)** | ✅ |
 | **1.0.6** | **App Adapter Layer** | ✅ |
-| **1.0.7** | **ROM System Layer** | ✅ 当前 |
-| 1.0.8 | Integration & Optimization | 🔜 计划中 |
+| **1.0.7** | **ROM System Layer** | ✅ |
+| **1.0.8** | **Integration & Optimization** | ✅ 当前 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
 ---
@@ -564,7 +642,7 @@ UI 自动化增强层，提供高级操作能力：
 | 指标 | 数值 |
 |------|------|
 | Go源文件 | 119+ |
-| Android SDK | 91+ Java类 |
+| Android SDK | 100+ Java类 |
 | 内置意图 | 22 |
 | 步骤类型 | 12 |
 | SDK平台 | 10 |
@@ -574,6 +652,8 @@ UI 自动化增强层，提供高级操作能力：
 | App适配器 | 4 |
 | 操作模板 | 3 |
 | 保活策略 | 5 |
+| 恢复策略 | 6 |
+| 重试预设 | 6 |
 
 ---
 
