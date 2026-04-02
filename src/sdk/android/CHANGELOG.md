@@ -1,12 +1,95 @@
-# OFA Android SDK v1.1.0 - Distributed Agent System
+# OFA Android SDK v1.1.0 - Payment & Order Tools
 
-## 发布日期: 2026-04-02
+## 发布日期: 2026-04-03
 
 ## 更新概述
 
-本次更新为 OFA Android SDK 添加了完整的分布式 Agent 系统，支持多设备协同、场景感知、跨设备消息路由和健康数据联动。
+本次更新为 OFA Android SDK 添加了支付和订单管理工具，完善了 FoodDeliverySkills 所需的所有工具支持。
 
 ## 新增功能
+
+### 支付工具 (PaymentTool)
+
+| 操作 | 功能 |
+|------|------|
+| `payment.pay` | 发起支付 (微信/支付宝/银行卡) |
+| `payment.status` | 查询支付状态 |
+| `payment.cancel` | 取消支付 |
+
+特性:
+- 自动识别支付按钮
+- 多支付方式选择
+- 自动确认支付选项
+- 支付状态查询
+
+### 订单工具 (OrderTool)
+
+| 操作 | 功能 |
+|------|------|
+| `order.getStatus` | 获取订单状态 |
+| `order.list` | 列出订单 |
+| `order.cancel` | 取消订单 |
+| `order.track` | 跟踪配送 |
+| `order.reopen` | 再来一单 |
+
+特性:
+- 订单状态标准化 (pending_payment, preparing, delivering, completed)
+- 配送跟踪信息提取
+- 智能取消流程
+
+### UITool 扩展
+
+新增外卖场景专用操作:
+
+| 操作 | 功能 |
+|------|------|
+| `ui.search` | 搜索商品/店铺 |
+| `ui.configure` | 配置规格 (甜度/温度/杯型/小料/数量) |
+| `ui.setAddress` | 设置收货地址 |
+
+### BySelector 增强
+
+新增 `or()` 方法支持多选择器:
+
+```java
+BySelector.selector = BySelector.text("确定")
+    .or(BySelector.text("确认"));
+```
+
+### 统一工具注册
+
+```java
+// 一键注册所有自动化工具
+AutomationToolRegistry.registerAll(toolRegistry, context);
+```
+
+## FoodDeliverySkills 工具映射
+
+| 技能引用 | 实现工具 |
+|----------|----------|
+| `app.launch` | AppTool ✅ |
+| `ui.search` | UITool.executeSearch() ✅ |
+| `ui.click` | UITool.executeClick() ✅ |
+| `ui.configure` | UITool.executeConfigure() ✅ |
+| `ui.setAddress` | UITool.executeSetAddress() ✅ |
+| `payment.pay` | PaymentTool.executePay() ✅ |
+| `order.getStatus` | OrderTool.executeGetStatus() ✅ |
+
+## 文件变更
+
+新增文件:
+- `sdk/src/main/java/com/ofa/agent/automation/PaymentTool.java`
+- `sdk/src/main/java/com/ofa/agent/automation/OrderTool.java`
+- `sdk/src/main/java/com/ofa/agent/automation/AutomationToolRegistry.java`
+
+修改文件:
+- `sdk/src/main/java/com/ofa/agent/automation/UITool.java`
+- `sdk/src/main/java/com/ofa/agent/automation/BySelector.java`
+- `sdk/build.gradle` (版本更新)
+
+---
+
+## v1.1.0 - Distributed Agent System (2026-04-02)
 
 ### 分布式 Agent 系统
 
