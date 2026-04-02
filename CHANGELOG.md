@@ -7,6 +7,86 @@
 
 ---
 
+## [1.1.0] - 2026-04-02 💬 Social Notification System
+
+### 新增 - Android SDK Social Notification System
+
+智能社交通知系统，根据现代社交习惯自动选择最佳沟通渠道：
+
+| 组件 | 功能 |
+|------|------|
+| MessageClassifier | 消息分类器 (10种类型) |
+| ChannelSelector | 渠道选择器 (9种渠道) |
+| MessageSender | 消息发送器 (多渠道支持) |
+| SocialOrchestrator | 社交编排器 (统一入口) |
+| ContactAdapter | 联系人适配器 (通讯录集成) |
+| SocialTool | 社交工具集 (10个MCP工具) |
+
+**MessageClassifier 消息类型：**
+| 类型 | 示例 | 自动选择渠道 |
+|------|------|--------------|
+| `invitation` | 约你吃饭 | 微信 |
+| `urgent` | 服务器宕机！ | 电话 |
+| `reminder` | 记得缴费 | 短信 |
+| `guide` | 旅游攻略 | 小红书私信 |
+| `payment` | 还我50块 | 支付宝 |
+| `business` | 明天开会 | 钉钉 |
+| `casual` | 好久不见 | 微信 |
+| `greeting` | 你好 | 微信 |
+| `location` | 我在咖啡厅 | 微信 |
+
+**ChannelSelector 支持渠道：**
+| 渠道 | 包名 | 能力 |
+|------|------|------|
+| 微信 | com.tencent.mm | 文本/语音/图片/视频/位置/支付/群聊 |
+| 电话 | built-in | 语音 |
+| 短信 | built-in | 文本/群发 |
+| 支付宝 | com.eg.android.AlipayGphone | 文本/图片/支付 |
+| 抖音 | com.ss.android.ugc.aweme | 文本/图片/视频 |
+| 小红书 | com.xingin.xhs | 文本/图片/视频 |
+| 钉钉 | com.alibaba.android.rimet | 文本/语音/图片/视频/位置 |
+| 企业微信 | com.tencent.wework | 文本/语音/图片/视频/位置 |
+| QQ | com.tencent.mobileqq | 文本/语音/图片/视频/位置 |
+
+**SocialOrchestrator 特性：**
+- 智能消息分类 (关键词+模式匹配)
+- 紧急度评估 (4级: low/medium/high/critical)
+- 渠道自动选择 (基于现代社交习惯)
+- 多渠道降级 (自动切换备用渠道)
+- 用户偏好学习 (记住用户选择)
+- 联系人集成 (读取通讯录社交账号)
+
+**SocialTool MCP工具：**
+- `social.send` - 智能发送消息
+- `social.invite` - 发送邀请 (约吃饭)
+- `social.urgent` - 发送紧急消息
+- `social.guide` - 分享攻略
+- `social.payment` - 支付提醒
+- `social.classify` - 分析消息类型
+- `social.contact.find` - 查找联系人
+- `social.contact.search` - 搜索联系人
+- `social.channel.list` - 列出可用渠道
+- `social.stats` - 获取发送统计
+
+**现代社交习惯映射：**
+- 约吃饭 → 微信 (方便讨论确认)
+- 紧急重要 → 电话 (即时响应)
+- 攻略分享 → 小红书私信 (内容平台)
+- 支付提醒 → 支付宝 (金融场景)
+- 工作通知 → 钉钉/企业微信 (职场场景)
+- 日常聊天 → 微信/抖音 (社交平台)
+
+新增文件：
+- `sdk/src/main/java/com/ofa/agent/social/MessageClassifier.java` - 消息分类
+- `sdk/src/main/java/com/ofa/agent/social/ChannelSelector.java` - 渠道选择
+- `sdk/src/main/java/com/ofa/agent/social/MessageSender.java` - 消息发送
+- `sdk/src/main/java/com/ofa/agent/social/SocialOrchestrator.java` - 社交编排
+- `sdk/src/main/java/com/ofa/agent/social/adapter/ContactAdapter.java` - 联系人适配
+- `sdk/src/main/java/com/ofa/agent/social/SocialTool.java` - 社交工具
+- `sdk/src/main/java/com/ofa/agent/sample/SocialNotificationSample.java` - 使用示例
+
+---
+
 ## [1.0.9] - 2026-04-02 🧠 AI Agent Enhancement
 
 ### 新增 - Android SDK AI Agent System
@@ -681,9 +761,9 @@ UI 自动化增强层，提供高级操作能力：
 ## 版本路线图
 
 ```
-0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9
-原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM     Integ   AI Agent
-✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9 → 1.1.0
+原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM     Integ   AI Agent  Social
+✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅        ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
@@ -699,7 +779,8 @@ UI 自动化增强层，提供高级操作能力：
 | **1.0.6** | **App Adapter Layer** | ✅ |
 | **1.0.7** | **ROM System Layer** | ✅ |
 | **1.0.8** | **Integration & Optimization** | ✅ |
-| **1.0.9** | **AI Agent Enhancement** | ✅ 当前 |
+| **1.0.9** | **AI Agent Enhancement** | ✅ |
+| **1.1.0** | **Social Notification System** | ✅ 当前 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
 ---
@@ -709,13 +790,14 @@ UI 自动化增强层，提供高级操作能力：
 | 指标 | 数值 |
 |------|------|
 | Go源文件 | 119+ |
-| Android SDK | 110+ Java类 |
+| Android SDK | 120+ Java类 |
 | 内置意图 | 22 |
 | 步骤类型 | 12 |
 | SDK平台 | 10 |
 | 内置技能 | 7+ |
 | UI工具 | 14 |
 | 系统工具 | 7 |
+| 社交工具 | 10 |
 | App适配器 | 4 |
 | 操作模板 | 3 |
 | 保活策略 | 5 |
@@ -723,6 +805,8 @@ UI 自动化增强层，提供高级操作能力：
 | 重试预设 | 6 |
 | AI组件 | 9 |
 | 决策策略 | 3 |
+| 社交渠道 | 9 |
+| 消息类型 | 10 |
 
 ---
 

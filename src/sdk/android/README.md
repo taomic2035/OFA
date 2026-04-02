@@ -1,18 +1,38 @@
 # OFA Android Agent SDK
 
-Android SDK for building OFA Agent applications with MCP (Model Context Protocol) support, dual LLM capabilities, and intent understanding.
+Android SDK for building intelligent agent applications with MCP support, dual LLM capabilities, intent understanding, cross-app UI automation, and smart social notifications.
 
 ## Features
 
-- **Skill Orchestration**: Create multi-step automation tasks (order food, morning routine, etc.)
-- **Intent Understanding**: Parse natural language to structured intents and execute tools
-- **Dual LLM Support**: Cloud LLM (OpenAI/Claude) + Local LLM (TensorFlow Lite)
-- **Auto Failover**: Automatic switching between cloud and local LLM
-- **Offline Capable**: Run LLM inference entirely on-device
+### Core Capabilities
+- **UI Automation**: Cross-app automation via AccessibilityService (Phase 1-5)
+- **AI Agent Enhancement**: On-device ML inference and intelligent decision making
+- **Social Notifications**: Smart message delivery across multiple channels
+- **Skill Orchestration**: Create multi-step automation tasks
+- **Intent Understanding**: Natural language to structured intents
+- **Memory System**: Three-layer user memory (L1/L2/L3)
+- **Dual LLM Support**: Cloud LLM + Local LLM with auto-failover
 - **MCP Protocol**: Full Model Context Protocol support
-- **30+ Built-in Tools**: System, device, data, and AI tools
-- **30+ Pre-defined Intents**: System, communication, media, device, navigation, app
-- **P2P Communication**: Agent-to-agent messaging
+
+### Automation Features
+- **4 App Adapters**: 美团外卖, 饿了么, 淘宝, 京东
+- **6 Error Recovery Strategies**: Auto-recovery from failures
+- **5 Keep-Alive Strategies**: Background service protection
+- **ROM System Layer**: Silent install, permission grant (requires root/system)
+
+### AI Features
+- **Local Intent Classification**: On-device intent recognition
+- **Multi-Armed Bandit**: Thompson Sampling, UCB, Epsilon-Greedy
+- **Operation Recommendation**: Context-aware suggestions
+- **UI Element Recognition**: Screen understanding
+
+### Social Notification Features
+- **9 Communication Channels**: 微信, 电话, 短信, 支付宝, 抖音, 小红书, 钉钉, 企业微信, QQ
+- **10 Message Types**: invitation, urgent, reminder, guide, payment, casual, business, greeting, location, unknown
+- **4 Urgency Levels**: low, medium, high, critical
+- **Smart Channel Selection**: Modern social habits based routing
+- **Multi-Channel Fallback**: Automatic retry on alternative channels
+- **Contact Integration**: Access device contacts with social handles
 
 ## Requirements
 
@@ -22,604 +42,586 @@ Android SDK for building OFA Agent applications with MCP (Model Context Protocol
 
 ## Installation
 
-Add to your app's `build.gradle`:
-
 ```gradle
 dependencies {
-    implementation 'com.ofa:agent-sdk:1.0.0'
+    implementation 'com.ofa:agent-sdk:1.0.9'
 }
 ```
 
 ## Quick Start
 
-### 1. Initialize Agent with Cloud LLM
+### 1. AI-Enhanced Automation (Recommended)
 
 ```java
-OFAAgent agent = new OFAAgent.Builder(context)
-    .agentId("my-android-agent")
-    .agentName("My Phone")
-    .centerAddress("192.168.1.100")
-    .centerPort(9090)
-    .type(OFAAgent.AgentType.MOBILE)
-    // Configure cloud LLM
-    .cloudLLM("https://api.openai.com/v1", "sk-xxx", "gpt-4-turbo")
-    .build();
+// Initialize with memory support
+UserMemoryManager memoryManager = new UserMemoryManager(context);
+AIEnhancedOrchestrator orchestrator = new AIEnhancedOrchestrator(context, memoryManager);
+orchestrator.initialize();
 
-agent.connect();
+// Process natural language
+AutomationResult result = orchestrator.processNaturalLanguage("帮我点一杯珍珠奶茶");
+
+// Get recommendations
+List<Recommendation> recommendations = orchestrator.getRecommendations();
+
+// Execute smart operation
+result = orchestrator.executeSmart("search", Map.of("query", "奶茶"));
 ```
 
-### 2. Initialize with Cloud + Local LLM (Recommended)
+### 2. Basic Automation
 
 ```java
-OFAAgent agent = new OFAAgent.Builder(context)
-    .agentId("my-android-agent")
-    .centerAddress("192.168.1.100")
-    .centerPort(9090)
-    // Cloud LLM (primary)
-    .cloudLLM("https://api.openai.com/v1", "sk-xxx", "gpt-4-turbo")
-    // Local LLM (fallback/offline)
-    .localLLM("/data/local/tmp/gemma-2b.tflite")
-    .autoLLMFailover(true)  // Auto-switch on failure
-    .offlineLevel(OfflineLevel.L4)
-    .build();
+AutomationOrchestrator orchestrator = new AutomationOrchestrator(context);
+orchestrator.initialize();
 
-agent.connect();
+// Execute operation
+Map<String, String> params = new HashMap<>();
+params.put("query", "奶茶");
+params.put("shopName", "喜茶");
+params.put("productName", "珍珠奶茶");
+
+AutomationResult result = orchestrator.executeTemplate("food_delivery", params);
 ```
 
-### 3. Use LLM Directly
+### 3. Intent Understanding
 
 ```java
-// Check LLM availability
-if (agent.hasLLM()) {
-    LLMProvider llm = agent.getLLMProvider();
+IntentEngine intentEngine = new IntentEngine();
+UserIntent intent = intentEngine.recognizeBest("打开WiFi");
 
-    // Chat
-    LLMResponse response = llm.chat("Hello, how are you?").join();
-    if (response.isSuccess()) {
-        Log.i("LLM", response.getContent());
-    }
-
-    // Stream chat
-    llm.streamChat(messages, new StreamCallback() {
-        @Override
-        public void onToken(String token) {
-            // Handle streaming token
-        }
-        @Override
-        public void onComplete(LLMResponse response) {
-            // Chat complete
-        }
-    });
+if (intent != null) {
+    String action = intent.getIntentName(); // "wifi_on"
+    Map<String, String> slots = intent.getSlots();
 }
 ```
 
-### 4. Use LLM as MCP Tool
+### 4. Skill Execution
 
 ```java
-// Call LLM through tool interface
-Map<String, Object> args = new HashMap<>();
-args.put("message", "Translate 'hello' to Chinese");
-args.put("system", "You are a helpful translator");
-
-ToolResult result = agent.callTool("llm.chat", args);
-if (result.isSuccess()) {
-    JSONObject output = result.getOutput();
-    String content = output.getString("content");
-}
-```
-
-### 5. Handle Offline Mode
-
-```java
-OfflineManager om = agent.getOfflineManager();
-
-om.addOfflineModeListener(offline -> {
-    if (offline) {
-        // Switched to local LLM automatically
-        Log.i("Agent", "Offline mode - using local LLM");
-    } else {
-        // Back online - syncing
-        om.syncNow();
-    }
-});
-```
-
-### 6. Intent Understanding System
-
-```java
-// Initialize task executor
-ToolRegistry registry = agent.getToolRegistry();
-TaskExecutor executor = new TaskExecutor(context, registry);
-
-// Process user input
-executor.process("打开WiFi", new TaskExecutor.Callback() {
-    @Override
-    public void onStatusUpdate(String taskId, ExecutionStatus status, String message) {
-        Log.d(TAG, "Status: " + status);
-    }
-
-    @Override
-    public void onConfirmationRequired(String taskId, UserIntent intent, String message) {
-        // Show confirmation dialog
-        // User confirms: executor.confirmAndExecute(taskId, intent, mapping, null);
-    }
-
-    @Override
-    public void onSlotMissing(String taskId, List<String> missingSlots) {
-        // Ask user for missing information
-    }
-
-    @Override
-    public void onComplete(String taskId, TaskResult result) {
-        if (result.isSuccess()) {
-            Log.i(TAG, "Success: " + result.toolResult.getOutput());
-        } else {
-            Log.e(TAG, "Failed: " + result.message);
-        }
-    }
-});
-```
-
-### 7. Custom Intent Registration
-
-```java
-// Define custom intent
-IntentDefinition selfieIntent = new IntentDefinition.Builder()
-    .id("custom.take_selfie")
-    .category("media")
-    .action("take_selfie")
-    .description("使用前置摄像头自拍")
-    .keywords("自拍", "selfie", "拍自己")
-    .pattern("自拍|拍.*自己|selfie")
-    .defaultConfidence(0.9)
-    .build();
-
-// Register intent
-executor.registerIntent(selfieIntent);
-
-// Map intent to tool
-executor.registerMapping("custom.take_selfie", "camera.capture",
-    Map.of("mode", "mode"),
-    Map.of("mode", "photo", "camera", "front"),
-    false, null);
-```
-
-## Pre-defined Intents
-
-| Category | Intent | Example Input | Tool |
-|----------|--------|---------------|------|
-| system | `open_settings` | "打开设置" | `settings.open` |
-| system | `volume` | "把音量调大" | `audio.control` |
-| communication | `call` | "打电话给张三" | `phone.call` |
-| communication | `sms` | "发短信给李四" | `phone.sms` |
-| media | `capture` | "帮我拍照" | `camera.capture` |
-| media | `play_music` | "播放周杰伦的歌" | `media.play` |
-| device | `wifi_on` | "打开WiFi" | `wifi.status` |
-| device | `battery` | "电池还剩多少" | `battery.status` |
-| navigation | `navigate` | "导航到北京" | `maps.navigate` |
-| navigation | `current_location` | "我在哪" | `location.get` |
-| app | `open` | "打开微信" | `app.launch` |
-
-## Skill Orchestration
-
-Create multi-step automation tasks:
-
-### Quick Start
-
-```java
-// Initialize skill system
-SkillRegistry skillRegistry = SkillRegistry.getInstance(context);
+SkillRegistry registry = SkillRegistry.getInstance(context);
 CompositeSkillExecutor executor = new CompositeSkillExecutor(context, toolRegistry);
 
-// Execute pre-built skill
-SkillDefinition bubbleTeaSkill = skillRegistry.getSkill("food_order.bubble_tea");
-
-Map<String, Object> inputs = new HashMap<>();
-inputs.put("drinkName", "珍珠奶茶");
-inputs.put("sweetness", "五分糖");
-inputs.put("temperature", "少冰");
-
-executor.execute(bubbleTeaSkill, inputs).thenAccept(result -> {
-    if (result.isSuccess()) {
-        Log.i(TAG, "Order completed!");
-    }
-});
+SkillDefinition skill = registry.getSkill("food_order.bubble_tea");
+SkillResult result = executor.execute(skill, inputs).join();
 ```
 
-### Create Custom Skill
+### 5. Memory System
 
 ```java
-SkillDefinition mySkill = new SkillDefinition.Builder()
-    .id("custom.morning_routine")
-    .name("早安问候")
-    .category("routine")
-    .trigger("voice", "早安")
+UserMemoryManager memory = new UserMemoryManager(context);
 
-    // Step 1: Get weather
-    .step(new SkillStep.Builder()
-        .id("get_weather")
-        .type(SkillStep.StepType.TOOL)
-        .action("weather.get")
-        .nextStep("notify")
-        .build())
+// Store preference
+memory.set("preferred_tea", "珍珠奶茶");
 
-    // Step 2: Notify user
-    .step(new SkillStep.Builder()
-        .id("notify")
-        .type(SkillStep.StepType.NOTIFY)
-        .param("title", "早安")
-        .param("message", "今天${weather}，温度${temperature}°C")
-        .build())
+// Get suggestion
+List<MemorySuggestion> suggestions = memory.getSuggestions("preferred_tea", 5);
 
-    .build();
-
-skillRegistry.saveSkill(mySkill);
+// Remember interaction
+memory.rememberInteraction("order", Map.of("shop", "喜茶", "drink", "珍珠奶茶"));
 ```
 
-### Step Types
+### 6. Social Notifications (NEW!)
+
+```java
+// Initialize social orchestrator
+SocialOrchestrator social = new SocialOrchestrator(context, automationEngine, memoryManager);
+
+// Smart notification - auto-select best channel
+DeliveryRecord record = social.sendNotification(
+    "约你明天吃饭",       // message
+    "张三",              // recipient name
+    "13812345678"        // phone (optional)
+);
+// → Automatically sends via WeChat (social invitation)
+
+// Urgent message - auto-select phone
+record = social.sendUrgent("服务器宕机了！", "技术主管", "13711112222");
+
+// Share guide - auto-select Xiaohongshu
+record = social.sendGuide("旅游攻略", "推荐几个不错的景点...", "好友");
+
+// Payment reminder - auto-select Alipay
+record = social.sendPaymentReminder("50", "借款人", "13555556666");
+```
+
+## Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                    AIEnhancedOrchestrator                           │
+│  ┌─────────────┐ ┌────────────────┐ ┌────────────────────────────┐ │
+│  │ LocalAI     │ │ SmartDecision  │ │ OperationRecommender       │ │
+│  │ Engine      │ │ Engine (MAB)   │ │                            │ │
+│  └─────────────┘ └────────────────┘ └────────────────────────────┘ │
+├────────────────────────────────────────────────────────────────────┤
+│                    AutomationOrchestrator                           │
+│  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────────────┐   │
+│  │ Memory    │ │ Intent    │ │ Skill     │ │ Recovery + Retry  │   │
+│  │ Aware     │ │ Triggered │ │ Bridge    │ │                   │   │
+│  └───────────┘ └───────────┘ └───────────┘ └───────────────────┘   │
+├────────────────────────────────────────────────────────────────────┤
+│                    HybridAutomationEngine                           │
+│         AccessibilityEngine + SystemAutomationEngine                │
+├────────────────────────────────────────────────────────────────────┤
+│  AppAdapterManager (4 adapters)  │ TemplateRegistry (3 templates)  │
+│  美团 | 饿了么 | 淘宝 | 京东      │ 外卖 | 购物 | 搜索           │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+## App Adapters
+
+### Supported Apps
+
+| App | Package | Operations |
+|-----|---------|------------|
+| 美团外卖 | com.sankuai.meituan | search, selectShop, selectProduct, addToCart, checkout, pay |
+| 饿了么 | me.ele | search, selectShop, selectProduct, addToCart, checkout, pay |
+| 淘宝 | com.taobao.taobao | search, selectProduct, configureOptions, addToCart, checkout, pay |
+| 京东 | com.jingdong.app.mall | search, selectProduct, configureOptions, addToCart, checkout, pay |
+
+### Using Adapters
+
+```java
+// Adapter is auto-detected based on current app
+AppAdapterManager adapterManager = new AppAdapterManager();
+AppAdapter adapter = adapterManager.detectAdapter(engine);
+
+if (adapter != null) {
+    adapter.search(engine, "奶茶");
+    adapter.selectShop(engine, "喜茶");
+    adapter.selectProduct(engine, "珍珠奶茶");
+    adapter.addToCart(engine, 1);
+    adapter.goToCheckout(engine);
+    adapter.submitOrder(engine);
+}
+```
+
+## Operation Templates
+
+### Built-in Templates
+
+| Template | Description | Required Params |
+|----------|-------------|-----------------|
+| `food_delivery` | Complete food order flow | query, shopName, productName |
+| `shopping` | Shopping order flow | query, productName |
+| `search_and_add` | Search and add to cart | query, productName |
+
+### Custom Templates
+
+```java
+OperationTemplate template = new OperationTemplate.Builder(
+    "custom_order",
+    "Custom Order",
+    "Custom order flow",
+    "food"
+)
+    .requiredParam("shopName")
+    .requiredParam("productName")
+    .addStep(OperationTemplate.TemplateStep.builder("search")
+        .param("query", "$shopName")
+        .waitAfter(1500)
+        .build())
+    .addStep(OperationTemplate.TemplateStep.builder("selectProduct")
+        .param("productName", "$productName")
+        .build())
+    .build();
+
+templateRegistry.register(template);
+```
+
+## Error Recovery
+
+### Recovery Strategies
+
+| Strategy | Trigger | Action |
+|----------|---------|--------|
+| ScrollToFind | Element not found | Scroll to find element |
+| WaitAndRetry | Timeout | Wait and retry |
+| DismissOverlay | Dialog blocking | Press back |
+| WaitForPage | Page loading | Wait for stability |
+| HandlePermission | Permission denied | Guide to settings |
+| HandleNetwork | Network error | Wait and refresh |
+
+### Using Recovery
+
+```java
+ErrorRecovery recovery = new ErrorRecovery(engine);
+recovery.setListener(new ErrorRecovery.RecoveryListener() {
+    @Override
+    public void onRecoveryAttempt(int attempt, String error, String strategy) {
+        Log.d(TAG, "Recovery attempt " + attempt + ": " + strategy);
+    }
+
+    @Override
+    public void onRecoverySuccess(String strategy) {
+        Log.i(TAG, "Recovery succeeded: " + strategy);
+    }
+});
+
+// Automatic recovery on failure
+if (!result.isSuccess()) {
+    result = recovery.recover(result);
+}
+```
+
+## Retry Policy
+
+### Preset Policies
+
+```java
+// No retry
+RetryPolicy.noRetry();
+
+// Quick retry (3 attempts, 500ms start)
+RetryPolicy.quick();
+
+// Standard retry (3 attempts, 1s start, 2x backoff)
+RetryPolicy.standard();
+
+// Aggressive retry (5 attempts, 2s start)
+RetryPolicy.aggressive();
+
+// Network optimized (5 attempts, 30% jitter)
+RetryPolicy.network();
+
+// UI optimized (3 attempts, 500ms start)
+RetryPolicy.ui();
+```
+
+### Custom Policy
+
+```java
+RetryPolicy policy = RetryPolicy.builder()
+    .maxRetries(5)
+    .initialDelay(1000)
+    .maxDelay(30000)
+    .backoffMultiplier(2.0)
+    .jitterFactor(0.1)
+    .condition(result -> result.getMessage().contains("timeout"))
+    .build();
+```
+
+## AI Decision Engine
+
+### Multi-Armed Bandit
+
+```java
+SmartDecisionEngine decisionEngine = new SmartDecisionEngine(context, memoryManager);
+
+// Register options
+decisionEngine.registerOptions("shop_selection", Arrays.asList("喜茶", "奈雪", "蜜雪冰城"));
+
+// Select optimal option
+String selected = decisionEngine.selectOption("shop_selection");
+
+// Report outcome
+decisionEngine.reportReward("shop_selection", selected, 1.0); // success = 1.0
+```
+
+### Decision Types
 
 | Type | Description |
 |------|-------------|
-| TOOL | Call MCP tool |
-| INTENT | Execute intent |
-| DELAY | Wait for duration |
-| WAIT_FOR | Wait for condition |
-| CONDITION | Conditional branch |
-| INPUT | Request user input |
-| CONFIRM | Request confirmation |
-| NOTIFY | Send notification |
-| SUB_SKILL | Call another skill |
+| `shop_selection` | Select optimal shop |
+| `payment_method` | Select payment method |
+| `retry_strategy` | Select retry approach |
+| `timing` | Select execution timing |
 
-### Pre-built Skills
+## System-Level Operations
 
-| Skill | Description |
-|-------|-------------|
-| `food_order.bubble_tea` | Order bubble tea via delivery apps |
-| `food_order.track_delivery` | Track delivery with notifications |
+> Requires system permissions (INSTALL_PACKAGES, WRITE_SECURE_SETTINGS) or root access.
 
-## MCP Tools
+### Silent Install
+
+```java
+HybridAutomationEngine engine = new HybridAutomationEngine(context);
+
+if (engine.hasSystemLevelAccess()) {
+    // Silent install
+    engine.installApp("/path/to/app.apk");
+
+    // Silent uninstall
+    engine.uninstallApp("com.example.app");
+
+    // Grant permission silently
+    engine.grantPermission("com.example.app", "android.permission.READ_CONTACTS");
+
+    // Enable accessibility service
+    engine.enableAccessibilityService("com.ofa.agent/.automation.accessibility.OFAAccessibilityService");
+}
+```
+
+### Keep-Alive Strategies
+
+```java
+engine.enableKeepAlive();  // Enable all strategies
+engine.disableKeepAlive(); // Disable
+```
+
+| Strategy | Description |
+|----------|-------------|
+| ForegroundService | Persistent notification |
+| WakeLock | CPU wake lock |
+| BatteryOptimization | Whitelist exemption |
+| SystemApp | System app privilege |
+| RootKeepAlive | Process priority via root |
+
+## Performance Monitoring
+
+```java
+PerformanceMonitor monitor = new PerformanceMonitor();
+
+// Start timing
+PerformanceMonitor.OperationTimer timer = monitor.startOperation("search");
+
+// ... perform operation ...
+
+// Complete
+timer.success(); // or timer.failure("error message")
+
+// Get stats
+String report = monitor.generateReport();
+```
+
+## Automation Logger
+
+```java
+AutomationLogger logger = new AutomationLogger(context);
+
+// Log operations
+logger.info("search", "Searching for: 奶茶");
+logger.warn("checkout", "Payment method not selected");
+logger.error("pay", "Payment failed", "Network error");
+
+// Export logs
+JSONArray logs = logger.exportLogs();
+```
+
+## MCP Tools (40+ Built-in)
 
 ### System Tools
-
-| Tool | Description | Offline |
-|------|-------------|---------|
-| `app.launch` | Launch application | ✅ |
-| `app.list` | List installed apps | ✅ |
-| `app.info` | Get app info | ✅ |
-| `settings.get` | Get device setting | ✅ |
-| `settings.set` | Set device setting | ✅ |
-| `clipboard.read` | Read clipboard | ✅ |
-| `clipboard.write` | Write to clipboard | ✅ |
-| `file.read` | Read file | ✅ |
-| `file.write` | Write file | ✅ |
-| `file.list` | List files | ✅ |
-| `notification.send` | Send notification | ✅ |
+- `app.launch`, `app.list`, `app.info`
+- `settings.get`, `settings.set`
+- `clipboard.read`, `clipboard.write`
+- `file.read`, `file.write`, `file.list`
+- `notification.send`, `notification.cancel`
 
 ### Device Tools
-
-| Tool | Description | Permissions |
-|------|-------------|-------------|
-| `camera.capture` | Capture photo | CAMERA |
-| `camera.scan` | Scan QR/barcode | CAMERA |
-| `camera.list` | List cameras | - |
-| `bluetooth.scan` | Scan Bluetooth | BLUETOOTH |
-| `bluetooth.list` | List paired devices | BLUETOOTH |
-| `wifi.scan` | Scan WiFi | LOCATION |
-| `wifi.status` | WiFi status | - |
-| `nfc.status` | NFC status | - |
-| `sensor.list` | List sensors | - |
-| `sensor.read` | Read sensor | - |
-| `battery.status` | Battery status | - |
+- `camera.capture`, `camera.scan`
+- `bluetooth.scan`, `bluetooth.list`
+- `wifi.scan`, `wifi.list`, `wifi.info`
+- `nfc.status`, `nfc.read`
+- `sensor.list`, `sensor.read`
+- `battery.status`
 
 ### Data Tools
-
-| Tool | Description | Permissions |
-|------|-------------|-------------|
-| `contacts.query` | Query contacts | READ_CONTACTS |
-| `contacts.search` | Search contacts | READ_CONTACTS |
-| `calendar.query` | Query events | READ_CALENDAR |
-| `calendar.today` | Today's events | READ_CALENDAR |
-| `media.images` | Query images | STORAGE |
-| `media.videos` | Query videos | STORAGE |
-| `media.audio` | Query audio | STORAGE |
+- `contacts.query`, `contacts.search`
+- `calendar.query`, `calendar.today`
+- `media.images`, `media.videos`, `media.audio`
 
 ### AI Tools
+- `speech.synthesize`, `speech.stop`
 
-| Tool | Description |
-|------|-------------|
-| `speech.synthesize` | Text-to-speech |
-| `speech.stop` | Stop speech |
+### UI Automation Tools
+- `ui.click`, `ui.longClick`, `ui.swipe`, `ui.input`
+- `ui.find`, `ui.wait`, `ui.scrollFind`
+- `ui.capture`, `ui.waitForStable`
+- `ui.startRecord`, `ui.stopRecord`, `ui.replay`
 
-## Custom Tools
+### System Tools (ROM)
+- `system.install`, `system.uninstall`
+- `system.grantPermission`, `system.setSecureSetting`
+- `system.enableAccessibility`, `system.keepAlive`
+- `system.getCapability`
 
-Implement `ToolExecutor` interface:
+### Social Tools (NEW!)
+- `social.send` - Smart message with auto channel selection
+- `social.invite` - Send invitation (约吃饭) via WeChat
+- `social.urgent` - Send urgent message via phone
+- `social.guide` - Share tips via Xiaohongshu
+- `social.payment` - Payment reminder via Alipay
+- `social.classify` - Analyze message type and recommended channel
+- `social.contact.find` - Find contact by name
+- `social.contact.search` - Search contacts
+- `social.channel.list` - List available channels
+- `social.stats` - Get delivery statistics
+
+## Social Notifications
+
+### Smart Channel Selection
+
+The system automatically selects the best communication channel based on modern social habits:
+
+| Message Type | Example | Auto-Selected Channel | Reason |
+|--------------|---------|----------------------|--------|
+| Invitation (邀请) | 约你吃饭 | 微信 (WeChat) | Easy discussion, social context |
+| Urgent (紧急) | 服务器宕机！ | 电话 (Phone) | Immediate response required |
+| Guide (攻略) | 旅游攻略分享 | 小红书私信 | Content sharing platform |
+| Payment (支付) | 还我50块钱 | 支付宝 (Alipay) | Financial context |
+| Business (工作) | 明天开会 | 钉钉/企业微信 | Work context |
+| Reminder (提醒) | 记得缴费 | 短信 (SMS) | Reliable delivery |
+| Casual (日常) | 好久不见 | 微信 (WeChat) | Social platform |
+
+### Message Types
 
 ```java
-public class MyTool implements ToolExecutor {
+// Supported message types
+MessageClassifier.TYPE_INVITATION  // 邀请: 约吃饭, 聚会
+MessageClassifier.TYPE_URGENT      // 紧急: 服务器宕机, 急事
+MessageClassifier.TYPE_REMINDER    // 提醒: 记得缴费, 明天会议
+MessageClassifier.TYPE_GUIDE       // 攻略: 旅游攻略, 使用教程
+MessageClassifier.TYPE_PAYMENT     // 支付: 转账, 还款
+MessageClassifier.TYPE_CASUAL      // 日常: 聊天, 问候
+MessageClassifier.TYPE_BUSINESS    // 工作: 任务, 审批
+MessageClassifier.TYPE_GREETING    // 问候: 你好, 在吗
+MessageClassifier.TYPE_LOCATION    // 位置: 我在咖啡厅
+```
 
-    @NonNull
-    @Override
-    public String getToolId() {
-        return "my.tool";
+### Urgency Levels
+
+```java
+MessageClassifier.URGENCY_LOW       // Low: 可以等等
+MessageClassifier.URGENCY_MEDIUM    // Medium: 明天/后天
+MessageClassifier.URGENCY_HIGH      // High: 今天/现在
+MessageClassifier.URGENCY_CRITICAL  // Critical: 紧急/急
+```
+
+### Supported Channels
+
+| Channel | Package | Capabilities |
+|---------|---------|--------------|
+| 微信 (WeChat) | com.tencent.mm | Text, Voice, Image, Video, Location, Payment, Group |
+| 电话 (Phone) | built-in | Voice |
+| 短信 (SMS) | built-in | Text, Group |
+| 支付宝 (Alipay) | com.eg.android.AlipayGphone | Text, Image, Payment |
+| 抖音 (Douyin) | com.ss.android.ugc.aweme | Text, Image, Video, Group |
+| 小红书 (Xiaohongshu) | com.xingin.xhs | Text, Image, Video, Group |
+| 钉钉 (DingTalk) | com.alibaba.android.rimet | Text, Voice, Image, Video, Location, Group |
+| 企业微信 (WeCom) | com.tencent.wework | Text, Voice, Image, Video, Location, Group |
+| QQ | com.tencent.mobileqq | Text, Voice, Image, Video, Location, Group |
+
+### Using Social Tools
+
+```java
+// Initialize
+SocialOrchestrator social = new SocialOrchestrator(context, automationEngine, memoryManager);
+
+// Set listener for tracking
+social.setListener(new NotificationListener() {
+    void onChannelSelected(String channel, String reason) {
+        Log.i(TAG, "Selected: " + channel + " because " + reason);
     }
-
-    @NonNull
-    @Override
-    public String getDescription() {
-        return "My custom tool";
+    void onDeliverySuccess(DeliveryRecord record) {
+        Log.i(TAG, "Sent via " + record.successfulChannel);
     }
-
-    @NonNull
-    @Override
-    public ToolResult execute(@NonNull Map<String, Object> args, @NonNull ExecutionContext ctx) {
-        // Get arguments
-        String param = (String) args.get("param");
-
-        // Process
-        JSONObject output = new JSONObject();
-        output.put("result", process(param));
-
-        return new ToolResult(getToolId(), output, 100);
+    void onFallback(String from, String to, String reason) {
+        Log.w(TAG, "Fallback: " + from + " → " + to);
     }
+});
 
-    @Override
-    public boolean isAvailable() {
-        return true;
-    }
+// Send with auto-classification
+DeliveryRecord record = social.sendNotification("约你明天吃饭", "张三", "13812345678");
+// → Automatically uses WeChat
 
-    @Override
-    public boolean supportsOffline() {
-        return true;
-    }
+// Send urgent (auto phone call)
+record = social.sendUrgent("紧急！服务器挂了！", "运维", "13711112222");
+
+// Share guide (auto Xiaohongshu)
+record = social.sendGuide("三亚攻略", "推荐酒店...", "好友");
+
+// Payment reminder (auto Alipay)
+record = social.sendPaymentReminder("100", "借款人", "13555556666");
+
+// Get statistics
+Map<String, Map<String, Double>> stats = social.getChannelStatistics();
+// Returns: successRate, avgDuration, totalAttempts per channel
+```
+
+### Multi-Channel Fallback
+
+```java
+// Enable fallback (default: true)
+social.setMultiChannelFallback(true, 3); // max 3 channels
+
+// Example: If WeChat fails, automatically try SMS, then Phone
+DeliveryRecord record = social.sendNotification("重要消息", "联系人", "13812345678");
+// Attempted: [wechat, sms, phone]
+```
+
+### Contact Integration
+
+```java
+// Find contact
+ContactInfo contact = social.findContact("张三");
+if (contact != null) {
+    String phone = contact.getPrimaryPhone();
+    String wechat = contact.getWeChatId();
 }
-```
 
-Register custom tool:
+// Search contacts
+List<ContactInfo> contacts = social.searchContacts("李");
 
-```java
-ToolRegistry registry = agent.getToolRegistry();
-registry.register(definition, new MyTool());
-```
-
-## Built-in Offline Skills
-
-The SDK includes several offline-capable skills:
-
-| Skill | ID | Description |
-|-------|-----|-------------|
-| Echo | `echo` | Echo input for testing |
-| Text Process | `text.process` | Text operations (uppercase, lowercase, reverse, length) |
-| Calculator | `calculator` | Math operations (add, sub, mul, div, sqrt, sin, cos, etc.) |
-| Timestamp | `timestamp` | Time formatting and conversion |
-| JSON Format | `json.format` | JSON beautification and validation |
-| Hash | `hash` | Hash calculation (MD5, SHA-1, SHA-256, SHA-512) |
-
-Register offline skills:
-
-```java
-OfflineSkills.registerAll(offlineManager);
-```
-
-## Offline Support
-
-| Level | Description | Tool Availability |
-|-------|-------------|-------------------|
-| L1 | Complete offline | Offline-capable tools only |
-| L2 | LAN collaboration | Tools + P2P device access |
-| L3 | Weak network | Cached requests |
-| L4 | Online | Full access |
-
-```java
-// Set offline mode
-agent.setOfflineMode(true);
-
-// Check offline status
-if (agent.isOfflineMode()) {
-    // Use offline-capable tools only
-}
+// Contact notes can store social handles:
+// "微信: abc123\n抖音: @user\n小红书: @creator"
 ```
 
 ## Permissions
-
-Add to `AndroidManifest.xml`:
 
 ```xml
 <!-- Required -->
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-<!-- Optional - for specific tools -->
+<!-- Automation -->
+<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+<!-- Optional tools -->
 <uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.BLUETOOTH" />
-<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 <uses-permission android:name="android.permission.READ_CONTACTS" />
 <uses-permission android:name="android.permission.READ_CALENDAR" />
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 ```
 
-## Architecture
+## Project Statistics
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Android Device                              │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │                  OFA Agent SDK v1.0.3                        ││
-│  │  ┌─────────────────────────────────────────────────────────┐││
-│  │  │              Skill Orchestration Layer                   │││
-│  │  │  ┌───────────┐ ┌───────────┐ ┌───────────────────────┐   │││
-│  │  │  │  Skill    │ │  Skill    │ │  CompositeSkill       │   │││
-│  │  │  │ Definition│ │ Registry  │ │  Executor             │   │││
-│  │  │  └─────┬─────┘ └─────┬─────┘ └───────────┬───────────┘   │││
-│  │  └────────│─────────────│───────────────────│───────────────┘││
-│  │           │             │                   │                ││
-│  │  ┌────────┴─────────────┴───────────────────┴───────────────┐││
-│  │  │              Intent Understanding Layer                  │││
-│  │  │  IntentEngine │ IntentRegistry │ TaskExecutor            │││
-│  │  └──────────────────────────────────────────────────────────┘││
-│  │  ┌──────────────────────────────────────────────────────────┐││
-│  │  │                    LLM Provider Layer                     │││
-│  │  │  CloudLLM (OpenAI) ◄─failover─► LocalLLM (TFLite)        │││
-│  │  └──────────────────────────────────────────────────────────┘││
-│  │  ┌──────────────────────────────────────────────────────────┐││
-│  │  │               MCP Server + Tool Registry                 │││
-│  │  │  System │ Device │ Data │ AI Tools (30+ built-in)       │││
-│  │  └──────────────────────────────────────────────────────────┘││
-│  │  ┌──────────────────────────────────────────────────────────┐││
-│  │  │              Offline Execution Layer                     │││
-│  │  └──────────────────────────────────────────────────────────┘││
-│  └──────────────────────────────────────────────────────────────┘│
-└──────────────────────────────────────────────────────────────────┘
-                         │
-                         │ gRPC
-                         ▼
-                ┌───────────────┐
-                │  OFA Center   │
-                │ (gRPC:9090)   │
-                └───────────────┘
-```
+| Metric | Count |
+|--------|-------|
+| Java Classes | 120+ |
+| Built-in Intents | 22 |
+| Step Types | 12 |
+| Built-in Tools | 50+ |
+| App Adapters | 4 |
+| Operation Templates | 3 |
+| Recovery Strategies | 6 |
+| Retry Presets | 6 |
+| AI Components | 9 |
+| Decision Strategies | 3 |
+| Social Channels | 9 |
+| Message Types | 10 |
 
-## API Reference
+## Version History
 
-### OFAAgent
-
-| Method | Description |
-|--------|-------------|
-| `connect()` | Connect to Center |
-| `disconnect()` | Disconnect from Center |
-| `shutdown()` | Shutdown agent completely |
-| `isConnected()` | Check connection status |
-| `getMCPServer()` | Get MCP Server instance |
-| `getToolRegistry()` | Get Tool Registry |
-| `getAIAgentInterface()` | Get AI Agent interface |
-| `callTool(name, args)` | Call a tool |
-| `getAvailableTools()` | List available tools |
-| `setOfflineMode(offline)` | Set offline mode |
-| `isOfflineMode()` | Check offline status |
-
-### TaskExecutor
-
-| Method | Description |
-|--------|-------------|
-| `process(input)` | Process user input string |
-| `process(input, callback, ctx)` | Process with callback |
-| `confirmAndExecute(taskId, intent, mapping, ctx)` | Execute after confirmation |
-| `fillSlotsAndExecute(taskId, intent, mapping, slots, ctx)` | Execute with filled slots |
-| `registerIntent(definition)` | Register custom intent |
-| `registerMapping(intentId, toolName, ...)` | Register intent-tool mapping |
-| `getIntentEngine()` | Get IntentEngine instance |
-| `getIntentRegistry()` | Get IntentRegistry instance |
-
-### IntentEngine
-
-| Method | Description |
-|--------|-------------|
-| `recognize(input)` | Recognize intents from input |
-| `recognizeBest(input)` | Get best matching intent |
-| `recognizeInCategory(input, category)` | Recognize in specific category |
-| `register(definition)` | Register intent definition |
-| `getAllDefinitions()` | Get all registered definitions |
-
-### IntentDefinition.Builder
-
-| Method | Description |
-|--------|-------------|
-| `id(id)` | Set intent ID |
-| `category(category)` | Set category (system, media, etc.) |
-| `action(action)` | Set action name |
-| `keywords(...)` | Add matching keywords |
-| `pattern(regex)` | Add regex pattern |
-| `slot(name, type, desc, required)` | Add slot definition |
-| `slotWithPattern(name, type, pattern, required)` | Add slot with extraction pattern |
-| `defaultConfidence(confidence)` | Set default confidence |
-| `build()` | Build definition |
-
-### CompositeSkillExecutor
-
-| Method | Description |
-|--------|-------------|
-| `execute(skill, inputs)` | Execute skill with inputs |
-| `execute(skill, inputs, ctx)` | Execute with context |
-| `shutdown()` | Shutdown executor |
-
-### SkillRegistry
-
-| Method | Description |
-|--------|-------------|
-| `getInstance(context)` | Get singleton instance |
-| `saveSkill(skill)` | Register and persist skill |
-| `getSkill(id)` | Get skill by ID |
-| `searchSkills(query)` | Search skills |
-| `matchTrigger(input)` | Match voice/text to skill |
-| `deleteSkill(id)` | Delete skill |
-
-### SkillDefinition.Builder
-
-| Method | Description |
-|--------|-------------|
-| `id(id)` | Set skill ID |
-| `name(name)` | Set skill name |
-| `category(category)` | Set category |
-| `step(step)` | Add step |
-| `trigger(type, pattern)` | Add trigger |
-| `input(name, definition)` | Define input |
-| `output(name, definition)` | Define output |
-| `build()` | Build definition |
-
-### SkillStep.Builder
-
-| Method | Description |
-|--------|-------------|
-| `id(id)` | Set step ID |
-| `type(type)` | Set step type |
-| `action(action)` | Set tool/intent action |
-| `param(key, value)` | Add parameter |
-| `nextStep(stepId)` | Set next step |
-| `branch(condition, target)` | Add conditional branch |
-| `timeout(ms)` | Set timeout |
-| `retry(count, delayMs)` | Set retry policy |
-| `optional(bool)` | Mark as optional |
-| `build()` | Build step |
-
-### ToolExecutor
-
-| Method | Description |
-|--------|-------------|
-| `getToolId()` | Return tool ID |
-| `getDescription()` | Return description |
-| `execute(args, ctx)` | Execute tool |
-| `isAvailable()` | Check availability |
-| `supportsOffline()` | Check offline support |
-
-### ToolResult
-
-| Field | Description |
-|-------|-------------|
-| `success` | Execution success |
-| `toolName` | Tool name |
-| `output` | JSON output |
-| `error` | Error message |
-| `executionTimeMs` | Execution time |
-
-## Testing
-
-Run build test:
-
-```bash
-# Windows
-test_build.bat
-
-# Linux/Mac
-./test_build.sh
-```
+| Version | Feature |
+|---------|---------|
+| v1.1.0 | Social Notification System (Smart messaging across 9 channels) |
+| v1.0.9 | AI Agent Enhancement (LocalAI, MAB, Recommendations) |
+| v1.0.8 | Integration & Optimization (Memory, Intent, Skill bridges) |
+| v1.0.7 | ROM System Layer (Silent install, Keep-alive) |
+| v1.0.6 | App Adapter Layer (美团, 饿了么, 淘宝, 京东) |
+| v1.0.5 | Enhanced Automation (Scroll, Capture, Record/Replay) |
+| v1.0.4 | Basic Automation (AccessibilityService) |
+| v1.0.3 | Memory System (L1/L2/L3) |
+| v1.0.2 | Skill Orchestration |
+| v1.0.1 | Intent Understanding |
 
 ## Documentation
 
-- [Skill System Guide](docs/SKILL_SYSTEM.md) - 创建自定义技能
-- [Intent Understanding System](docs/INTENT_SYSTEM.md) - 意图识别
-- [MCP Tools Guide](docs/MCP_TOOLS_GUIDE.md) - 工具使用
-- [LLM Integration Plan](docs/LLM_INTEGRATION_PLAN.md) - LLM集成
-- [Changelog](CHANGELOG.md)
+- [Skill System Guide](docs/SKILL_SYSTEM.md)
+- [Intent Understanding System](docs/INTENT_SYSTEM.md)
+- [Automation System](docs/AUTOMATION_SYSTEM.md)
+- [AI Agent Plan](docs/AI_AGENT_PLAN.md)
+- [Changelog](../../CHANGELOG.md)
 
 ## License
 
