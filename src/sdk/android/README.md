@@ -1,14 +1,16 @@
 # OFA Android Agent SDK
 
-Android SDK for building OFA Agent applications with MCP (Model Context Protocol) support and dual LLM capabilities.
+Android SDK for building OFA Agent applications with MCP (Model Context Protocol) support, dual LLM capabilities, and intent understanding.
 
 ## Features
 
+- **Intent Understanding**: Parse natural language to structured intents and execute tools
 - **Dual LLM Support**: Cloud LLM (OpenAI/Claude) + Local LLM (TensorFlow Lite)
 - **Auto Failover**: Automatic switching between cloud and local LLM
 - **Offline Capable**: Run LLM inference entirely on-device
 - **MCP Protocol**: Full Model Context Protocol support
 - **30+ Built-in Tools**: System, device, data, and AI tools
+- **30+ Pre-defined Intents**: System, communication, media, device, navigation, app
 - **P2P Communication**: Agent-to-agent messaging
 
 ## Requirements
@@ -120,6 +122,82 @@ om.addOfflineModeListener(offline -> {
     }
 });
 ```
+
+### 6. Intent Understanding System
+
+```java
+// Initialize task executor
+ToolRegistry registry = agent.getToolRegistry();
+TaskExecutor executor = new TaskExecutor(context, registry);
+
+// Process user input
+executor.process("打开WiFi", new TaskExecutor.Callback() {
+    @Override
+    public void onStatusUpdate(String taskId, ExecutionStatus status, String message) {
+        Log.d(TAG, "Status: " + status);
+    }
+
+    @Override
+    public void onConfirmationRequired(String taskId, UserIntent intent, String message) {
+        // Show confirmation dialog
+        // User confirms: executor.confirmAndExecute(taskId, intent, mapping, null);
+    }
+
+    @Override
+    public void onSlotMissing(String taskId, List<String> missingSlots) {
+        // Ask user for missing information
+    }
+
+    @Override
+    public void onComplete(String taskId, TaskResult result) {
+        if (result.isSuccess()) {
+            Log.i(TAG, "Success: " + result.toolResult.getOutput());
+        } else {
+            Log.e(TAG, "Failed: " + result.message);
+        }
+    }
+});
+```
+
+### 7. Custom Intent Registration
+
+```java
+// Define custom intent
+IntentDefinition selfieIntent = new IntentDefinition.Builder()
+    .id("custom.take_selfie")
+    .category("media")
+    .action("take_selfie")
+    .description("使用前置摄像头自拍")
+    .keywords("自拍", "selfie", "拍自己")
+    .pattern("自拍|拍.*自己|selfie")
+    .defaultConfidence(0.9)
+    .build();
+
+// Register intent
+executor.registerIntent(selfieIntent);
+
+// Map intent to tool
+executor.registerMapping("custom.take_selfie", "camera.capture",
+    Map.of("mode", "mode"),
+    Map.of("mode", "photo", "camera", "front"),
+    false, null);
+```
+
+## Pre-defined Intents
+
+| Category | Intent | Example Input | Tool |
+|----------|--------|---------------|------|
+| system | `open_settings` | "打开设置" | `settings.open` |
+| system | `volume` | "把音量调大" | `audio.control` |
+| communication | `call` | "打电话给张三" | `phone.call` |
+| communication | `sms` | "发短信给李四" | `phone.sms` |
+| media | `capture` | "帮我拍照" | `camera.capture` |
+| media | `play_music` | "播放周杰伦的歌" | `media.play` |
+| device | `wifi_on` | "打开WiFi" | `wifi.status` |
+| device | `battery` | "电池还剩多少" | `battery.status` |
+| navigation | `navigate` | "导航到北京" | `maps.navigate` |
+| navigation | `current_location` | "我在哪" | `location.get` |
+| app | `open` | "打开微信" | `app.launch` |
 
 ## MCP Tools
 
@@ -285,32 +363,41 @@ Add to `AndroidManifest.xml`:
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   Android Device                     │
-│  ┌─────────────────────────────────────────────────┐│
-│  │              OFA Agent SDK v1.0                 ││
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────────────────┐││
-│  │  │   MCP   │ │  Tool   │ │     AI Agent       │││
-│  │  │  Server │ │Registry │ │    Interface       │││
-│  │  └────┬────┘ └────┬────┘ └─────────┬───────────┘││
-│  │       │           │                │            ││
-│  │  ┌────┴───────────┴────────────────┴───────────┐││
-│  │  │              Tool Executors                  │││
-│  │  │  System │ Device │ Data │ AI Tools         │││
-│  │  └──────────────────────────────────────────────┘││
-│  │                      │                          ││
-│  │  ┌───────────────────┴──────────────────────────┐│
-│  │  │          Offline Execution Layer             │││
-│  │  └──────────────────────────────────────────────┘││
-│  └──────────────────────────────────────────────────┘│
-└──────────────────────────────────────────────────────┘
-                       │
-                       │ gRPC
-                       ▼
-              ┌───────────────┐
-              │  OFA Center   │
-              │ (gRPC:9090)   │
-              └───────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      Android Device                              │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                  OFA Agent SDK v1.0.2                        ││
+│  │  ┌─────────────────────────────────────────────────────────┐││
+│  │  │              Intent Understanding Layer                  │││
+│  │  │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐ │││
+│  │  │  │  Intent   │ │  Intent   │ │   Tool    │ │   Task    │ │││
+│  │  │  │  Engine   │ │ Registry  │ │  Mapper   │ │ Executor  │ │││
+│  │  │  └─────┬─────┘ └─────┬─────┘ └─────┬─────┘ └─────┬─────┘ │││
+│  │  └────────│─────────────│─────────────│─────────────│───────┘││
+│  │           │             │             │             │        ││
+│  │  ┌────────┴─────────────┴─────────────┴─────────────┴───────┐││
+│  │  │                    LLM Provider Layer                     │││
+│  │  │  ┌───────────────┐           ┌───────────────────────┐   │││
+│  │  │  │ CloudLLM      │           │     LocalLLM          │   │││
+│  │  │  │ (OpenAI API)  │◄─failover─┤  (TensorFlow Lite)    │   │││
+│  │  │  └───────────────┘           └───────────────────────┘   │││
+│  │  └──────────────────────────────────────────────────────────┘││
+│  │  ┌──────────────────────────────────────────────────────────┐││
+│  │  │               MCP Server + Tool Registry                 │││
+│  │  │  System │ Device │ Data │ AI Tools (30+ built-in)       │││
+│  │  └──────────────────────────────────────────────────────────┘││
+│  │  ┌──────────────────────────────────────────────────────────┐││
+│  │  │              Offline Execution Layer                     │││
+│  │  └──────────────────────────────────────────────────────────┘││
+│  └──────────────────────────────────────────────────────────────┘│
+└──────────────────────────────────────────────────────────────────┘
+                         │
+                         │ gRPC
+                         ▼
+                ┌───────────────┐
+                │  OFA Center   │
+                │ (gRPC:9090)   │
+                └───────────────┘
 ```
 
 ## API Reference
@@ -330,6 +417,43 @@ Add to `AndroidManifest.xml`:
 | `getAvailableTools()` | List available tools |
 | `setOfflineMode(offline)` | Set offline mode |
 | `isOfflineMode()` | Check offline status |
+
+### TaskExecutor
+
+| Method | Description |
+|--------|-------------|
+| `process(input)` | Process user input string |
+| `process(input, callback, ctx)` | Process with callback |
+| `confirmAndExecute(taskId, intent, mapping, ctx)` | Execute after confirmation |
+| `fillSlotsAndExecute(taskId, intent, mapping, slots, ctx)` | Execute with filled slots |
+| `registerIntent(definition)` | Register custom intent |
+| `registerMapping(intentId, toolName, ...)` | Register intent-tool mapping |
+| `getIntentEngine()` | Get IntentEngine instance |
+| `getIntentRegistry()` | Get IntentRegistry instance |
+
+### IntentEngine
+
+| Method | Description |
+|--------|-------------|
+| `recognize(input)` | Recognize intents from input |
+| `recognizeBest(input)` | Get best matching intent |
+| `recognizeInCategory(input, category)` | Recognize in specific category |
+| `register(definition)` | Register intent definition |
+| `getAllDefinitions()` | Get all registered definitions |
+
+### IntentDefinition.Builder
+
+| Method | Description |
+|--------|-------------|
+| `id(id)` | Set intent ID |
+| `category(category)` | Set category (system, media, etc.) |
+| `action(action)` | Set action name |
+| `keywords(...)` | Add matching keywords |
+| `pattern(regex)` | Add regex pattern |
+| `slot(name, type, desc, required)` | Add slot definition |
+| `slotWithPattern(name, type, pattern, required)` | Add slot with extraction pattern |
+| `defaultConfidence(confidence)` | Set default confidence |
+| `build()` | Build definition |
 
 ### ToolExecutor
 
@@ -365,7 +489,9 @@ test_build.bat
 
 ## Documentation
 
+- [Intent Understanding System](docs/INTENT_SYSTEM.md)
 - [MCP Tools Guide](docs/MCP_TOOLS_GUIDE.md)
+- [LLM Integration Plan](docs/LLM_INTEGRATION_PLAN.md)
 - [Changelog](CHANGELOG.md)
 
 ## License
