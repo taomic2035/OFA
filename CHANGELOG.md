@@ -7,6 +7,68 @@
 
 ---
 
+## [1.0.5] - 2026-04-02 🚀 Automation Enhanced
+
+### 新增 - Android SDK UI Automation Phase 2
+
+UI 自动化增强层，提供高级操作能力：
+
+| 组件 | 功能 |
+|------|------|
+| ScrollHelper | 滚动辅助（边界检测、智能滚动） |
+| PageMonitor | 页面变化监听、稳定性检测 |
+| ScreenCapture | 屏幕截图（MediaProjection API） |
+| ActionRecorder | 操作录制 |
+| ActionReplay | 操作回放 |
+| SimpleOcrHelper | 简单 OCR 辅助（占位实现） |
+
+**新增工具：**
+
+| 工具 | 功能 |
+|------|------|
+| ui.pullToRefresh | 下拉刷新 |
+| ui.scrollToTop | 滚动到顶部 |
+| ui.scrollToBottom | 滚动到底部 |
+| ui.capture | 截图 |
+| ui.waitForStable | 等待页面稳定 |
+| ui.startRecord | 开始录制 |
+| ui.stopRecord | 停止录制 |
+| ui.replay | 回放操作 |
+| ui.findText | OCR 文字查找 |
+
+**ScrollHelper 特性：**
+- 智能滚动查找（自动检测滚动边界）
+- 滚动到顶部/底部
+- 下拉刷新
+- 边界检测
+
+**PageMonitor 特性：**
+- 页面变化监听
+- 页面稳定性检测
+- 包名变化监听
+- 页面历史记录
+
+**ScreenCapture 特性：**
+- 基于 MediaProjection 的截图
+- 区域截图
+- 图片比对
+
+**录制回放特性：**
+- 操作录制（支持截图）
+- JSON 格式保存
+- 操作回放（支持原时序）
+- 错误处理
+
+新增文件：
+- `sdk/src/main/java/com/ofa/agent/automation/advanced/ScrollHelper.java` - 滚动辅助
+- `sdk/src/main/java/com/ofa/agent/automation/advanced/PageMonitor.java` - 页面监控
+- `sdk/src/main/java/com/ofa/agent/automation/advanced/ScreenCapture.java` - 屏幕截图
+- `sdk/src/main/java/com/ofa/agent/automation/advanced/ActionRecorder.java` - 操作录制
+- `sdk/src/main/java/com/ofa/agent/automation/advanced/ActionReplay.java` - 操作回放
+- `sdk/src/main/java/com/ofa/agent/automation/vision/SimpleOcrHelper.java` - OCR辅助
+
+---
+
 ## [1.0.4] - 2026-04-02 🤖 Automation System
 
 ### 新增 - Android SDK UI Automation
@@ -340,9 +402,9 @@
 ## 版本路线图
 
 ```
-0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4
-原型         Beta    Intent   Skill   Memory  Automation
-✅           ✅      ✅       ✅       ✅       ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5
+原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2
+✅           ✅      ✅       ✅       ✅       ✅       ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
@@ -353,7 +415,8 @@
 | **1.0.1** | **Intent System** | ✅ |
 | **1.0.2** | **Skill System** | ✅ |
 | **1.0.3** | **Memory System** | ✅ |
-| **1.0.4** | **Automation System** | ✅ 当前 |
+| **1.0.4** | **Automation v1 (Basic)** | ✅ |
+| **1.0.5** | **Automation v2 (Enhanced)** | ✅ 当前 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
 ---
@@ -363,12 +426,12 @@
 | 指标 | 数值 |
 |------|------|
 | Go源文件 | 119+ |
-| Android SDK | 65+ Java类 |
+| Android SDK | 75+ Java类 |
 | 内置意图 | 22 |
 | 步骤类型 | 12 |
 | SDK平台 | 10 |
 | 内置技能 | 7+ |
-| UI工具 | 7 |
+| UI工具 | 14 |
 
 ---
 

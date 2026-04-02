@@ -376,11 +376,222 @@ engine.click("加入购物车");
 engine.click("去结算");
 ```
 
+## Phase 2: 高级功能
+
+### ScrollHelper - 滚动辅助
+
+```java
+import com.ofa.agent.automation.advanced.ScrollHelper;
+
+ScrollHelper scrollHelper = new ScrollHelper(engine);
+
+// 滚动查找元素
+AutomationResult result = scrollHelper.scrollFind(
+    BySelector.text("目标元素"),
+    Direction.DOWN  // 向下滚动查找
+);
+
+// 滚动到顶部
+scrollHelper.scrollToTop();
+
+// 滚动到底部
+scrollHelper.scrollToBottom();
+
+// 下拉刷新
+scrollHelper.pullToRefresh();
+
+// 检查是否可滚动
+boolean canScroll = scrollHelper.canScroll(Direction.DOWN);
+```
+
+### PageMonitor - 页面监控
+
+```java
+import com.ofa.agent.automation.advanced.PageMonitor;
+
+PageMonitor pageMonitor = new PageMonitor(engine);
+
+// 添加监听器
+pageMonitor.addListener(new PageMonitor.PageChangeListener() {
+    @Override
+    public void onPageChanged(String packageName, String activityName) {
+        Log.i(TAG, "页面变化: " + packageName);
+    }
+
+    @Override
+    public void onPageStable() {
+        Log.i(TAG, "页面稳定");
+    }
+
+    @Override
+    public void onPackageChanged(String oldPackage, String newPackage) {
+        Log.i(TAG, "应用切换: " + oldPackage + " -> " + newPackage);
+    }
+});
+
+// 开始监控
+pageMonitor.startMonitoring();
+
+// 等待页面稳定
+boolean stable = pageMonitor.waitForStable(5000);
+
+// 等待页面变化
+boolean changed = pageMonitor.waitForChange(3000);
+
+// 等待特定应用
+boolean found = pageMonitor.waitForPackage("com.example.app", 10000);
+
+// 停止监控
+pageMonitor.stopMonitoring();
+```
+
+### ScreenCapture - 屏幕截图
+
+```java
+import com.ofa.agent.automation.advanced.ScreenCapture;
+
+ScreenCapture screenCapture = new ScreenCapture(context);
+
+// 请求权限（在 Activity 中）
+screenCapture.requestPermission(activity, REQUEST_CODE);
+
+// 在 onActivityResult 中初始化
+@Override
+protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode == REQUEST_CODE) {
+        screenCapture.initialize(resultCode, data);
+    }
+}
+
+// 截图到 Bitmap
+Bitmap bitmap = screenCapture.captureBitmap();
+
+// 截图到文件
+String path = screenCapture.captureToFile(new File("/sdcard/screenshots"));
+
+// 区域截图
+Bitmap region = screenCapture.captureRegion(100, 100, 500, 500);
+
+// 比较两张图片
+float similarity = ScreenCapture.compareBitmaps(bitmap1, bitmap2);
+```
+
+### ActionRecorder - 操作录制
+
+```java
+import com.ofa.agent.automation.advanced.ActionRecorder;
+
+ActionRecorder recorder = new ActionRecorder(engine, screenCapture);
+
+// 开始录制
+recorder.startRecording("test_recording");
+
+// 暂停/恢复
+recorder.pauseRecording();
+recorder.resumeRecording();
+
+// 停止录制
+List<ActionRecorder.RecordedAction> actions = recorder.stopRecording();
+
+// 保存录制
+String savedPath = recorder.saveRecording();
+
+// 加载录制
+List<ActionRecorder.RecordedAction> loaded = ActionRecorder.loadRecording(new File(path));
+```
+
+### ActionReplay - 操作回放
+
+```java
+import com.ofa.agent.automation.advanced.ActionReplay;
+
+ActionReplay replay = new ActionReplay(engine, screenCapture);
+
+// 设置回放参数
+replay.setPlaybackDelay(500);      // 动作间隔
+replay.setSpeedMultiplier(2.0f);   // 2倍速
+replay.setStopOnError(true);       // 出错停止
+
+// 设置监听器
+replay.setPlaybackListener(new ActionReplay.PlaybackListener() {
+    @Override
+    public void onPlaybackStart(int totalActions) {}
+
+    @Override
+    public void onActionStart(int index, ActionRecorder.RecordedAction action) {}
+
+    @Override
+    public void onActionComplete(int index, ActionRecorder.RecordedAction action,
+                                  AutomationResult result) {}
+
+    @Override
+    public void onPlaybackComplete(int successCount, int failCount) {}
+
+    @Override
+    public void onPlaybackError(int index, String error) {}
+});
+
+// 回放录制
+ActionReplay.PlaybackResult result = replay.play(actions);
+
+// 从文件回放
+ActionReplay.PlaybackResult result = replay.playFromFile(new File(path), true);
+
+// 停止回放
+replay.stop();
+```
+
+### Phase 2 新增工具
+
+| 工具 | 参数 | 说明 |
+|------|------|------|
+| ui.pullToRefresh | - | 下拉刷新 |
+| ui.scrollToTop | - | 滚动到顶部 |
+| ui.scrollToBottom | - | 滚动到底部 |
+| ui.capture | savePath (可选) | 截图 |
+| ui.waitForStable | timeout (可选) | 等待页面稳定 |
+| ui.startRecord | name (可选) | 开始录制 |
+| ui.stopRecord | - | 停止录制 |
+| ui.replay | file, respectTiming (可选) | 回放操作 |
+| ui.findText | text | OCR 文字查找 |
+
+### 使用 Phase 2 工具
+
+```java
+Map<String, Object> args = new HashMap<>();
+args.put("operation", "pullToRefresh");
+ToolResult result = uiTool.execute(args, context);
+
+args.clear();
+args.put("operation", "capture");
+args.put("savePath", "/sdcard/test.png");
+result = uiTool.execute(args, context);
+
+args.clear();
+args.put("operation", "startRecord");
+args.put("name", "my_recording");
+result = uiTool.execute(args, context);
+
+// ... 执行一些操作 ...
+
+args.clear();
+args.put("operation", "stopRecord");
+result = uiTool.execute(args, context);
+
+// 回放
+args.clear();
+args.put("operation", "replay");
+args.put("file", "/sdcard/ofa/recordings/my_recording.json");
+args.put("respectTiming", true);
+result = uiTool.execute(args, context);
+```
+
 ## 版本历史
 
 | 版本 | 日期 | 说明 |
 |------|------|------|
-| 1.0.4 | 2026-04-02 | 初始版本，基于 AccessibilityService |
+| 1.0.5 | 2026-04-02 | Phase 2: 滚动辅助、页面监控、截图、录制回放 |
+| 1.0.4 | 2026-04-02 | Phase 1: 基础 UI 自动化 |
 
 ---
 

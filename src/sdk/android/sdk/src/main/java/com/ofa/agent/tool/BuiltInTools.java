@@ -177,6 +177,8 @@ public class BuiltInTools {
     public static void registerAutomationTools(@NonNull Context context, @NonNull ToolRegistry registry) {
         // UI Tool - provides UI automation operations
         UITool uiTool = new UITool(context);
+
+        // Phase 1 tools
         registry.register(UITool.getClickDefinition(), uiTool);
         registry.register(UITool.getLongClickDefinition(), uiTool);
         registry.register(UITool.getSwipeDefinition(), uiTool);
@@ -184,6 +186,15 @@ public class BuiltInTools {
         registry.register(UITool.getFindDefinition(), uiTool);
         registry.register(UITool.getWaitDefinition(), uiTool);
         registry.register(UITool.getScrollFindDefinition(), uiTool);
+
+        // Phase 2 tools
+        registry.register(UITool.getPullToRefreshDefinition(), uiTool);
+        registry.register(UITool.getCaptureDefinition(), uiTool);
+        registry.register(UITool.getWaitForStableDefinition(), uiTool);
+        registry.register(UITool.getStartRecordDefinition(), uiTool);
+        registry.register(UITool.getStopRecordDefinition(), uiTool);
+        registry.register(UITool.getReplayDefinition(), uiTool);
+        registry.register(UITool.getFindTextDefinition(), uiTool);
 
         Log.d(TAG, "Registered automation tools");
     }
@@ -231,13 +242,22 @@ public class BuiltInTools {
             // AI
             SpeechTool.getSpeakDefinition(),
 
-            // Automation
+            // Automation (Phase 1)
             UITool.getClickDefinition(),
             UITool.getSwipeDefinition(),
             UITool.getInputDefinition(),
             UITool.getFindDefinition(),
             UITool.getWaitDefinition(),
-            UITool.getScrollFindDefinition()
+            UITool.getScrollFindDefinition(),
+
+            // Automation (Phase 2)
+            UITool.getPullToRefreshDefinition(),
+            UITool.getCaptureDefinition(),
+            UITool.getWaitForStableDefinition(),
+            UITool.getStartRecordDefinition(),
+            UITool.getStopRecordDefinition(),
+            UITool.getReplayDefinition(),
+            UITool.getFindTextDefinition()
         };
     }
 }
