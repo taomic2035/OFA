@@ -7,6 +7,72 @@
 
 ---
 
+## [1.0.9] - 2026-04-02 🧠 AI Agent Enhancement
+
+### 新增 - Android SDK AI Agent System
+
+智能AI增强系统，提供本地推理和智能决策能力：
+
+| 组件 | 功能 |
+|------|------|
+| LocalAIEngine | 本地AI推理引擎 (TFLite) |
+| ModelManager | 模型加载、缓存、更新 |
+| InferenceConfig | 推理配置 (线程/GPU/NNAPI) |
+| LocalIntentClassifier | 本地意图分类 |
+| MultiArmedBandit | 多臂老虎机算法 (MAB) |
+| SmartDecisionEngine | 智能决策引擎 |
+| UIElementRecognizer | UI元素智能识别 |
+| OperationRecommender | 操作智能推荐 |
+| AIEnhancedOrchestrator | AI增强编排器 |
+
+**LocalAIEngine 特性：**
+- 文本推理 (意图分类、槽位提取)
+- 图像推理 (UI元素识别)
+- 异步推理支持
+- 多模型管理
+
+**InferenceConfig 预设：**
+- `lightweight` - 轻量配置 (仅意图)
+- `standard` - 标准配置 (意图+槽位)
+- `full` - 完整配置 (全部模型)
+- `vision` - 视觉配置 (UI识别)
+
+**MultiArmedBandit 策略：**
+- Epsilon-Greedy (简单探索)
+- UCB (Upper Confidence Bound)
+- Thompson Sampling (贝叶斯采样)
+
+**SmartDecisionEngine 决策类型：**
+- 店铺选择 (`shop_selection`)
+- 支付方式 (`payment_method`)
+- 重试策略 (`retry_strategy`)
+- 时机选择 (`timing`)
+
+**OperationRecommender 特性：**
+- 基于页面的推荐
+- 基于序列的推荐
+- 基于历史的推荐
+- 持久化学习
+
+**AIEnhancedOrchestrator 特性：**
+- 自然语言输入处理
+- 智能操作执行
+- 决策优化
+- 视觉分析
+
+新增文件：
+- `sdk/src/main/java/com/ofa/agent/ai/LocalAIEngine.java` - 本地AI引擎
+- `sdk/src/main/java/com/ofa/agent/ai/ModelManager.java` - 模型管理
+- `sdk/src/main/java/com/ofa/agent/ai/InferenceConfig.java` - 推理配置
+- `sdk/src/main/java/com/ofa/agent/ai/AIEnhancedOrchestrator.java` - AI增强编排
+- `sdk/src/main/java/com/ofa/agent/ai/intent/LocalIntentClassifier.java` - 意图分类
+- `sdk/src/main/java/com/ofa/agent/ai/decision/MultiArmedBandit.java` - MAB算法
+- `sdk/src/main/java/com/ofa/agent/ai/decision/SmartDecisionEngine.java` - 智能决策
+- `sdk/src/main/java/com/ofa/agent/ai/vision/UIElementRecognizer.java` - UI识别
+- `sdk/src/main/java/com/ofa/agent/ai/recommendation/OperationRecommender.java` - 操作推荐
+
+---
+
 ## [1.0.8] - 2026-04-02 🔗 Integration & Optimization
 
 ### 新增 - Android SDK Integration Layer (Phase 5)
@@ -615,9 +681,9 @@ UI 自动化增强层，提供高级操作能力：
 ## 版本路线图
 
 ```
-0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8
-原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM     Integration
-✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9
+原型         Beta    Intent   Skill   Memory  Auto v1  Auto v2  Adapter  ROM     Integ   AI Agent
+✅           ✅      ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
@@ -632,7 +698,8 @@ UI 自动化增强层，提供高级操作能力：
 | **1.0.5** | **Automation v2 (Enhanced)** | ✅ |
 | **1.0.6** | **App Adapter Layer** | ✅ |
 | **1.0.7** | **ROM System Layer** | ✅ |
-| **1.0.8** | **Integration & Optimization** | ✅ 当前 |
+| **1.0.8** | **Integration & Optimization** | ✅ |
+| **1.0.9** | **AI Agent Enhancement** | ✅ 当前 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
 ---
@@ -642,7 +709,7 @@ UI 自动化增强层，提供高级操作能力：
 | 指标 | 数值 |
 |------|------|
 | Go源文件 | 119+ |
-| Android SDK | 100+ Java类 |
+| Android SDK | 110+ Java类 |
 | 内置意图 | 22 |
 | 步骤类型 | 12 |
 | SDK平台 | 10 |
@@ -654,6 +721,8 @@ UI 自动化增强层，提供高级操作能力：
 | 保活策略 | 5 |
 | 恢复策略 | 6 |
 | 重试预设 | 6 |
+| AI组件 | 9 |
+| 决策策略 | 3 |
 
 ---
 
