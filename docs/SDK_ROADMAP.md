@@ -1,26 +1,67 @@
 # OFA SDK 补齐计划
 
-**版本目标**: v0.10.0
+**版本目标**: v1.0.3
 **计划周期**: 2026-04-01 ~ 2026-04-15
 
 ---
 
 ## 当前 SDK 状态概览
 
-| SDK | 语言 | 文件数 | 离线支持 | P2P支持 | 状态 |
-|-----|------|--------|----------|---------|------|
-| Go Agent | Go | 4 | ✅ | ✅ | 离线完成 |
-| Desktop | Go | 7 | ❌ | ❌ | 基础+系统托盘 |
-| Python | Python | 11 | ✅ | ✅ | 离线完成 |
-| Node.js | TypeScript | 12 | ✅ | ✅ | 离线完成 |
-| Web | TypeScript | 1 | ❌ | ❌ | 最小化 |
-| Rust | Rust | 10 | ✅ | ✅ | 离线完成 |
-| C++ | C++ | 13 | ✅ | ✅ | 离线完成 |
-| iOS | Swift | 10 | ✅ | ✅ | 离线完成 |
-| Android | Java | 10 | ✅ | ✅ | 离线完成 |
-| Lite (手表) | Go | 6 | ✅ | ✅ | 离线完成 |
-| IoT | Go | 6 | ✅ | ✅ | 离线完成 |
-| OpenHarmony | C++ | 10 | ✅ | ✅ | 核心完成 |
+| SDK | 语言 | 文件数 | 离线支持 | P2P支持 | 意图系统 | 技能系统 | 记忆系统 | 状态 |
+|-----|------|--------|----------|---------|----------|----------|----------|------|
+| Go Agent | Go | 4 | ✅ | ✅ | - | - | - | 离线完成 |
+| Desktop | Go | 7 | ❌ | ❌ | - | - | - | 基础+系统托盘 |
+| Python | Python | 11 | ✅ | ✅ | - | - | - | 离线完成 |
+| Node.js | TypeScript | 12 | ✅ | ✅ | - | - | - | 离线完成 |
+| Web | TypeScript | 1 | ❌ | ❌ | - | - | - | 最小化 |
+| Rust | Rust | 10 | ✅ | ✅ | - | - | - | 离线完成 |
+| C++ | C++ | 13 | ✅ | ✅ | - | - | - | 离线完成 |
+| iOS | Swift | 10 | ✅ | ✅ | - | - | - | 离线完成 |
+| **Android** | **Java** | **90** | ✅ | ✅ | **✅** | **✅** | **✅** | **智能Agent** |
+| Lite (手表) | Go | 6 | ✅ | ✅ | - | - | - | 离线完成 |
+| IoT | Go | 6 | ✅ | ✅ | - | - | - | 离线完成 |
+| OpenHarmony | C++ | 10 | ✅ | ✅ | - | - | - | 核心完成 |
+
+---
+
+## Android SDK 新增功能 (v1.0.1 - v1.0.3)
+
+### 意图理解系统 (v1.0.1)
+
+| 组件 | 文件 | 状态 |
+|------|------|------|
+| 意图引擎 | `intent/IntentEngine.java` | ✅ 完成 |
+| 意图定义 | `intent/IntentDefinition.java` | ✅ 完成 |
+| 解析结果 | `intent/UserIntent.java` | ✅ 完成 |
+| 意图注册表 | `intent/IntentRegistry.java` | ✅ 完成 (22个内置意图) |
+| 工具映射 | `intent/IntentToolMapper.java` | ✅ 完成 |
+| 任务执行器 | `intent/TaskExecutor.java` | ✅ 完成 |
+
+### 技能编排系统 (v1.0.2)
+
+| 组件 | 文件 | 状态 |
+|------|------|------|
+| 步骤定义 | `skill/SkillStep.java` | ✅ 完成 (12种步骤类型) |
+| 技能定义 | `skill/SkillDefinition.java` | ✅ 完成 |
+| 执行上下文 | `skill/SkillContext.java` | ✅ 完成 |
+| 执行结果 | `skill/SkillResult.java` | ✅ 完成 |
+| 技能执行器 | `skill/CompositeSkillExecutor.java` | ✅ 完成 |
+| 技能注册表 | `skill/SkillRegistry.java` | ✅ 完成 |
+| 示例技能 | `skill/builtin/FoodDeliverySkills.java` | ✅ 完成 |
+
+### 用户记忆系统 (v1.0.3)
+
+| 组件 | 层级 | 文件 | 状态 |
+|------|------|------|------|
+| 记忆条目 | - | `memory/MemoryEntry.java` | ✅ 完成 |
+| L1缓存 | Cache | `memory/MemoryCache.java` | ✅ 完成 |
+| L2实体 | Database | `memory/MemoryEntity.java` | ✅ 完成 |
+| L2 DAO | Database | `memory/MemoryDao.java` | ✅ 完成 |
+| L2数据库 | Database | `memory/MemoryDatabase.java` | ✅ 完成 |
+| L3归档 | Archive | `memory/MemoryArchive.java` | ✅ 完成 |
+| 记忆管理器 | Integration | `memory/UserMemoryManager.java` | ✅ 完成 |
+| 记忆感知执行器 | Integration | `memory/MemoryAwareSkillExecutor.java` | ✅ 完成 |
+| 示例代码 | Sample | `sample/MemorySample.java` | ✅ 完成 |
 
 ---
 
@@ -175,4 +216,4 @@
 ---
 
 *创建时间: 2026-04-01*
-*最后更新: 2026-04-01*
+*最后更新: 2026-04-02*

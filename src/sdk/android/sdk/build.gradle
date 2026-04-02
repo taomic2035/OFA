@@ -52,6 +52,10 @@ dependencies {
     implementation 'androidx.work:work-runtime:2.9.0'
     implementation 'androidx.core:core:1.12.0'
 
+    // Room Database (L2 Memory Storage)
+    implementation 'androidx.room:room-runtime:2.6.1'
+    annotationProcessor 'androidx.room:room-compiler:2.6.1'
+
     // JSON
     implementation 'com.google.code.gson:gson:2.10.1'
 

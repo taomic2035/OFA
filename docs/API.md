@@ -540,3 +540,155 @@ curl -X POST http://localhost:8080/api/v1/tasks \
   -H "Content-Type: application/json" \
   -d '{"skill_id":"text.process","input":"eyJ0ZXh0IjoiaGVsbG8iLCJvcGVyYXRpb24iOiJ1cHBlcmNhc2UifQ=="}'
 ```
+
+---
+
+## Android SDK API
+
+### 核心模块
+
+| 模块 | 包路径 | 说明 |
+|------|--------|------|
+| Intent | `com.ofa.agent.intent` | 意图理解系统 |
+| Skill | `com.ofa.agent.skill` | 技能编排系统 |
+| Memory | `com.ofa.agent.memory` | 用户记忆系统 |
+| Tool | `com.ofa.agent.tool` | 工具系统 |
+| LLM | `com.ofa.agent.llm` | LLM集成 |
+| MCP | `com.ofa.agent.mcp` | MCP协议 |
+
+### Intent API
+
+```java
+// 获取意图注册表
+IntentRegistry registry = IntentRegistry.getInstance();
+
+// 创建意图引擎
+IntentEngine engine = new IntentEngine(registry);
+
+// 识别意图
+UserIntent intent = engine.recognizeOne("帮我点一杯珍珠奶茶");
+// → intentId="order_food", confidence=0.85, slots={item="珍珠奶茶", count="1"}
+
+// 执行意图
+TaskExecutor executor = new TaskExecutor(toolRegistry);
+executor.execute(intent, context);
+```
+
+### Skill API
+
+```java
+// 创建技能定义
+SkillDefinition skill = new SkillDefinition.Builder()
+    .id("order_bubble_tea")
+    .name("点奶茶")
+    .step("launch_app", StepType.TOOL, "app.launch", Map.of("app", "美团"))
+    .step("search", StepType.TOOL, "app.search", Map.of("query", "${drink_name}"))
+    .step("select_sweetness", StepType.INPUT, "选择甜度", null)
+    .step("confirm", StepType.CONFIRM, "确认下单", null)
+    .build();
+
+// 执行技能
+CompositeSkillExecutor executor = new CompositeSkillExecutor(context, toolRegistry);
+SkillResult result = executor.execute(skill, inputs).get();
+```
+
+### Memory API
+
+```java
+// 获取记忆管理器
+UserMemoryManager memory = UserMemoryManager.getInstance(context);
+
+// 记录偏好
+memory.rememberPreference("bubble_tea.drink_name", "珍珠奶茶", "food",
+    Map.of("sweetness", "五分糖", "ice", "少冰"));
+
+// 获取推荐值
+String recommended = memory.getRecommendedValue("bubble_tea.drink_name");
+// → "珍珠奶茶" (使用最多)
+
+// 获取智能默认值
+SmartDefault defaults = memory.getSmartDefault("bubble_tea.drink_name");
+// → recommended, lastUsed, mostUsed, confidence
+
+// 导出记忆
+memory.exportMemories(callback);
+```
+
+### Tool API
+
+```java
+// 获取工具注册表
+ToolRegistry registry = ToolRegistry.getInstance();
+
+// 执行工具
+ToolResult result = registry.execute("app.launch", Map.of("app", "美团"));
+
+// 注册自定义工具
+registry.register(new ToolDefinition.Builder()
+    .id("custom.action")
+    .name("自定义动作")
+    .handler((params, ctx) -> ToolResult.success("done"))
+    .build());
+```
+
+### LLM API
+
+```java
+// 配置LLM
+LLMConfig config = new LLMConfig.Builder()
+    .provider(LLMProviderType.CLOUD)
+    .apiKey("your-api-key")
+    .model("claude-3-sonnet")
+    .build();
+
+// 获取LLM Orchestrator
+LLMOrchestrator orchestrator = LLMOrchestrator.getInstance(config);
+
+// 发送请求
+LLMResponse response = orchestrator.chat("帮我点一杯奶茶");
+```
+
+### 三层记忆架构
+
+```
+┌─────────────────────────────────────┐
+│         L1: MemoryCache             │
+│   内存缓存 (LRU策略, <1ms访问)       │
+└─────────────────────────────────────┘
+                 ↓ 未命中
+┌─────────────────────────────────────┐
+│         L2: Room Database           │
+│   持久化存储 (可靠存储)              │
+└─────────────────────────────────────┘
+                 ↓ 归档
+┌─────────────────────────────────────┐
+│         L3: MemoryArchive           │
+│   文件归档 (冷数据备份)              │
+└─────────────────────────────────────┘
+```
+
+### 12种步骤类型
+
+| 类型 | 说明 | 示例 |
+|------|------|------|
+| TOOL | 执行工具 | 启动APP、发送消息 |
+| INTENT | 触发意图识别 | 解析用户指令 |
+| DELAY | 延时等待 | 等待3秒 |
+| WAIT_FOR | 等待条件 | 等外卖送达 |
+| CONDITION | 条件分支 | 判断是否需要支付 |
+| ASSIGN | 变量赋值 | 设置默认值 |
+| INPUT | 获取用户输入 | 选择甜度 |
+| CONFIRM | 请求确认 | 确认下单 |
+| NOTIFY | 发送通知 | 提醒外卖快到了 |
+| PARALLEL | 并行执行 | 同时搜索多个APP |
+| LOOP | 循环执行 | 每分钟检查状态 |
+| SUB_SKILL | 调用子技能 | 执行支付流程 |
+
+### 22个内置意图
+
+| 类别 | 意图 |
+|------|------|
+| 查询 | weather_query, stock_query, news_query, traffic_query, price_query, search_query, info_query, location_query |
+| 操作 | app_launch, app_close, call_contact, send_message, send_email, play_media, take_photo, set_timer |
+| 设置 | setting_change, alarm_set, reminder_set, schedule_add |
+| 其他 | order_food, control_device |

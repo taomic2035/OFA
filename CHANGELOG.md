@@ -7,7 +7,107 @@
 
 ---
 
-## [0.9.0] - 2026-03-31 🚀 Beta
+## [1.0.3] - 2026-04-02 🧠 Memory System
+
+### 新增 - Android SDK Memory System
+
+三层用户记忆系统，让系统越来越懂用户：
+
+| 组件 | 层级 | 功能 |
+|------|------|------|
+| MemoryCache | L1 | 内存缓存 (LRU策略, 毫秒级访问) |
+| MemoryDatabase | L2 | Room数据库 (持久化存储) |
+| MemoryArchive | L3 | 文件归档 (冷数据备份/导入导出) |
+
+核心特性：
+- **智能推荐**: 综合使用频率、最近使用、时间衰减计算推荐分数
+- **自动补全**: 根据部分输入推荐完整值
+- **偏好记忆**: 记住用户选择，下次自动推荐
+- **导入导出**: JSON格式备份和恢复用户记忆
+
+新增文件：
+- `sdk/src/main/java/com/ofa/agent/memory/MemoryCache.java` - L1缓存
+- `sdk/src/main/java/com/ofa/agent/memory/MemoryEntity.java` - Room实体
+- `sdk/src/main/java/com/ofa/agent/memory/MemoryDao.java` - Room DAO
+- `sdk/src/main/java/com/ofa/agent/memory/MemoryDatabase.java` - Room数据库
+- `sdk/src/main/java/com/ofa/agent/memory/MemoryArchive.java` - L3归档
+- `sdk/src/main/java/com/ofa/agent/memory/UserMemoryManager.java` - 三层集成管理器
+- `sdk/src/main/java/com/ofa/agent/sample/MemorySample.java` - 使用示例
+
+依赖更新：
+- Room Database 2.6.1 (持久化存储)
+
+---
+
+## [1.0.2] - 2026-04-01 🎯 Skill System
+
+### 新增 - Android SDK Skill Orchestration
+
+技能编排系统，支持用户创建自定义多步骤自动化：
+
+| 步骤类型 | 功能 |
+|---------|------|
+| TOOL | 执行工具调用 |
+| INTENT | 触发意图识别 |
+| DELAY | 延时等待 |
+| WAIT_FOR | 等待条件满足 |
+| CONDITION | 条件分支判断 |
+| ASSIGN | 变量赋值 |
+| INPUT | 获取用户输入 |
+| CONFIRM | 请求用户确认 |
+| NOTIFY | 发送通知 |
+| PARALLEL | 并行执行 |
+| LOOP | 循环执行 |
+| SUB_SKILL | 调用子技能 |
+
+核心组件：
+- `SkillDefinition` - 技能定义（步骤、触发器、输入输出）
+- `SkillContext` - 执行上下文（状态、变量、回调）
+- `CompositeSkillExecutor` - 技能执行器
+- `SkillRegistry` - 技能注册表（持久化）
+- `FoodDeliverySkills` - 奶茶点单示例技能
+
+内置技能示例 - 点奶茶流程：
+```
+1. 启动美团/淘宝闪购APP
+2. 切换到外卖页面
+3. 选择地址
+4. 搜索奶茶
+5. 选择商品（型号、甜度、糖度、小料）
+6. 提交订单
+7. 支付
+8. 跟踪外卖进度
+9. 快到了提醒用户
+```
+
+## [1.0.1] - 2026-04-01 🧠 Intent System
+
+### 新增 - Android SDK Intent Understanding
+
+意图理解系统，读懂用户自然语言指令：
+
+| 功能 | 说明 |
+|------|------|
+| 模式匹配 | 正则表达式识别意图 |
+| 关键词检测 | 多关键词组合匹配 |
+| Slot提取 | 自动提取参数（地址、时间、数量等） |
+| 置信度评分 | 多引擎结果综合评分 |
+
+22个内置意图：
+- 查询类: weather_query, stock_query, news_query, traffic_query...
+- 操作类: app_launch, app_close, call_contact, send_message...
+- 设置类: setting_change, alarm_set, reminder_set...
+- 媒体类: music_play, video_play, photo_take...
+
+核心组件：
+- `IntentEngine` - 意图识别引擎
+- `IntentDefinition` - 意图定义
+- `UserIntent` - 解析结果
+- `IntentRegistry` - 意图注册表
+- `IntentToolMapper` - 意图→工具映射
+- `TaskExecutor` - 任务执行器
+
+---
 
 ### 新增 - Web Dashboard
 
@@ -174,22 +274,19 @@
 ## 版本路线图
 
 ```
-0.1.0 → 0.2.0 → 0.3.0 → 0.4.0 → 0.5.0 → 0.6.0 → 0.7.0 → 0.8.0 → 0.9.0
-原型     生产     高级     企业     生态     扩展     验证     发布     Beta
-✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅       ✅
+0.1.0 → ... → 0.9.0 → 1.0.1 → 1.0.2 → 1.0.3
+原型         Beta    Intent   Skill   Memory
+✅           ✅      ✅       ✅       ✅
 ```
 
 | 版本 | 里程碑 | 状态 |
 |------|--------|------|
 | 0.1.0 | 架构原型 | ✅ |
-| 0.2.0 | 生产版本 | ✅ |
-| 0.3.0 | 高级特性 | ✅ |
-| 0.4.0 | 企业级 | ✅ |
-| 0.5.0 | 生态建设 | ✅ |
-| 0.6.0 | Agent扩展 | ✅ |
-| 0.7.0 | 场景验证 | ✅ |
-| 0.8.0 | 发布准备 | ✅ |
-| **0.9.0** | **Beta** | **✅ 当前** |
+| ... | ... | ✅ |
+| **0.9.0** | **Beta** | ✅ |
+| **1.0.1** | **Intent System** | ✅ |
+| **1.0.2** | **Skill System** | ✅ |
+| **1.0.3** | **Memory System** | ✅ 当前 |
 | 1.0.0 | 正式发布 | 🔜 计划中 |
 
 ---
@@ -199,10 +296,12 @@
 | 指标 | 数值 |
 |------|------|
 | Go源文件 | 119+ |
-| 测试用例 | 35 |
+| Android SDK | 50+ Java类 |
+| 内置意图 | 22 |
+| 步骤类型 | 12 |
 | SDK平台 | 10 |
-| 内置技能 | 7 |
+| 内置技能 | 7+ |
 
 ---
 
-*更新时间: 2026-03-31*
+*更新时间: 2026-04-02*
