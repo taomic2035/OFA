@@ -43,6 +43,8 @@ local.properties
 .idea/
 captures/
 *.iml
+.gradle/
+*.aar
 
 # iOS/Swift
 *.ipa

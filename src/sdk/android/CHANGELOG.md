@@ -1,110 +1,134 @@
-# OFA Android SDK v1.0.0 - MCP/Tool 集成
+# OFA Android SDK v1.0.1 - Dual LLM Support
 
-## 发布日期: 2026-04-01
+## 发布日期: 2026-04-02
 
 ## 更新概述
 
-本次更新为 OFA Android SDK 添加了完整的 MCP (Model Context Protocol) 协议支持，使 Android 设备能够作为 AI Agent 的工具执行端，支持离线操作和标准化工具调用。
+本次更新为 OFA Android SDK 添加了双 LLM 架构支持，实现云端 LLM 和本地 LLM 的无缝切换，支持离线 AI 推理。
 
 ## 新增功能
 
-### MCP 协议层
-- ✅ MCPServer 接口和实现
-- ✅ MCPClient 用于连接外部 MCP 服务器
-- ✅ Tool/Resource/Prompt 定义
-- ✅ JSON-RPC 2.0 协议支持
+### 双 LLM 架构
 
-### Tool 系统
-- ✅ ToolRegistry 工具注册中心
-- ✅ ToolExecutor 统一执行接口
-- ✅ ExecutionContext 执行上下文
-- ✅ PermissionManager 权限管理
-- ✅ 约束检查集成
+#### LLM 提供者接口
+- ✅ `LLMProvider` - 统一 LLM 接口
+- ✅ `LLMConfig` - 配置构建器
+- ✅ `LLMResponse` - 响应结构（含 ToolCall 支持）
+- ✅ `Message` - 聊天消息（支持多角色）
+- ✅ `StreamCallback` - 流式回调接口
+- ✅ `LLMStats` - 统计追踪
 
-### 内置工具 (30+ 工具)
+#### 云端 LLM (CloudLLMProvider)
+- ✅ OpenAI 兼容 HTTP API
+- ✅ 支持自定义端点
+- ✅ API Key 认证
+- ✅ 流式响应
+- ✅ Tool Calling 支持
 
-#### 系统工具
-| 工具 | 功能 | 离线支持 |
-|------|------|----------|
-| app.launch | 启动应用 | ✅ |
-| app.list | 列出应用 | ✅ |
-| app.info | 应用信息 | ✅ |
-| settings.get/set | 设备设置 | ✅ |
-| clipboard.read/write | 剪贴板 | ✅ |
-| file.read/write/list | 文件操作 | ✅ |
-| notification.send | 发送通知 | ✅ |
+#### 本地 LLM (LocalLLMProvider)
+- ✅ TensorFlow Lite 推理引擎
+- ✅ GPU 加速支持（可选）
+- ✅ 温度采样
+- ✅ 流式生成
+- ✅ 嵌入向量生成
 
-#### 设备工具
-| 工具 | 功能 | 权限 |
-|------|------|------|
-| camera.capture/scan | 拍照/扫码 | CAMERA |
-| bluetooth.scan/list | 蓝牙扫描 | BLUETOOTH |
-| wifi.scan/status | WiFi扫描 | LOCATION |
-| nfc.status | NFC状态 | - |
-| sensor.list/read | 传感器 | - |
-| battery.status | 电池状态 | - |
+#### LLM 编排器 (LLMOrchestrator)
+- ✅ 多提供者管理
+- ✅ 自动故障转移
+- ✅ 负载均衡策略
+- ✅ 健康检查
 
-#### 数据工具
-| 工具 | 功能 | 权限 |
-|------|------|------|
-| contacts.query/search | 联系人 | READ_CONTACTS |
-| calendar.query/today | 日历 | READ_CALENDAR |
-| media.images/videos/audio | 媒体 | STORAGE |
+### OFAAgent Builder 新增方法
 
-#### AI 工具
-| 工具 | 功能 |
-|------|------|
-| speech.synthesize | 语音合成 |
-| speech.stop/status | 控制/状态 |
-
-### AI Agent 集成
-- ✅ AIAgentInterface 标准接口
-- ✅ ToolCallingAdapter OpenAI 兼容适配器
-- ✅ 工具建议功能
-- ✅ 函数调用格式转换
-
-### 离线支持
-- ✅ L1-L4 离线等级集成
-- ✅ 工具离线能力标记
-- ✅ 约束检查器离线模式
-- ✅ 工具降级策略
-
-### 内置离线技能 (v1.0.1 新增)
-| 技能 | ID | 功能 |
-|------|-----|------|
-| Echo | echo | 回显测试 |
-| Text Process | text.process | 文本处理 (大小写/反转/长度) |
-| Calculator | calculator | 数学运算 (加减乘除/三角函数) |
-| Timestamp | timestamp | 时间格式化 |
-| JSON Format | json.format | JSON 美化验证 |
-| Hash | hash | 哈希计算 (MD5/SHA) |
-
-## 文件变更统计
-
-```
-新增文件: 35 个
-修改文件: 2 个 (OFAAgent.java, build.gradle)
-代码行数: ~5000 行
-```
-
-## API 变更
-
-### OFAAgent.Builder 新增方法
 ```java
-Builder offlineLevel(OfflineLevel level)
-Builder enableTools(boolean enable)
+// LLM 配置
+Builder llmProvider(LLMProvider provider)
+Builder fallbackLLMProvider(LLMProvider provider)
+Builder cloudLLM(String endpoint, String apiKey, String model)
+Builder localLLM(String modelPath)
+Builder autoLLMFailover(boolean enable)
 ```
 
 ### OFAAgent 新增方法
+
 ```java
-MCPServer getMCPServer()
-ToolRegistry getToolRegistry()
-AIAgentInterface getAIAgentInterface()
-ToolResult callTool(String name, Map<String, Object> args)
-List<ToolDefinition> getAvailableTools()
-void setOfflineMode(boolean offline)
-void shutdown()
+// LLM 访问
+boolean hasLLM()
+LLMProvider getLLMProvider()
+LLMOrchestrator getLLMOrchestrator()
 ```
+
+## 项目结构更新
+
+```
+sdk/src/main/java/com/ofa/agent/
+├── llm/
+│   ├── LLMProvider.java         # LLM 接口
+│   ├── LLMConfig.java           # 配置
+│   ├── LLMResponse.java         # 响应
+│   ├── Message.java             # 消息
+│   ├── StreamCallback.java      # 流式回调
+│   ├── LLMStats.java            # 统计
+│   ├── cloud/
+│   │   └── CloudLLMProvider.java
+│   ├── local/
+│   │   ├── LocalLLMProvider.java
+│   │   ├── TFLiteEngine.java
+│   │   └── Tokenizer.java
+│   ├── orchestrator/
+│   │   └── LLMOrchestrator.java
+│   └── tool/
+│       └── LLMChatTool.java     # MCP 工具包装
+├── grpc/
+│   ├── AgentGrpc.java           # gRPC Stub
+│   └── AgentOuterClass.java     # Protobuf 消息
+└── constraint/
+    ├── ConstraintType.java      # 约束类型
+    ├── ConstraintResult.java    # 检查结果
+    ├── ConstraintRule.java      # 约束规则
+    └── ConstraintChecker.java   # 检查器
+```
+
+## 编译系统更新
+
+### Gradle 配置
+- ✅ 多模块结构 (`sdk/` 子模块)
+- ✅ Gradle 8.2 + AGP 8.2.0
+- ✅ Java 17 兼容性
+- ✅ Maven Publishing 配置
+
+### 编译命令
+```bash
+cd src/sdk/android
+export JAVA_HOME="D:/Java/jdk-17"
+export ANDROID_HOME="D:/Android/Sdk"
+./gradlew.bat assembleRelease --no-daemon
+```
+
+### 输出位置
+- AAR: `sdk/build/outputs/aar/sdk-release.aar`
+
+## 依赖更新
+
+```groovy
+// TensorFlow Lite (本地 LLM)
+implementation 'org.tensorflow:tensorflow-lite:2.14.0'
+implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
+
+// OkHttp (云端 LLM HTTP 客户端)
+implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+```
+
+## Bug 修复
+
+- 修复 `ConstraintChecker` 多类定义问题（拆分为独立文件）
+- 修复 `LLMChatTool` 缺少接口方法实现
+- 修复 `LLMOrchestrator.embed()` 返回类型不匹配
+- 修复 `ToolDefinition` 构造函数兼容性
+- 修复多个工具类 JSONException 未捕获问题
+- 修复 `CameraTool` 字节数组类型错误
+- 修复 `SensorTool` 重复 case 标签
+- 修复 `NFCTool` API 兼容性问题
 
 ## 兼容性
 
@@ -112,23 +136,18 @@ void shutdown()
 - Target SDK: 34 (Android 14)
 - Java: 17
 - Gradle: 8.2
-
-## 依赖更新
-
-```groovy
-// 新增
-implementation 'androidx.core:core:1.12.0'
-```
+- Android Gradle Plugin: 8.2.0
 
 ## 下一步计划
 
-- [ ] LLMTool 本地大模型集成
-- [ ] ImageTool 图像分类/OCR
+- [ ] TensorFlow Lite 模型加载优化
+- [ ] 更多本地模型支持 (Gemma, Phi, etc.)
+- [ ] 量化模型支持
 - [ ] 单元测试完善
-- [ ] 性能优化
+- [ ] 性能基准测试
 
 ---
 
-**版本**: v1.0.0
+**版本**: v1.0.1
 **作者**: OFA Team
-**日期**: 2026-04-01
+**日期**: 2026-04-02
