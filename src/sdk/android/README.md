@@ -200,6 +200,83 @@ executor.registerMapping("custom.take_selfie", "camera.capture",
 | navigation | `current_location` | "我在哪" | `location.get` |
 | app | `open` | "打开微信" | `app.launch` |
 
+## Skill Orchestration
+
+Create multi-step automation tasks:
+
+### Quick Start
+
+```java
+// Initialize skill system
+SkillRegistry skillRegistry = SkillRegistry.getInstance(context);
+CompositeSkillExecutor executor = new CompositeSkillExecutor(context, toolRegistry);
+
+// Execute pre-built skill
+SkillDefinition bubbleTeaSkill = skillRegistry.getSkill("food_order.bubble_tea");
+
+Map<String, Object> inputs = new HashMap<>();
+inputs.put("drinkName", "珍珠奶茶");
+inputs.put("sweetness", "五分糖");
+inputs.put("temperature", "少冰");
+
+executor.execute(bubbleTeaSkill, inputs).thenAccept(result -> {
+    if (result.isSuccess()) {
+        Log.i(TAG, "Order completed!");
+    }
+});
+```
+
+### Create Custom Skill
+
+```java
+SkillDefinition mySkill = new SkillDefinition.Builder()
+    .id("custom.morning_routine")
+    .name("早安问候")
+    .category("routine")
+    .trigger("voice", "早安")
+
+    // Step 1: Get weather
+    .step(new SkillStep.Builder()
+        .id("get_weather")
+        .type(SkillStep.StepType.TOOL)
+        .action("weather.get")
+        .nextStep("notify")
+        .build())
+
+    // Step 2: Notify user
+    .step(new SkillStep.Builder()
+        .id("notify")
+        .type(SkillStep.StepType.NOTIFY)
+        .param("title", "早安")
+        .param("message", "今天${weather}，温度${temperature}°C")
+        .build())
+
+    .build();
+
+skillRegistry.saveSkill(mySkill);
+```
+
+### Step Types
+
+| Type | Description |
+|------|-------------|
+| TOOL | Call MCP tool |
+| INTENT | Execute intent |
+| DELAY | Wait for duration |
+| WAIT_FOR | Wait for condition |
+| CONDITION | Conditional branch |
+| INPUT | Request user input |
+| CONFIRM | Request confirmation |
+| NOTIFY | Send notification |
+| SUB_SKILL | Call another skill |
+
+### Pre-built Skills
+
+| Skill | Description |
+|-------|-------------|
+| `food_order.bubble_tea` | Order bubble tea via delivery apps |
+| `food_order.track_delivery` | Track delivery with notifications |
+
 ## MCP Tools
 
 ### System Tools
@@ -367,21 +444,22 @@ Add to `AndroidManifest.xml`:
 ┌─────────────────────────────────────────────────────────────────┐
 │                      Android Device                              │
 │  ┌─────────────────────────────────────────────────────────────┐│
-│  │                  OFA Agent SDK v1.0.2                        ││
+│  │                  OFA Agent SDK v1.0.3                        ││
 │  │  ┌─────────────────────────────────────────────────────────┐││
+│  │  │              Skill Orchestration Layer                   │││
+│  │  │  ┌───────────┐ ┌───────────┐ ┌───────────────────────┐   │││
+│  │  │  │  Skill    │ │  Skill    │ │  CompositeSkill       │   │││
+│  │  │  │ Definition│ │ Registry  │ │  Executor             │   │││
+│  │  │  └─────┬─────┘ └─────┬─────┘ └───────────┬───────────┘   │││
+│  │  └────────│─────────────│───────────────────│───────────────┘││
+│  │           │             │                   │                ││
+│  │  ┌────────┴─────────────┴───────────────────┴───────────────┐││
 │  │  │              Intent Understanding Layer                  │││
-│  │  │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐ │││
-│  │  │  │  Intent   │ │  Intent   │ │   Tool    │ │   Task    │ │││
-│  │  │  │  Engine   │ │ Registry  │ │  Mapper   │ │ Executor  │ │││
-│  │  │  └─────┬─────┘ └─────┬─────┘ └─────┬─────┘ └─────┬─────┘ │││
-│  │  └────────│─────────────│─────────────│─────────────│───────┘││
-│  │           │             │             │             │        ││
-│  │  ┌────────┴─────────────┴─────────────┴─────────────┴───────┐││
+│  │  │  IntentEngine │ IntentRegistry │ TaskExecutor            │││
+│  │  └──────────────────────────────────────────────────────────┘││
+│  │  ┌──────────────────────────────────────────────────────────┐││
 │  │  │                    LLM Provider Layer                     │││
-│  │  │  ┌───────────────┐           ┌───────────────────────┐   │││
-│  │  │  │ CloudLLM      │           │     LocalLLM          │   │││
-│  │  │  │ (OpenAI API)  │◄─failover─┤  (TensorFlow Lite)    │   │││
-│  │  │  └───────────────┘           └───────────────────────┘   │││
+│  │  │  CloudLLM (OpenAI) ◄─failover─► LocalLLM (TFLite)        │││
 │  │  └──────────────────────────────────────────────────────────┘││
 │  │  ┌──────────────────────────────────────────────────────────┐││
 │  │  │               MCP Server + Tool Registry                 │││
@@ -455,6 +533,53 @@ Add to `AndroidManifest.xml`:
 | `slotWithPattern(name, type, pattern, required)` | Add slot with extraction pattern |
 | `defaultConfidence(confidence)` | Set default confidence |
 | `build()` | Build definition |
+
+### CompositeSkillExecutor
+
+| Method | Description |
+|--------|-------------|
+| `execute(skill, inputs)` | Execute skill with inputs |
+| `execute(skill, inputs, ctx)` | Execute with context |
+| `shutdown()` | Shutdown executor |
+
+### SkillRegistry
+
+| Method | Description |
+|--------|-------------|
+| `getInstance(context)` | Get singleton instance |
+| `saveSkill(skill)` | Register and persist skill |
+| `getSkill(id)` | Get skill by ID |
+| `searchSkills(query)` | Search skills |
+| `matchTrigger(input)` | Match voice/text to skill |
+| `deleteSkill(id)` | Delete skill |
+
+### SkillDefinition.Builder
+
+| Method | Description |
+|--------|-------------|
+| `id(id)` | Set skill ID |
+| `name(name)` | Set skill name |
+| `category(category)` | Set category |
+| `step(step)` | Add step |
+| `trigger(type, pattern)` | Add trigger |
+| `input(name, definition)` | Define input |
+| `output(name, definition)` | Define output |
+| `build()` | Build definition |
+
+### SkillStep.Builder
+
+| Method | Description |
+|--------|-------------|
+| `id(id)` | Set step ID |
+| `type(type)` | Set step type |
+| `action(action)` | Set tool/intent action |
+| `param(key, value)` | Add parameter |
+| `nextStep(stepId)` | Set next step |
+| `branch(condition, target)` | Add conditional branch |
+| `timeout(ms)` | Set timeout |
+| `retry(count, delayMs)` | Set retry policy |
+| `optional(bool)` | Mark as optional |
+| `build()` | Build step |
 
 ### ToolExecutor
 
