@@ -6,16 +6,32 @@ package proto
 
 // Personality message placeholder
 type Personality struct {
+	// MBTI 性格类型
+	MbtiType       string  `json:"mbti_type"`
+	MbtiEi         float64 `json:"mbti_ei"`
+	MbtiSn         float64 `json:"mbti_sn"`
+	MbtiTf         float64 `json:"mbti_tf"`
+	MbtiJp         float64 `json:"mbti_jp"`
+	MbtiConfidence float64 `json:"mbti_confidence"`
+
+	// Big Five 核心特质
 	Openness          float64            `json:"openness"`
 	Conscientiousness float64            `json:"conscientiousness"`
 	Extraversion      float64            `json:"extraversion"`
 	Agreeableness     float64            `json:"agreeableness"`
 	Neuroticism       float64            `json:"neuroticism"`
-	CustomTraits      map[string]float64 `json:"custom_traits"`
-	SpeakingTone      string             `json:"speaking_tone"`
-	ResponseLength    string             `json:"response_length"`
-	EmojiUsage        float64            `json:"emoji_usage"`
-	Summary           string             `json:"summary"`
+
+	// 收敛控制
+	StabilityScore float64 `json:"stability_score"`
+	ObservedCount  int32   `json:"observed_count"`
+
+	// 自定义特质
+	CustomTraits   map[string]float64 `json:"custom_traits"`
+	SpeakingTone   string             `json:"speaking_tone"`
+	ResponseLength string             `json:"response_length"`
+	EmojiUsage     float64            `json:"emoji_usage"`
+	Summary        string             `json:"summary"`
+	Tags           []string           `json:"tags"`
 }
 
 // ValueSystem message placeholder
@@ -362,4 +378,25 @@ type GetDecisionContextResponse struct {
 	Success         bool             `json:"success"`
 	DecisionContext *DecisionContext `json:"decision_context"`
 	Error           string           `json:"error"`
+}
+
+// SetMBTITypeRequest message placeholder
+type SetMBTITypeRequest struct {
+	Id       string `json:"id"`
+	MbtiType string `json:"mbti_type"`
+}
+
+// SetMBTITypeResponse message placeholder
+type SetMBTITypeResponse struct {
+	Success    bool        `json:"success"`
+	Personality *Personality `json:"personality"`
+	Error      string      `json:"error"`
+}
+
+// MBTITypeNames - MBTI 类型中文名称映射
+var MBTITypeNames = map[string]string{
+	"INTJ": "建筑师", "INTP": "逻辑学家", "ENTJ": "指挥官", "ENTP": "辩论家",
+	"INFJ": "提倡者", "INFP": "调停者", "ENFJ": "主人公", "ENFP": "竞选者",
+	"ISTJ": "物流师", "ISFJ": "守卫者", "ESTJ": "总经理", "ESFJ": "执政官",
+	"ISTP": "鉴赏家", "ISFP": "探险家", "ESTP": "企业家", "ESFP": "表演者",
 }

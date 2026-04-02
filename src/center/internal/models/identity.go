@@ -33,14 +33,27 @@ type PersonalIdentity struct {
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
 
-// Personality - 性格特质（基于 Big Five 模型）
+// Personality - 性格特质（Big Five + MBTI 双模型）
 type Personality struct {
-	// Big Five 核心特质 (0-1)
+	// === MBTI 性格类型（标签化，易理解）===
+	MBTIType         string  `json:"mbti_type" bson:"mbti_type"`                 // INTJ/ENFP/ISTP... 16种类型
+	MBTI_EI          float64 `json:"mbti_ei" bson:"mbti_ei"`                     // E-I 维度 (-1 到 1, 正=外向)
+	MBTI_SN          float64 `json:"mbti_sn" bson:"mbti_sn"`                     // S-N 维度 (-1 到 1, 正=直觉)
+	MBTI_TF          float64 `json:"mbti_tf" bson:"mbti_tf"`                     // T-F 维度 (-1 到 1, 正=情感)
+	MBTI_JP          float64 `json:"mbti_jp" bson:"mbti_jp"`                     // J-P 维度 (-1 到 1, 正=感知)
+	MBTIConfidence   float64 `json:"mbti_confidence" bson:"mbti_confidence"`     // MBTI 置信度 (0-1)
+
+	// === Big Five 核心特质 (0-1) ===
 	Openness          float64 `json:"openness" bson:"openness"`                     // 开放性
 	Conscientiousness float64 `json:"conscientiousness" bson:"conscientiousness"`   // 尽责性
 	Extraversion      float64 `json:"extraversion" bson:"extraversion"`             // 外向性
 	Agreeableness     float64 `json:"agreeableness" bson:"agreeableness"`           // 宜人性
 	Neuroticism       float64 `json:"neuroticism" bson:"neuroticism"`               // 神经质
+
+	// === 收敛控制 ===
+	StabilityScore    float64 `json:"stability_score" bson:"stability_score"`       // 性格稳定度 (0-1, 越高越稳定)
+	ObservedCount     int     `json:"observed_count" bson:"observed_count"`         // 行为观察次数
+	LastInferredAt    time.Time `json:"last_inferred_at" bson:"last_inferred_at"`   // 最后推断时间
 
 	// 自定义特质
 	CustomTraits map[string]float64 `json:"custom_traits" bson:"custom_traits"`
@@ -52,6 +65,61 @@ type Personality struct {
 
 	// 性格描述（AI 生成）
 	Summary string `json:"summary" bson:"summary"`
+
+	// 性格标签（用于快速匹配）
+	Tags []string `json:"tags" bson:"tags"`
+}
+
+// MBTIType - MBTI 类型常量
+type MBTIType string
+
+const (
+	// 分析家
+	MBTI_INTJ MBTIType = "INTJ" // 建筑师
+	MBTI_INTP MBTIType = "INTP" // 逻辑学家
+	MBTI_ENTJ MBTIType = "ENTJ" // 指挥官
+	MBTI_ENTP MBTIType = "ENTP" // 辩论家
+	// 外交家
+	MBTI_INFJ MBTIType = "INFJ" // 提倡者
+	MBTI_INFP MBTIType = "INFP" // 调停者
+	MBTI_ENFJ MBTIType = "ENFJ" // 主人公
+	MBTI_ENFP MBTIType = "ENFP" // 竞选者
+	// 守护者
+	MBTI_ISTJ MBTIType = "ISTJ" // 物流师
+	MBTI_ISFJ MBTIType = "ISFJ" // 守卫者
+	MBTI_ESTJ MBTIType = "ESTJ" // 总经理
+	MBTI_ESFJ MBTIType = "ESFJ" // 执政官
+	// 探险家
+	MBTI_ISTP MBTIType = "ISTP" // 鉴赏家
+	MBTI_ISFP MBTIType = "ISFP" // 探险家
+	MBTI_ESTP MBTIType = "ESTP" // 企业家
+	MBTI_ESFP MBTIType = "ESFP" // 表演者
+)
+
+// MBTIDimension - MBTI 维度
+type MBTIDimension string
+
+const (
+	MBTI_Dim_EI MBTIDimension = "EI" // 外向-内向
+	MBTI_Dim_SN MBTIDimension = "SN" // 感觉-直觉
+	MBTI_Dim_TF MBTIDimension = "TF" // 思考-情感
+	MBTI_Dim_JP MBTIDimension = "JP" // 判断-感知
+)
+
+// MBTITypeNames - MBTI 类型中文名称
+var MBTITypeNames = map[MBTIType]string{
+	MBTI_INTJ: "建筑师", MBTI_INTP: "逻辑学家", MBTI_ENTJ: "指挥官", MBTI_ENTP: "辩论家",
+	MBTI_INFJ: "提倡者", MBTI_INFP: "调停者", MBTI_ENFJ: "主人公", MBTI_ENFP: "竞选者",
+	MBTI_ISTJ: "物流师", MBTI_ISFJ: "守卫者", MBTI_ESTJ: "总经理", MBTI_ESFJ: "执政官",
+	MBTI_ISTP: "鉴赏家", MBTI_ISFP: "探险家", MBTI_ESTP: "企业家", MBTI_ESFP: "表演者",
+}
+
+// MBTIGroups - MBTI 分组
+var MBTIGroups = map[string][]MBTIType{
+	"analysts":   {MBTI_INTJ, MBTI_INTP, MBTI_ENTJ, MBTI_ENTP},   // 分析家
+	"diplomats":  {MBTI_INFJ, MBTI_INFP, MBTI_ENFJ, MBTI_ENFP},   // 外交家
+	"sentinels":  {MBTI_ISTJ, MBTI_ISFJ, MBTI_ESTJ, MBTI_ESFJ},   // 守护者
+	"explorers":  {MBTI_ISTP, MBTI_ISFP, MBTI_ESTP, MBTI_ESFP},   // 探险家
 }
 
 // PersonalityTone - 说话语调类型
@@ -242,15 +310,28 @@ func NewPersonalIdentity(id string) *PersonalIdentity {
 		Languages: []string{"zh-CN"},
 		Timezone:  "Asia/Shanghai",
 		Personality: &Personality{
+			// MBTI 默认值（中性，待推断）
+			MBTIType:       "",
+			MBTI_EI:        0,
+			MBTI_SN:        0,
+			MBTI_TF:        0,
+			MBTI_JP:        0,
+			MBTIConfidence: 0,
+			// Big Five 默认值
 			Openness:          0.5,
 			Conscientiousness: 0.5,
 			Extraversion:      0.5,
 			Agreeableness:     0.5,
 			Neuroticism:       0.5,
-			CustomTraits:      make(map[string]float64),
-			SpeakingTone:      string(ToneCasual),
-			ResponseLength:    string(LengthModerate),
-			EmojiUsage:        0.3,
+			// 收敛控制
+			StabilityScore: 0,
+			ObservedCount:  0,
+			// 其他
+			CustomTraits:   make(map[string]float64),
+			SpeakingTone:   string(ToneCasual),
+			ResponseLength: string(LengthModerate),
+			EmojiUsage:     0.3,
+			Tags:           []string{},
 		},
 		ValueSystem: &ValueSystem{
 			Privacy:        0.7,

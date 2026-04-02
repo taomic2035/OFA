@@ -445,7 +445,7 @@ func (s *Service) UpdateWritingStyle(ctx context.Context, id string, style *mode
 
 // === 性格推断 ===
 
-// InferPersonalityFromBehavior 从行为推断性格
+// InferPersonalityFromBehavior 从行为推断性格（带收敛机制）
 func (s *Service) InferPersonalityFromBehavior(ctx context.Context, id string, observations []models.BehaviorObservation) (*models.Personality, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -455,22 +455,16 @@ func (s *Service) InferPersonalityFromBehavior(ctx context.Context, id string, o
 		return nil, fmt.Errorf("identity not found: %w", err)
 	}
 
-	// 使用推断引擎
-	inferred := s.inferencer.InferFromBehavior(observations)
-
-	// 合并到现有性格
+	// 初始化性格（如果不存在）
 	if identity.Personality == nil {
 		identity.Personality = &models.Personality{
 			CustomTraits: make(map[string]float64),
+			Tags:         []string{},
 		}
 	}
 
-	// 加权平均合并
-	identity.Personality.Openness = (identity.Personality.Openness + inferred.Openness) / 2
-	identity.Personality.Conscientiousness = (identity.Personality.Conscientiousness + inferred.Conscientiousness) / 2
-	identity.Personality.Extraversion = (identity.Personality.Extraversion + inferred.Extraversion) / 2
-	identity.Personality.Agreeableness = (identity.Personality.Agreeableness + inferred.Agreeableness) / 2
-	identity.Personality.Neuroticism = (identity.Personality.Neuroticism + inferred.Neuroticism) / 2
+	// 使用带收敛机制的推断引擎
+	identity.Personality = s.inferencer.UpdatePersonalityWithConvergence(identity.Personality, observations)
 
 	identity.UpdatedAt = time.Now()
 
@@ -481,6 +475,92 @@ func (s *Service) InferPersonalityFromBehavior(ctx context.Context, id string, o
 	s.cache[id] = identity
 
 	return identity.Personality, nil
+}
+
+// SetMBTIType 直接设置 MBTI 类型
+func (s *Service) SetMBTIType(ctx context.Context, id string, mbtiType string) (*models.Personality, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	identity, err := s.store.GetIdentity(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("identity not found: %w", err)
+	}
+
+	if identity.Personality == nil {
+		identity.Personality = &models.Personality{
+			CustomTraits: make(map[string]float64),
+			Tags:         []string{},
+		}
+	}
+
+	// 设置 MBTI 类型
+	identity.Personality.MBTIType = mbtiType
+	identity.Personality.MBTIConfidence = 0.9 // 用户明确指定，高置信度
+
+	// 从 MBTI 反推 Big Five（作为参考）
+	identity.Personality = mbtiToBigFive(mbtiType, identity.Personality)
+
+	// 生成标签
+	identity.Personality.Tags = s.inferencer.generatePersonalityTags(identity.Personality)
+
+	identity.UpdatedAt = time.Now()
+
+	if err := s.store.SaveIdentity(ctx, identity); err != nil {
+		return nil, fmt.Errorf("failed to save identity: %w", err)
+	}
+
+	s.cache[id] = identity
+
+	return identity.Personality, nil
+}
+
+// mbtiToBigFive 从 MBTI 推断 Big Five（近似）
+func mbtiToBigFive(mbtiType string, p *models.Personality) *models.Personality {
+	if p == nil {
+		p = &models.Personality{}
+	}
+
+	// E vs I: 影响 Extraversion
+	if mbtiType[0] == 'E' {
+		p.Extraversion = 0.7
+		p.MBTI_EI = 0.4
+	} else {
+		p.Extraversion = 0.3
+		p.MBTI_EI = -0.4
+	}
+
+	// S vs N: 影响 Openness
+	if mbtiType[1] == 'N' {
+		p.Openness = 0.75
+		p.MBTI_SN = 0.5
+	} else {
+		p.Openness = 0.35
+		p.MBTI_SN = -0.5
+	}
+
+	// T vs F: 影响 Agreeableness
+	if mbtiType[2] == 'F' {
+		p.Agreeableness = 0.7
+		p.MBTI_TF = 0.4
+	} else {
+		p.Agreeableness = 0.4
+		p.MBTI_TF = -0.4
+	}
+
+	// J vs P: 影响 Conscientiousness
+	if mbtiType[3] == 'J' {
+		p.Conscientiousness = 0.7
+		p.MBTI_JP = -0.4
+	} else {
+		p.Conscientiousness = 0.4
+		p.MBTI_JP = 0.4
+	}
+
+	// Neuroticism 与 MBTI 无直接对应，保持中等
+	p.Neuroticism = 0.5
+
+	return p
 }
 
 // GetDecisionContext 获取决策上下文（用于决策引擎）

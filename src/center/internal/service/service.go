@@ -1162,16 +1162,29 @@ func convertPersonalityToProto(p *models.Personality) *pb.Personality {
 		return nil
 	}
 	return &pb.Personality{
+		// MBTI
+		MbtiType:       p.MBTIType,
+		MbtiEi:         p.MBTI_EI,
+		MbtiSn:         p.MBTI_SN,
+		MbtiTf:         p.MBTI_TF,
+		MbtiJp:         p.MBTI_JP,
+		MbtiConfidence: p.MBTIConfidence,
+		// Big Five
 		Openness:          p.Openness,
 		Conscientiousness: p.Conscientiousness,
 		Extraversion:      p.Extraversion,
 		Agreeableness:     p.Agreeableness,
 		Neuroticism:       p.Neuroticism,
-		CustomTraits:      p.CustomTraits,
-		SpeakingTone:      p.SpeakingTone,
-		ResponseLength:    p.ResponseLength,
-		EmojiUsage:        p.EmojiUsage,
-		Summary:           p.Summary,
+		// 收敛控制
+		StabilityScore: p.StabilityScore,
+		ObservedCount:  int32(p.ObservedCount),
+		// 其他
+		CustomTraits:   p.CustomTraits,
+		SpeakingTone:   p.SpeakingTone,
+		ResponseLength: p.ResponseLength,
+		EmojiUsage:     p.EmojiUsage,
+		Summary:        p.Summary,
+		Tags:           p.Tags,
 	}
 }
 
