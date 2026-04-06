@@ -7,6 +7,95 @@
 
 ---
 
+## [1.3.0] - 2026-04-06 🌐 WebView Automation
+
+### 新增 - Android SDK v1.3.0
+
+**WebView 自动化 (Phase 7):**
+
+| 组件 | 说明 |
+|------|------|
+| WebViewAutomation | WebView 自动化核心，页面操作和元素操作 |
+| JsExecutor | JavaScript 执行器，同步/异步执行 |
+| WebFormFiller | 网页表单自动填充 |
+| WebEventListener | 网页事件监听和捕获 |
+| WebPageAdapter | 网页适配器，页面模式识别 |
+| WebViewTools | WebView 工具注册 |
+
+**WebView 工具定义:**
+
+| 工具 | 说明 |
+|------|------|
+| web.executeJs | 执行 JavaScript |
+| web.click | 点击网页元素 |
+| web.fillForm | 填充表单 |
+| web.getValue | 获取元素值 |
+| web.waitForLoad | 等待加载 |
+| web.waitForElement | 等待元素 |
+| web.getContent | 获取页面内容 |
+| web.scroll | 页面滚动 |
+
+**关键 API:**
+
+```java
+// 初始化
+WebViewAutomation web = new WebViewAutomation(webView);
+
+// 页面操作
+web.loadUrl("https://example.com");
+web.waitForPageLoad(10000);
+web.goBack();
+web.reload();
+
+// JavaScript 执行
+web.executeJs("document.querySelector('.btn').click()");
+String result = web.evalJs("document.title");
+
+// 元素操作
+web.click("#submit-btn");
+web.input("#username", "user@example.com");
+String text = web.getText(".result");
+web.waitForElement("#content", 5000);
+
+// 表单填充
+WebFormFiller filler = new WebFormFiller(web);
+filler.fillForm(Map.of(
+    "#username", "user@example.com",
+    "#password", "secret123"
+));
+filler.submitForm("form");
+
+// 事件监听
+WebEventListener listener = new WebEventListener(webView, web.getJsExecutor());
+listener.startCapturing();
+List<CapturedEvent> events = listener.pollEvents();
+
+// 页面分析
+WebPageAdapter adapter = new WebPageAdapter(web);
+PageAnalysis analysis = adapter.analyzePage();
+adapter.login("user", "password");
+adapter.search("query");
+```
+
+**页面模式识别:**
+
+| 模式 | URL 匹配 | 自动操作 |
+|------|---------|---------|
+| login | login, signin, auth | fillLoginForm, submitLogin |
+| search | search, query | search, getSearchResults |
+| checkout | checkout, cart, order | autoFillForm |
+| form | * | autoFillForm, submitForm |
+
+新增文件:
+- `sdk/.../webview/WebViewAutomation.java` - WebView 自动化核心
+- `sdk/.../webview/JsExecutor.java` - JavaScript 执行器
+- `sdk/.../webview/WebFormFiller.java` - 表单填充
+- `sdk/.../webview/WebEventListener.java` - 事件监听
+- `sdk/.../webview/WebPageAdapter.java` - 页面适配器
+- `sdk/.../webview/WebViewTools.java` - 工具注册
+
+---
+
 ## [1.2.1] - 2026-04-06 👁️ Vision Automation Engine
 
 ### 新增 - Android SDK v1.2.1
