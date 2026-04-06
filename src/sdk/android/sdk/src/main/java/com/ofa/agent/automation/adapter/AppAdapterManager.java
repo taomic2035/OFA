@@ -6,6 +6,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ofa.agent.automation.AutomationEngine;
+import com.ofa.agent.automation.adapter.food.ElemeAdapter;
+import com.ofa.agent.automation.adapter.food.MeituanAdapter;
+import com.ofa.agent.automation.adapter.shopping.JDAdapter;
+import com.ofa.agent.automation.adapter.shopping.TaobaoAdapter;
+import com.ofa.agent.automation.adapter.social.DouyinAdapter;
+import com.ofa.agent.automation.adapter.social.XiaohongshuAdapter;
+import com.ofa.agent.automation.adapter.travel.DidiAdapter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -285,5 +292,37 @@ public class AppAdapterManager {
      */
     public int getAdapterCount() {
         return adapters.size();
+    }
+
+    /**
+     * Register all built-in adapters
+     */
+    public void registerAllBuiltInAdapters() {
+        // Food delivery adapters
+        register(new MeituanAdapter());
+        register(new ElemeAdapter());
+
+        // Shopping adapters
+        register(new TaobaoAdapter());
+        register(new JDAdapter());
+
+        // Social media adapters
+        register(new DouyinAdapter());
+        register(new XiaohongshuAdapter());
+
+        // Travel adapters
+        register(new DidiAdapter());
+
+        Log.i(TAG, "Registered " + adapters.size() + " built-in adapters");
+    }
+
+    /**
+     * Create a manager with all built-in adapters registered
+     */
+    @NonNull
+    public static AppAdapterManager createWithBuiltInAdapters() {
+        AppAdapterManager manager = new AppAdapterManager();
+        manager.registerAllBuiltInAdapters();
+        return manager;
     }
 }

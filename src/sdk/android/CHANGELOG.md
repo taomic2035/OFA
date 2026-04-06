@@ -1,6 +1,96 @@
-# OFA Android SDK v1.1.0 - Payment & Order Tools
+# OFA Android SDK v1.2.0 - Extended App Adapters
 
-## 发布日期: 2026-04-03
+## 发布日期: 2026-04-06
+
+## 更新概述
+
+本次更新为 OFA Android SDK 扩展了 App 适配器，新增抖音、小红书、滴滴出行的自动化支持。
+
+## 新增功能
+
+### 抖音适配器 (DouyinAdapter)
+
+| 操作 | 功能 |
+|------|------|
+| `search` | 搜索视频/用户/商品 |
+| `watchVideo` | 观看视频 |
+| `likeVideo` | 点赞视频 |
+| `commentVideo` | 评论视频 |
+| `followUser` | 关注用户 |
+| `shareVideo` | 分享视频 |
+| `browseFeed` | 划到下一个视频 |
+| `openMall` | 打开商城 |
+| `searchUser` | 搜索用户 |
+| `selectProduct` | 选择商品 |
+| `configureOptions` | 配置规格 |
+| `addToCart` | 加入购物车 |
+| `pay` | 支付 |
+
+### 小红书适配器 (XiaohongshuAdapter)
+
+| 操作 | 功能 |
+|------|------|
+| `search` | 搜索笔记/商品 |
+| `browseNote` | 浏览笔记 (滑动图片) |
+| `likeNote` | 点赞笔记 |
+| `collectNote` | 收藏笔记 |
+| `commentNote` | 评论笔记 |
+| `followUser` | 关注用户 |
+| `shareNote` | 分享笔记 |
+| `publishNote` | 发布笔记 |
+| `openShoppingTab` | 打开购物 Tab |
+
+### 滴滴适配器 (DidiAdapter)
+
+| 操作 | 功能 |
+|------|------|
+| `setPickup` | 设置上车地点 |
+| `setDestination` | 设置目的地 |
+| `selectCarType` | 选择车型 (快车/专车/出租车等) |
+| `callCar` | 叫车 |
+| `cancelOrder` | 取消订单 |
+| `contactDriver` | 联系司机 |
+| `getTripStatus` | 获取行程状态 |
+| `estimatePrice` | 估算价格 |
+| `scheduleRide` | 预约用车 |
+| `payForRide` | 支付车费 |
+| `rateDriver` | 评价司机 |
+
+### AppAdapterManager 增强
+
+```java
+// 一键注册所有内置适配器
+AppAdapterManager manager = AppAdapterManager.createWithBuiltInAdapters();
+
+// 或手动注册
+manager.registerAllBuiltInAdapters();
+```
+
+## 支持的 App 列表
+
+| 类别 | App | 包名 |
+|------|-----|------|
+| 外卖 | 美团 | com.sankuai.meituan |
+| 外卖 | 饿了么 | me.ele |
+| 购物 | 淘宝 | com.taobao.taobao |
+| 购物 | 京东 | com.jingdong.app.mall |
+| 社交 | 抖音 | com.ss.android.ugc.aweme |
+| 社交 | 小红书 | com.xingin.xhs |
+| 出行 | 滴滴 | com.sdu.didi.psnger |
+
+## 文件变更
+
+新增文件:
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/social/DouyinAdapter.java`
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/social/XiaohongshuAdapter.java`
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/travel/DidiAdapter.java`
+
+修改文件:
+- `sdk/src/main/java/com/ofa/agent/automation/adapter/AppAdapterManager.java`
+
+---
+
+## v1.1.0 - Payment & Order Tools (2026-04-03)
 
 ## 更新概述
 

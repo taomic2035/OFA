@@ -7,6 +7,154 @@
 
 ---
 
+## [1.4.0] - 2026-04-06 💾 Data Persistence Layer
+
+### 新增 - Center v1.4.0
+
+**PostgreSQL 持久化存储:**
+
+| 功能 | 说明 |
+|------|------|
+| PostgreSQLStore | PostgreSQL 数据库存储实现 |
+| RedisCacheStore | Redis 缓存层实现 |
+| HybridStore | PostgreSQL + Redis 混合存储 |
+
+**存储架构:**
+
+```
+┌─────────────────────────────────────────────┐
+│               HybridStore                    │
+│  ┌─────────────────┐ ┌───────────────────┐  │
+│  │ PostgreSQLStore │ │  RedisCacheStore  │  │
+│  │   (持久化)      │ │    (缓存层)       │  │
+│  │                 │ │                   │  │
+│  │ - Agents        │ │ - Online Status   │  │
+│  │ - Tasks         │ │ - Resources       │  │
+│  │ - Messages      │ │ - Sessions        │  │
+│  └─────────────────┘ └───────────────────┘  │
+└─────────────────────────────────────────────┘
+```
+
+**配置更新:**
+
+```yaml
+database:
+  type: hybrid  # memory, sqlite, postgres, hybrid
+  host: localhost
+  port: 5432
+  user: postgres
+  password: secret
+  database: ofa_center
+  ssl_mode: disable
+
+redis:
+  address: localhost:6379
+  password: ""
+  db: 0
+```
+
+**StoreInterface 实现:**
+
+| 方法 | 说明 |
+|------|------|
+| SaveAgent | 保存 Agent |
+| GetAgent | 获取 Agent |
+| ListAgents | 列出 Agents (分页) |
+| DeleteAgent | 删除 Agent |
+| SaveTask | 保存 Task |
+| GetTask | 获取 Task |
+| ListTasks | 列出 Tasks (分页) |
+| SaveMessage | 保存 Message |
+| GetPendingMessages | 获取待发送消息 |
+| MarkMessageDelivered | 标记消息已送达 |
+| SetAgentOnline | 设置在线状态 (Redis) |
+| IsAgentOnline | 检查在线状态 (Redis) |
+| SetAgentResources | 存储资源信息 (Redis) |
+| GetAgentResources | 获取资源信息 (Redis) |
+
+新增文件:
+- `src/center/internal/store/postgres.go` - PostgreSQL 实现
+- `src/center/internal/store/redis.go` - Redis 缓存实现
+- `src/center/internal/store/hybrid.go` - 混合存储实现
+
+---
+
+## [1.3.1] - 2026-04-06 📱 Extended App Adapters
+
+### 新增 - Android SDK v1.2.0
+
+**新增 App 适配器:**
+
+| 适配器 | 包名 | 操作数 |
+|--------|------|--------|
+| DouyinAdapter | com.ss.android.ugc.aweme | 18 |
+| XiaohongshuAdapter | com.xingin.xhs | 17 |
+| DidiAdapter | com.sdu.didi.psnger | 15 |
+
+**抖音适配器操作:**
+- `search`, `watchVideo`, `likeVideo`, `commentVideo`
+- `followUser`, `shareVideo`, `browseFeed`
+- `openMall`, `searchUser`, `selectProduct`, `pay`
+
+**小红书适配器操作:**
+- `search`, `browseNote`, `likeNote`, `collectNote`
+- `commentNote`, `followUser`, `shareNote`
+- `publishNote`, `openShoppingTab`
+
+**滴滴适配器操作:**
+- `setPickup`, `setDestination`, `selectCarType`
+- `callCar`, `cancelOrder`, `contactDriver`
+- `getTripStatus`, `estimatePrice`, `payForRide`
+
+新增文件:
+- `sdk/.../adapter/social/DouyinAdapter.java`
+- `sdk/.../adapter/social/XiaohongshuAdapter.java`
+- `sdk/.../adapter/travel/DidiAdapter.java`
+
+---
+
+## [1.3.2] - 2026-04-06 🖥️ Dashboard User Profile
+
+### 新增 - Dashboard v1.0.0
+
+**用户画像页面:**
+
+| Tab | 功能 |
+|-----|------|
+| 基本信息 | 姓名、昵称、性别、生日、位置、职业 |
+| 性格特征 | MBTI 类型、大五人格特质 |
+| 价值观 | 10维度价值观雷达图 |
+| 兴趣爱好 | 兴趣列表、级别、关键词 |
+| 记忆库 | 偏好记忆、事实、事件 |
+| 偏好设置 | 系统偏好、置信度 |
+
+**新增类型定义:**
+- `PersonalIdentity` - 个人身份
+- `Personality` - 性格 (MBTI + Big Five)
+- `ValueSystem` - 价值观
+- `Interest` - 兴趣爱好
+- `VoiceProfile` - 语音配置
+- `WritingStyle` - 写作风格
+- `Memory` - 记忆
+- `Preference` - 偏好
+- `Decision` - 决策
+
+**API Client 扩展:**
+- `getIdentity()` - 获取身份
+- `updateIdentity()` - 更新身份
+- `getPersonality()` - 获取性格
+- `getValueSystem()` - 获取价值观
+- `getInterests()` - 获取兴趣
+- `getMemories()` - 获取记忆
+- `getPreferences()` - 获取偏好
+- `getDecisions()` - 获取决策
+
+新增文件:
+- `src/dashboard/src/views/Profile.vue`
+- `src/dashboard/src/types/index.ts` (扩展)
+
+---
+
 ## [1.3.0] - 2026-04-03 🏗️ Center Service Integration
 
 ### 新增 - Center v1.2.x + v1.3.x

@@ -159,15 +159,24 @@ func (s *MemoryStore) GetAgentResources(ctx context.Context, agentID string) (*m
 type StoreType string
 
 const (
-	StoreMemory StoreType = "memory"
-	StoreSQLite StoreType = "sqlite"
+	StoreMemory     StoreType = "memory"
+	StoreSQLite     StoreType = "sqlite"
+	StorePostgreSQL StoreType = "postgres"
+	StoreHybrid     StoreType = "hybrid"
 )
 
 // NewStore creates a store based on configuration
 func NewStore(cfg *config.Config) (StoreInterface, error) {
-	storeType := StoreType(cfg.Database.Database)
-	if storeType == "" || storeType == "memory" {
-		return NewMemoryStore()
+	storeType := StoreType(cfg.Database.Type)
+	if storeType == "" {
+		// Check legacy Database field
+		if cfg.Database.Database == "" || cfg.Database.Database == "memory" {
+			storeType = StoreMemory
+		} else if cfg.Database.Host != "" {
+			storeType = StorePostgreSQL
+		} else {
+			storeType = StoreSQLite
+		}
 	}
 
 	switch storeType {
@@ -175,6 +184,17 @@ func NewStore(cfg *config.Config) (StoreInterface, error) {
 		return NewMemoryStore()
 	case StoreSQLite:
 		return NewSQLiteStore(cfg)
+	case StorePostgreSQL:
+		return NewPostgreSQLStore(PostgreSQLConfig{
+			Host:     cfg.Database.Host,
+			Port:     cfg.Database.Port,
+			User:     cfg.Database.User,
+			Password: cfg.Database.Password,
+			Database: cfg.Database.Database,
+			SSLMode:  "disable",
+		})
+	case StoreHybrid:
+		return NewHybridStore(cfg)
 	default:
 		return nil, fmt.Errorf("unsupported store type: %s", storeType)
 	}

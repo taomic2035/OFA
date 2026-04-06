@@ -9,7 +9,15 @@ import type {
   ListTasksResponse,
   SubmitTaskRequest,
   SendMessageRequest,
-  BroadcastRequest
+  BroadcastRequest,
+  PersonalIdentity,
+  Memory,
+  Preference,
+  Decision,
+  UserProfileResponse,
+  ListMemoriesResponse,
+  ListPreferencesResponse,
+  ListDecisionsResponse
 } from '../types'
 
 const API_BASE = '/api/v1'
@@ -137,6 +145,162 @@ class ApiClient {
   // Health
   async healthCheck(): Promise<{ status: string; version: string }> {
     return this.request('/health')
+  }
+
+  // ===== User Profile APIs (v1.3.0) =====
+
+  // Identity
+  async getIdentity(userId: string): Promise<UserProfileResponse> {
+    return this.request<UserProfileResponse>(`/users/${userId}/identity`)
+  }
+
+  async createIdentity(userId: string, identity: Partial<PersonalIdentity>): Promise<UserProfileResponse> {
+    return this.request<UserProfileResponse>(`/users/${userId}/identity`, {
+      method: 'POST',
+      body: JSON.stringify(identity)
+    })
+  }
+
+  async updateIdentity(userId: string, updates: Record<string, any>): Promise<UserProfileResponse> {
+    return this.request<UserProfileResponse>(`/users/${userId}/identity`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates)
+    })
+  }
+
+  // Personality
+  async getPersonality(userId: string): Promise<{ success: boolean; personality?: any; error?: string }> {
+    return this.request(`/users/${userId}/personality`)
+  }
+
+  async updatePersonality(userId: string, updates: Record<string, any>): Promise<{ success: boolean; personality?: any; error?: string }> {
+    return this.request(`/users/${userId}/personality`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates)
+    })
+  }
+
+  // Value System
+  async getValueSystem(userId: string): Promise<{ success: boolean; valueSystem?: any; error?: string }> {
+    return this.request(`/users/${userId}/values`)
+  }
+
+  async updateValueSystem(userId: string, updates: Record<string, any>): Promise<{ success: boolean; valueSystem?: any; error?: string }> {
+    return this.request(`/users/${userId}/values`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates)
+    })
+  }
+
+  // Interests
+  async getInterests(userId: string, category?: string): Promise<{ success: boolean; interests?: any[]; error?: string }> {
+    const query = category ? `?category=${category}` : ''
+    return this.request(`/users/${userId}/interests${query}`)
+  }
+
+  async addInterest(userId: string, interest: any): Promise<{ success: boolean; error?: string }> {
+    return this.request(`/users/${userId}/interests`, {
+      method: 'POST',
+      body: JSON.stringify(interest)
+    })
+  }
+
+  async removeInterest(userId: string, interestId: string): Promise<{ success: boolean; error?: string }> {
+    return this.request(`/users/${userId}/interests/${interestId}`, {
+      method: 'DELETE'
+    })
+  }
+
+  // Memory
+  async getMemories(userId: string, params?: {
+    type?: string
+    query?: string
+    page?: number
+    pageSize?: number
+  }): Promise<ListMemoriesResponse> {
+    const query = new URLSearchParams()
+    if (params?.type) query.set('type', params.type)
+    if (params?.query) query.set('query', params.query)
+    if (params?.page) query.set('page', String(params.page))
+    if (params?.pageSize) query.set('page_size', String(params.pageSize))
+
+    const queryString = query.toString()
+    return this.request<ListMemoriesResponse>(`/users/${userId}/memories${queryString ? '?' + queryString : ''}`)
+  }
+
+  async createMemory(userId: string, memory: Partial<Memory>): Promise<{ success: boolean; memory?: Memory; error?: string }> {
+    return this.request(`/users/${userId}/memories`, {
+      method: 'POST',
+      body: JSON.stringify(memory)
+    })
+  }
+
+  async deleteMemory(userId: string, memoryId: string): Promise<{ success: boolean; error?: string }> {
+    return this.request(`/users/${userId}/memories/${memoryId}`, {
+      method: 'DELETE'
+    })
+  }
+
+  // Preferences
+  async getPreferences(userId: string, category?: string): Promise<ListPreferencesResponse> {
+    const query = category ? `?category=${category}` : ''
+    return this.request<ListPreferencesResponse>(`/users/${userId}/preferences${query}`)
+  }
+
+  async setPreference(userId: string, category: string, key: string, value: any): Promise<{ success: boolean; preference?: Preference; error?: string }> {
+    return this.request(`/users/${userId}/preferences`, {
+      method: 'POST',
+      body: JSON.stringify({ category, key, value })
+    })
+  }
+
+  async deletePreference(userId: string, preferenceId: string): Promise<{ success: boolean; error?: string }> {
+    return this.request(`/users/${userId}/preferences/${preferenceId}`, {
+      method: 'DELETE'
+    })
+  }
+
+  // Decisions
+  async getDecisions(userId: string, params?: {
+    context?: string
+    page?: number
+    pageSize?: number
+  }): Promise<ListDecisionsResponse> {
+    const query = new URLSearchParams()
+    if (params?.context) query.set('context', params.context)
+    if (params?.page) query.set('page', String(params.page))
+    if (params?.pageSize) query.set('page_size', String(params.pageSize))
+
+    const queryString = query.toString()
+    return this.request<ListDecisionsResponse>(`/users/${userId}/decisions${queryString ? '?' + queryString : ''}`)
+  }
+
+  async getDecisionContext(userId: string): Promise<{ success: boolean; context?: any; error?: string }> {
+    return this.request(`/users/${userId}/decision-context`)
+  }
+
+  // Voice Profile
+  async getVoiceProfile(userId: string): Promise<{ success: boolean; voiceProfile?: any; error?: string }> {
+    return this.request(`/users/${userId}/voice`)
+  }
+
+  async updateVoiceProfile(userId: string, profile: any): Promise<{ success: boolean; error?: string }> {
+    return this.request(`/users/${userId}/voice`, {
+      method: 'PATCH',
+      body: JSON.stringify(profile)
+    })
+  }
+
+  // Writing Style
+  async getWritingStyle(userId: string): Promise<{ success: boolean; writingStyle?: any; error?: string }> {
+    return this.request(`/users/${userId}/writing-style`)
+  }
+
+  async updateWritingStyle(userId: string, style: any): Promise<{ success: boolean; error?: string }> {
+    return this.request(`/users/${userId}/writing-style`, {
+      method: 'PATCH',
+      body: JSON.stringify(style)
+    })
   }
 }
 

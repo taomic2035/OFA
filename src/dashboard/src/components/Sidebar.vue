@@ -67,6 +67,15 @@ const isConnected = inject<any>('isConnected')
             <span>消息</span>
           </router-link>
         </li>
+        <li>
+          <router-link to="/profile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span>用户画像</span>
+          </router-link>
+        </li>
       </ul>
 
       <div class="nav-divider"></div>

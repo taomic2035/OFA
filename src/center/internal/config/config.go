@@ -32,12 +32,13 @@ type RESTConfig struct {
 }
 
 type DatabaseConfig struct {
-	Type     string `yaml:"type"`     // "memory" or "sqlite"
-	Host     string `yaml:"host"`     // PostgreSQL host (future)
-	Port     int    `yaml:"port"`     // PostgreSQL port (future)
-	User     string `yaml:"user"`     // PostgreSQL user (future)
-	Password string `yaml:"password"` // PostgreSQL password (future)
+	Type     string `yaml:"type"`     // "memory", "sqlite", "postgres", "hybrid"
+	Host     string `yaml:"host"`     // PostgreSQL host
+	Port     int    `yaml:"port"`     // PostgreSQL port (default: 5432)
+	User     string `yaml:"user"`     // PostgreSQL user
+	Password string `yaml:"password"` // PostgreSQL password
 	Database string `yaml:"database"` // Database name or SQLite file path
+	SSLMode  string `yaml:"ssl_mode"` // PostgreSQL SSL mode (disable, require, verify-ca, verify-full)
 }
 
 type RedisConfig struct {
