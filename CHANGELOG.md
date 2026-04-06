@@ -7,6 +7,71 @@
 
 ---
 
+## [1.2.1] - 2026-04-06 👁️ Vision Automation Engine
+
+### 新增 - Android SDK v1.2.1
+
+**视觉智能增强 (Phase 6):**
+
+| 组件 | 说明 |
+|------|------|
+| MlKitOcrEngine | ML Kit OCR 引擎，支持中英文识别 |
+| TemplateMatcher | 图像模板匹配，基于 NCC 算法 |
+| VisualElementFinder | 视觉元素定位，结合 OCR + Accessibility |
+| ScreenDiffDetector | 截图差异检测，区块级变化分析 |
+| DynamicElementTracker | 动态元素追踪，动画检测 |
+| VisionAutomationEngine | 统一视觉自动化引擎 |
+
+**视觉工具定义:**
+
+| 工具 | 说明 |
+|------|------|
+| vision.find | 视觉查找元素 |
+| vision.match | 模板匹配 |
+| vision.compare | 截图对比 |
+| vision.ocr | OCR 识别 |
+| vision.clickImage | 点击图像位置 |
+
+**新增依赖:**
+```gradle
+implementation 'com.google.mlkit:text-recognition:16.0.0'
+implementation 'com.google.mlkit:text-recognition-chinese:16.0.0'
+```
+
+**关键 API:**
+
+```java
+// OCR 识别
+VisionAutomationEngine vision = new VisionAutomationEngine(context, engine);
+vision.initialize();
+
+MlKitOcrEngine.OcrResult result = vision.recognizeText();
+List<MlKitOcrEngine.TextBlock> blocks = vision.findText("搜索");
+
+// 模板匹配
+TemplateMatcher.MatchResult match = vision.findTemplate(templateBitmap);
+
+// 视觉点击
+vision.clickText("确定");
+vision.clickTemplate(iconBitmap);
+
+// 页面稳定检测
+Bitmap stable = vision.waitForStableScreen(5000);
+
+// 动画检测
+vision.waitForAnimation(3000);
+```
+
+新增文件:
+- `sdk/.../vision/MlKitOcrEngine.java` - ML Kit OCR 引擎
+- `sdk/.../vision/TemplateMatcher.java` - 图像模板匹配
+- `sdk/.../vision/VisualElementFinder.java` - 视觉元素定位
+- `sdk/.../vision/ScreenDiffDetector.java` - 截图差异检测
+- `sdk/.../vision/DynamicElementTracker.java` - 动态元素追踪
+- `sdk/.../vision/VisionAutomationEngine.java` - 视觉自动化引擎
+
+---
+
 ## [1.4.0] - 2026-04-06 💾 Data Persistence Layer
 
 ### 新增 - Center v1.4.0

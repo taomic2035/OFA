@@ -149,6 +149,28 @@ public class AutomationResult {
         return json;
     }
 
+    /**
+     * Create a copy with additional data
+     */
+    @NonNull
+    public AutomationResult setData(@NonNull String key, @NonNull Object value) {
+        try {
+            JSONObject newData = data != null ? new JSONObject(data.toString()) : new JSONObject();
+            newData.put(key, value);
+            return new AutomationResult(operation, newData, executionTimeMs);
+        } catch (Exception e) {
+            return this;
+        }
+    }
+
+    /**
+     * Get message (error or success message)
+     */
+    @NonNull
+    public String getMessage() {
+        return success ? "Success" : (error != null ? error : "Unknown error");
+    }
+
     @NonNull
     @Override
     public String toString() {
