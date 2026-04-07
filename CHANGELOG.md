@@ -7,6 +7,103 @@
 
 ---
 
+## [3.1.0] - 2026-04-07 📡 Device State Sync
+
+### 核心理念
+
+**Center 是永远在线的灵魂载体，状态同步确保：**
+- 所有设备实时了解其他设备的状态
+- Center 维护全局状态视图
+- 状态变更自动广播到相关设备
+- 离线设备状态缓存与恢复
+
+### 新增 - Center 状态同步管理
+
+**StateSyncManager (`device_state.go`):**
+- 设备状态上报与存储
+- 部分状态更新支持
+- 状态历史记录
+- 心跳与离线检测
+- 状态变更检测 (Online/Offline/Battery/Network/Scene/Location)
+
+**设备状态字段:**
+| 字段 | 说明 |
+|------|------|
+| 连接状态 | online, last_seen |
+| 电源状态 | battery_level, charging, power_saver |
+| 网络状态 | network_type, network_strength, roaming |
+| 场景状态 | scene, scene_context |
+| 能力状态 | capabilities, active_apps |
+| 位置信息 | location (latitude, longitude, type) |
+
+**状态变更类型:**
+| 类型 | 触发条件 |
+|------|----------|
+| online | 设备上线 |
+| offline | 设备离线 |
+| battery | 电池状态变更 |
+| network | 网络状态变更 |
+| scene | 场景变更 |
+| location | 位置变更 |
+| capabilities | 能力变更 |
+
+### 新增 - Center 状态广播服务
+
+**StateBroadcastService (`state_broadcast.go`):**
+- 状态变更订阅管理
+- 批量广播与即时广播
+- 离线设备消息缓存
+- 按变更类型订阅
+- 按设备订阅
+- 广播统计
+
+**订阅配置:**
+- 订阅指定变更类型
+- 订阅指定设备
+- 身份级别订阅管理
+- 自动清理过期订阅
+
+### 新增 - Android SDK 状态同步
+
+**StateSyncService:**
+- 本地设备状态收集
+- 电池/网络状态自动监听
+- 状态上报到 Center
+- 其他设备状态接收与缓存
+- 状态变更监听器
+
+**DeviceState 模型:**
+- 完整的设备状态字段
+- JSON 序列化/反序列化
+- 状态变更检测
+- 辅助查询方法 (isLowBattery, hasNetwork, hasWiFi, etc.)
+
+**DeviceLocation 模型:**
+- 位置坐标与精度
+- 位置类型 (home/work/outdoor/unknown)
+- 距离计算 (Haversine 公式)
+
+**StateChange 模型:**
+- 状态变更事件
+- 变更类型检测
+- JSON 与 Map 转换
+
+### 单元测试
+
+**Center:**
+- `device_state_test.go` - 状态同步管理器测试
+- 状态变更检测测试
+- 离线检测测试
+- 历史记录测试
+- 统计测试
+
+**Android:**
+- `DeviceStateTest.java` - 设备状态模型测试
+- `DeviceLocationTest.java` - 位置模型测试
+- `StateChangeTest.java` - 状态变更事件测试
+
+---
+
 ## [3.0.0] - 2026-04-07 📨 Device Message Bus
 
 ### 核心理念
