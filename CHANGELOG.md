@@ -7,6 +7,51 @@
 
 ---
 
+## [2.7.0] - 2026-04-07 💾 Data Persistence Enhancement
+
+### 核心理念
+
+**Center 是永远在线的灵魂载体，数据持久化确保灵魂永存：**
+- PostgreSQL 存储身份（PersonalIdentity）永久保存
+- Redis 缓存提供高性能设备状态查询
+- 本地缓存加速常用数据访问
+
+### 新增 - PostgreSQL 身份存储
+
+**PostgresStore (`postgres_store.go`):**
+- 完整的 PersonalIdentity 数据库存储
+- JSONB 存储复杂字段（Personality, ValueSystem, Interests 等）
+- UPSERT 支持无锁写入
+- 本地缓存层加速读取
+- 备份/恢复接口
+
+**数据库表结构:**
+- identities 表 - 身份核心数据
+- 索引优化 - name, version, updated_at
+
+### 新增 - Redis 设备缓存
+
+**RedisDeviceCache (`redis_cache.go`):**
+- 设备在线状态缓存（TTL 5分钟）
+- 同步版本缓存
+- 身份-设备关联缓存
+- Pub/Sub 同步事件通知
+- 设备计数缓存
+
+### 改进 - DataService
+
+- 集成 Redis 缓存（可选）
+- 心跳更新同时写入 Redis
+- 新增 SetRedisCache() 方法
+
+### 改进 - 代码清理
+
+- 移除 device_manager.go 重复的 DeviceStats 定义
+- 为 scheduler 包添加废弃注释
+- 更新计划文档，规划 v2.7.0 - v3.0.0
+
+---
+
 ## [2.6.0] - 2026-04-07 👑 Center Authority
 
 ### 核心理念纠正

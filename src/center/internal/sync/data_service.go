@@ -12,12 +12,14 @@ import (
 
 // === 数据同步服务 ===
 
-// DataService - 数据中心服务 (v2.6.0)
+// DataService - 数据中心服务 (v2.7.0)
 //
 // Center 是永远在线的灵魂载体：
 // - 保持最终基准
 // - 设备冲突由 Center 统一决策和纠偏
 // - 设备可能离线、更换，但 Center 一直在
+// - PostgreSQL 持久化存储确保灵魂永存
+// - Redis 缓存提供高性能状态查询
 type DataService struct {
 	mu sync.RWMutex
 
@@ -25,6 +27,9 @@ type DataService struct {
 	identityStore   IdentityDataStore
 	memoryStore     MemoryDataStore
 	preferenceStore PreferenceDataStore
+
+	// v2.7.0: Redis 缓存（可选）
+	redisCache *RedisDeviceCache
 
 	// 行为存储（内存缓存，用于性格推断）
 	behaviorStore map[string][]models.BehaviorObservation // identityId -> observations
@@ -121,6 +126,13 @@ func (s *DataService) SetStores(identity IdentityDataStore, memory MemoryDataSto
 	s.identityStore = identity
 	s.memoryStore = memory
 	s.preferenceStore = preference
+}
+
+// SetRedisCache 设置 Redis 缓存 (v2.7.0)
+func (s *DataService) SetRedisCache(cache *RedisDeviceCache) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.redisCache = cache
 }
 
 // === 身份数据同步 ===
@@ -657,12 +669,21 @@ func (s *DataService) ReconcileDevice(ctx context.Context, agentID string) (*mod
 	return nil, false, nil
 }
 
-// UpdateDeviceHeartbeat 更新设备心跳
+// UpdateDeviceHeartbeat 更新设备心跳 (v2.7.0 使用 Redis 缓存)
 func (s *DataService) UpdateDeviceHeartbeat(agentID string, syncVersion int64) bool {
-	if s.deviceManager == nil {
-		return false
+	// 更新 DeviceManager
+	if s.deviceManager != nil {
+		s.deviceManager.UpdateHeartbeat(agentID, syncVersion)
 	}
-	return s.deviceManager.UpdateHeartbeat(agentID, syncVersion)
+
+	// 更新 Redis 缓存（高性能）
+	if s.redisCache != nil {
+		ctx := context.Background()
+		s.redisCache.SetDeviceOnline(ctx, agentID, 5*time.Minute)
+		s.redisCache.CacheSyncVersion(ctx, agentID, syncVersion)
+	}
+
+	return true
 }
 
 // GetDeviceStats 获取设备统计
