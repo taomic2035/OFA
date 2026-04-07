@@ -1,6 +1,6 @@
 # OFA 版本路线图
 
-## 当前版本: v5.3.0
+## 当前版本: v5.4.0
 
 **核心愿景**: "万物皆为我所用，但万物都是我"
 
@@ -20,7 +20,7 @@
 | **v5.1.0** | ✅ 语音合成系统 | VoiceSynthesizer、声音特征、情绪语音联动、TTS集成 |
 | **v5.2.0** | ✅ 表达内容系统 | SpeechContentGenerator、文化影响表达、三观影响深度 |
 | **v5.3.0** | ✅ 表情动作系统 | FacialExpression面部表情、BodyGesture身体动作、情绪联动 |
-| **v5.4.0** | 形象个性化系统 | 形象偏好、形象进化、场景适应、风格管理 |
+| **v5.4.0** | ✅ 形象个性化系统 | 形象偏好、形象进化、场景适应、风格管理 |
 | **v5.5.0** | 多端展示系统 | 3D渲染引擎、设备端适配、形象同步 |
 
 ### ✅ v5.0.0 - 外在形象系统
@@ -72,6 +72,23 @@
 - AnimationSettings 动画设置 (空闲动画、唇形同步、呼吸动画、眼球运动)
 - ExpressionGestureContext 表情动作上下文 (当前状态、推荐状态、场景适应)
 - Android SDK ExpressionGestureState/ExpressionGestureClient (轻量级状态接收)
+
+### ✅ v5.4.0 - 形象个性化系统
+
+- AvatarPersonalizationProfile 个性化模型 (形象偏好、形象进化、场景适应、风格管理)
+- PersonalizationEngine 个性化管理引擎
+- 与 v4.x 灵魂系统集成:
+  - LifeStage → 形象进化规则 (人生阶段风格变化)
+  - Emotion → 风格推荐调整 (情绪影响穿着选择)
+  - RegionalCulture → 场景适应规则 (文化礼仪影响形象)
+  - SocialIdentity → 品牌偏好 (社会阶层影响消费)
+  - Relationship → 场景风格调整 (社交关系影响形象)
+- ImagePreferences 形象偏好 (颜色偏好、风格偏好、舒适度、品牌、配饰、整理)
+- ImageEvolution 形象进化 (进化模式、触发条件、风格历史、季节适应、趋势关注)
+- SceneAdaptationSettings 场景适应 (场景规则、默认风格、过渡设置、感知能力)
+- StyleManagement 风格管理 (风格集合、穿搭记录、衣橱管理、推荐系统)
+- PersonalizationContext 个性化上下文 (风格推荐、穿搭推荐、评分、进化预览)
+- Android SDK AvatarPersonalizationState/AvatarPersonalizationClient (轻量级状态接收)
 
 ### 内在灵魂 → 外在呈现 映射
 
@@ -237,7 +254,8 @@ OFA/
 │   │   │   │   ├── avatar.go      # v5.0.0 外在形象
 │   │   │   │   ├── voice_profile.go # v5.1.0 语音配置
 │   │   │   │   ├── speech_content.go # v5.2.0 表达内容
-│   │   │   │   └── expression_gesture.go # v5.3.0 表情动作
+│   │   │   │   ├── expression_gesture.go # v5.3.0 表情动作
+│   │   │   │   └── avatar_personalization.go # v5.4.0 形象个性化
 │   │   │   ├── emotion/          # v4.0.0 情绪引擎
 │   │   │   ├── philosophy/       # v4.1.0 三观引擎
 │   │   │   ├── social/           # v4.2.0 社会身份引擎
@@ -248,7 +266,8 @@ OFA/
 │   │   │   ├── avatar/           # v5.0.0 形象引擎
 │   │   │   ├── voice/            # v5.1.0 语音引擎
 │   │   │   ├── speech/           # v5.2.0 内容引擎
-│   │   │   └── expression/       # v5.3.0 表情动作引擎
+│   │   │   ├── expression/       # v5.3.0 表情动作引擎
+│   │   │   └── personalization/  # v5.4.0 形象个性化引擎
 │   │   └── pkg/                  # 工具包
 │   │
 │   ├── sdk/android/              # Android SDK
@@ -263,7 +282,8 @@ OFA/
 │   │       ├── avatar/           # v5.0.0 外在形象状态
 │   │       ├── voice/            # v5.1.0 语音状态
 │   │       ├── speech/           # v5.2.0 表达内容状态
-│   │       └── expression/       # v5.3.0 表情动作状态
+│   │       ├── expression/       # v5.3.0 表情动作状态
+│   │       └── personalization/  # v5.4.0 形象个性化状态
 │   │
 │   └── dashboard/                # Web 管理控制台
 │
@@ -276,10 +296,10 @@ OFA/
 
 | 组件 | 数量 |
 |------|------|
-| Center Go 文件 | 120+ |
-| Android SDK Java 文件 | 180+ |
-| Center 数据模型 | 30+ |
-| Android SDK 状态模型 | 18 |
+| Center Go 文件 | 130+ |
+| Android SDK Java 文件 | 200+ |
+| Center 数据模型 | 35+ |
+| Android SDK 状态模型 | 20 |
 
 ---
 
@@ -300,4 +320,4 @@ OFA/
 ---
 
 *最后更新: 2026-04-07*
-*版本: v5.3.0*
+*版本: v5.4.0*
