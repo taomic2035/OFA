@@ -5,6 +5,18 @@
 OFA提供两种API接口：
 - **REST API**: HTTP接口，端口8080
 - **gRPC API**: 高性能RPC接口，端口9090
+- **状态推送**: Center 向设备端推送状态更新
+
+---
+
+## 版本概览
+
+| 版本系列 | 特性 | API 命名空间 |
+|---------|------|-------------|
+| v2.x | 去中心化架构 | `/api/v1/identity`, `/api/v1/sync` |
+| v3.x | 多设备协同 | `/api/v1/device`, `/api/v1/message` |
+| v4.x | 灵魂特征 | `/api/v1/soul/*` |
+| v5.x | 外在呈现 | `/api/v1/presentation/*` |
 
 ---
 
@@ -16,9 +28,849 @@ OFA提供两种API接口：
 - 内容类型: `application/json`
 - 认证: 无 (开发版本)
 
-### 端点列表
+---
 
-#### 健康检查
+## v4.x 灵魂特征 API
+
+### 情绪系统 (v4.0.0)
+
+#### 获取情绪状态
+
+```
+GET /api/v1/soul/emotion/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "current_emotion": {
+    "joy": 0.6,
+    "anger": 0.1,
+    "sadness": 0.1,
+    "fear": 0.1,
+    "love": 0.7,
+    "disgust": 0.05,
+    "desire": 0.3
+  },
+  "dominant_emotion": "joy",
+  "emotion_intensity": 0.6,
+  "emotion_stability": 0.7,
+  "last_trigger": "positive_interaction",
+  "timestamp": 1711622400000
+}
+```
+
+#### 更新情绪状态
+
+```
+POST /api/v1/soul/emotion/{identity_id}/update
+```
+
+**请求体:**
+
+```json
+{
+  "trigger_type": "event",
+  "trigger_name": "received_compliment",
+  "intensity": 0.8,
+  "context": {
+    "source": "user_interaction",
+    "description": "Received a compliment from friend"
+  }
+}
+```
+
+#### 获取欲望状态
+
+```
+GET /api/v1/soul/desire/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "desires": {
+    "physiological": {
+      "hunger": 0.3,
+      "thirst": 0.2,
+      "sleep": 0.4
+    },
+    "safety": {
+      "security": 0.8,
+      "stability": 0.7
+    },
+    "social": {
+      "belonging": 0.6,
+      "intimacy": 0.5
+    },
+    "esteem": {
+      "recognition": 0.5,
+      "achievement": 0.4
+    },
+    "self_actualization": {
+      "growth": 0.6,
+      "creativity": 0.7
+    }
+  },
+  "dominant_desire": "creativity",
+  "satisfaction_level": 0.65
+}
+```
+
+---
+
+### 三观系统 (v4.1.0)
+
+#### 获取世界观
+
+```
+GET /api/v1/soul/worldview/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "world_essence": "material",
+  "world_order": "orderly",
+  "human_nature": "mixed",
+  "social_cognition": {
+    "society_fairness": 0.6,
+    "social_mobility": 0.5,
+    "institutional_trust": 0.7
+  },
+  "future_view": {
+    "optimism": 0.7,
+    "change_orientation": "progressive",
+    "control_belief": 0.6
+  }
+}
+```
+
+#### 获取人生观
+
+```
+GET /api/v1/soul/lifeview/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "meaning_source": "contribution",
+  "time_orientation": "present_future",
+  "life_attitude": {
+    "adventure_seeking": 0.6,
+    "risk_tolerance": 0.5,
+    "control_focus": "internal"
+  },
+  "success_definition": "balance",
+  "happiness_source": ["relationships", "growth", "health"]
+}
+```
+
+#### 获取价值观
+
+```
+GET /api/v1/soul/values/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "core_values": {
+    "honesty": 0.9,
+    "kindness": 0.85,
+    "family": 0.8,
+    "health": 0.75,
+    "freedom": 0.7,
+    "achievement": 0.65,
+    "creativity": 0.6
+  },
+  "moral_framework": "utilitarian",
+  "decision_priority": ["honesty", "kindness", "family"]
+}
+```
+
+---
+
+### 社会身份 (v4.2.0)
+
+#### 获取社会身份画像
+
+```
+GET /api/v1/soul/identity/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "education": {
+    "level": "bachelor",
+    "field": "computer_science",
+    "school_tier": "top_50",
+    "continuous_learning": true
+  },
+  "career": {
+    "industry": "technology",
+    "occupation": "software_engineer",
+    "stage": "early_career",
+    "satisfaction": 0.7
+  },
+  "social_class": {
+    "income_level": "middle",
+    "wealth_level": "moderate",
+    "cultural_capital": 0.6,
+    "social_capital": 0.5,
+    "economic_capital": 0.55
+  },
+  "identity_profile": {
+    "primary_role": "professional",
+    "role_priority": ["professional", "family_member", "friend"],
+    "identity_confidence": 0.75
+  }
+}
+```
+
+---
+
+### 地域文化 (v4.3.0)
+
+#### 获取地域文化画像
+
+```
+GET /api/v1/soul/culture/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "region": {
+    "province": "guangdong",
+    "city": "shenzhen",
+    "city_tier": 1,
+    "region_zone": "south_china"
+  },
+  "cultural_dimensions": {
+    "collectivism": 0.65,
+    "tradition_orientation": 0.55,
+    "power_distance": 0.5,
+    "uncertainty_avoidance": 0.45,
+    "long_term_orientation": 0.7
+  },
+  "communication_style": "direct",
+  "social_style": "open",
+  "migration_history": []
+}
+```
+
+---
+
+### 人生阶段 (v4.4.0)
+
+#### 获取人生阶段状态
+
+```
+GET /api/v1/soul/lifestage/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "current_stage": "early_adulthood",
+  "stage_progress": 0.3,
+  "life_events": [
+    {
+      "event_type": "career",
+      "event_name": "first_job",
+      "impact": 0.8,
+      "occurred_at": "2020-06-01"
+    }
+  ],
+  "development_metrics": {
+    "physical": 0.9,
+    "cognitive": 0.8,
+    "emotional": 0.75,
+    "social": 0.7,
+    "professional": 0.6
+  }
+}
+```
+
+---
+
+### 情绪行为联动 (v4.5.0)
+
+#### 获取情绪行为状态
+
+```
+GET /api/v1/soul/behavior/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "decision_influence": {
+    "risk_preference": "moderate",
+    "impulse_control": 0.7,
+    "social_tendency": 0.6,
+    "decision_style": "analytical"
+  },
+  "expression_influence": {
+    "tone_style": "warm",
+    "word_choice": "positive",
+    "expression_frequency": 0.6
+  },
+  "triggered_behaviors": [
+    {
+      "behavior_type": "seek_social_connection",
+      "action_tendency": "approach",
+      "urgency": 0.4
+    }
+  ],
+  "coping_strategies": ["problem_focused", "seeking_support"]
+}
+```
+
+---
+
+### 人际关系 (v4.6.0)
+
+#### 获取人际关系状态
+
+```
+GET /api/v1/soul/relationship/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "social_network": {
+    "network_size": 150,
+    "strong_ties": 5,
+    "weak_ties": 30,
+    "network_density": 0.3,
+    "diversity_score": 0.6
+  },
+  "attachment_style": "secure",
+  "relationship_profile": {
+    "relationship_tendency": "balanced",
+    "social_style": {
+      "directness": 0.6,
+      "expressiveness": 0.7
+    },
+    "conflict_style": "cooperative",
+    "relationship_capacity": 0.75
+  }
+}
+```
+
+---
+
+## v5.x 外在呈现 API
+
+### 外在形象系统 (v5.0.0)
+
+#### 获取 Avatar 形象
+
+```
+GET /api/v1/presentation/avatar/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "facial_features": {
+    "face_shape": "oval",
+    "eye_shape": "almond",
+    "eye_color": "brown",
+    "skin_tone": "light",
+    "hair_style": "short",
+    "hair_color": "black"
+  },
+  "body_features": {
+    "height": 175,
+    "weight": 70,
+    "body_type": "average",
+    "posture": "confident",
+    "movement_style": "energetic"
+  },
+  "age_appearance": {
+    "apparent_age": 28,
+    "aging_stage": "prime",
+    "facial_maturity": 0.6
+  },
+  "style_preferences": {
+    "clothing_style": "casual",
+    "accessory_style": "minimal",
+    "overall_vibe": "professional"
+  },
+  "model_3d": {
+    "model_id": "avatar-001",
+    "model_type": "custom",
+    "render_quality": "high"
+  }
+}
+```
+
+#### 更新 Avatar 形象
+
+```
+PUT /api/v1/presentation/avatar/{identity_id}
+```
+
+**请求体:**
+
+```json
+{
+  "facial_features": {
+    "hair_style": "medium",
+    "hair_color": "brown"
+  },
+  "style_preferences": {
+    "clothing_style": "smart_casual"
+  }
+}
+```
+
+---
+
+### 语音合成系统 (v5.1.0)
+
+#### 获取语音配置
+
+```
+GET /api/v1/presentation/voice/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "characteristics": {
+    "voice_type": "male_young",
+    "pitch": 0.5,
+    "speed": 1.0,
+    "volume": 0.7,
+    "timbre": "warm"
+  },
+  "style": {
+    "formality": "casual",
+    "emotion_expressiveness": 0.6,
+    "accent_style": "neutral"
+  },
+  "emotional_voice": {
+    "joy_voice": {"pitch_modifier": 0.1, "speed_modifier": 0.1},
+    "anger_voice": {"pitch_modifier": -0.1, "speed_modifier": 0.2}
+  },
+  "tts_config": {
+    "engine": "standard",
+    "quality": "high",
+    "streaming": true
+  }
+}
+```
+
+#### 生成语音
+
+```
+POST /api/v1/presentation/voice/{identity_id}/synthesize
+```
+
+**请求体:**
+
+```json
+{
+  "text": "你好，很高兴见到你！",
+  "emotion": "joy",
+  "speed": 1.0,
+  "output_format": "mp3"
+}
+```
+
+**响应:**
+
+```json
+{
+  "audio_url": "/audio/output-001.mp3",
+  "duration_ms": 2500,
+  "format": "mp3",
+  "sample_rate": 22050
+}
+```
+
+---
+
+### 表达内容系统 (v5.2.0)
+
+#### 获取表达内容配置
+
+```
+GET /api/v1/presentation/speech/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "content_style": {
+    "tone_style": "warm",
+    "language_level": "moderate",
+    "directness": 0.6,
+    "humor_tendency": 0.4,
+    "emotional_coloring": "positive"
+  },
+  "expression_depth": {
+    "thinking_depth": "moderate",
+    "self_disclosure_level": 0.5,
+    "abstract_concept_level": 0.6
+  },
+  "cultural_expression": {
+    "indirect_expression": 0.4,
+    "respect_level": 0.7,
+    "honorific_usage": "moderate",
+    "face_awareness": 0.5
+  },
+  "social_expression": {
+    "professional_tone": "balanced",
+    "authority_expression": "confident",
+    "identity_confidence": 0.75
+  }
+}
+```
+
+#### 获取决策上下文
+
+```
+GET /api/v1/presentation/speech/{identity_id}/context
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "recommended_tone": "warm_professional",
+  "recommended_formality": "moderate",
+  "recommended_depth": "moderate",
+  "recommended_length": "medium",
+  "scene_adaptation": {
+    "scene": "meeting",
+    "formality_level": 0.7,
+    "expression_range": "professional"
+  },
+  "emotion_adaptation": {
+    "current_emotion": "joy",
+    "expression_intensity": 0.6
+  },
+  "opening_suggestion": "您好，有什么可以帮您的吗？",
+  "closing_suggestion": "祝您有愉快的一天！"
+}
+```
+
+---
+
+### 表情动作系统 (v5.3.0)
+
+#### 获取表情动作配置
+
+```
+GET /api/v1/presentation/expression/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "facial_expression_settings": {
+    "default_expression": "neutral",
+    "expression_intensity": 0.6,
+    "eye_contact_tendency": 0.7,
+    "blink_rate": 15.0,
+    "smile_tendency": 0.5,
+    "micro_expression_enabled": true
+  },
+  "body_gesture_settings": {
+    "default_posture": "confident",
+    "gesture_intensity": 0.5,
+    "hand_gesture_enabled": true,
+    "nod_frequency": 0.4,
+    "mirroring_enabled": false
+  },
+  "emotion_expression_mapping": {
+    "joy": {
+      "expression_type": "smile",
+      "intensity": 0.8,
+      "posture": "open"
+    },
+    "anger": {
+      "expression_type": "furrowed_brow",
+      "intensity": 0.6,
+      "posture": "tense"
+    }
+  },
+  "animation_settings": {
+    "lip_sync_enabled": true,
+    "breathing_animation_enabled": true,
+    "eye_movement_enabled": true
+  }
+}
+```
+
+#### 获取当前表情状态
+
+```
+GET /api/v1/presentation/expression/{identity_id}/current
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "current_expression": {
+    "expression_name": "warm_smile",
+    "intensity": 0.7,
+    "duration_ms": 500,
+    "eyebrow_state": "relaxed",
+    "eye_state": "bright",
+    "mouth_state": "smile"
+  },
+  "current_gesture": {
+    "gesture_name": "open_posture",
+    "posture": "confident",
+    "hand_position": "natural"
+  },
+  "recommended_expression": {
+    "expression_name": "attentive",
+    "reason": "listening_mode"
+  }
+}
+```
+
+---
+
+### 形象个性化系统 (v5.4.0)
+
+#### 获取个性化配置
+
+```
+GET /api/v1/presentation/personalization/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "image_preferences": {
+    "preferred_colors": ["blue", "black", "white"],
+    "preferred_styles": ["casual", "smart_casual"],
+    "style_experimentation": 0.4,
+    "comfort_priority": "medium",
+    "presentation_effort": "medium"
+  },
+  "image_evolution": {
+    "evolution_mode": "gradual",
+    "seasonal_adaptation": true,
+    "trend_following_level": 0.4,
+    "core_style_elements": ["minimalist", "clean_lines"]
+  },
+  "scene_adaptation_settings": {
+    "adaptation_mode": "auto",
+    "default_work_style": "business_casual",
+    "default_home_style": "relaxed",
+    "location_awareness": true
+  },
+  "style_management": {
+    "recommendation_enabled": true,
+    "recommendation_source": "hybrid"
+  }
+}
+```
+
+#### 获取个性化上下文
+
+```
+GET /api/v1/presentation/personalization/{identity_id}/context
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "recommended_style": {
+    "style_name": "smart_casual",
+    "confidence": 0.75,
+    "color_palette": ["navy", "white", "gray"],
+    "occasion": "work",
+    "season": "spring"
+  },
+  "style_score": 0.72,
+  "consistency_score": 0.68,
+  "versatility_score": 0.65,
+  "evolution_readiness": 0.55,
+  "style_suggestions": [
+    {
+      "suggestion_type": "add",
+      "target_area": "accessory",
+      "suggestion": "Consider adding a watch for professional settings"
+    }
+  ]
+}
+```
+
+---
+
+### 多端展示系统 (v5.5.0)
+
+#### 获取展示配置
+
+```
+GET /api/v1/presentation/display/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "rendering_settings": {
+    "render_engine": "webgl",
+    "quality_preset": "high",
+    "target_fps": 60,
+    "adaptive_quality": true,
+    "post_processing_enabled": true,
+    "physics_enabled": true
+  },
+  "device_adaptation": {
+    "adaptation_mode": "auto",
+    "auto_optimize": true,
+    "mobile_optimizations": {
+      "gpu_power_mode": "balanced",
+      "texture_streaming": true,
+      "battery_aware_mode": true
+    }
+  },
+  "display_sync": {
+    "sync_mode": "state_sync",
+    "sync_frequency_ms": 100,
+    "interpolation_mode": "linear",
+    "prediction_enabled": true
+  }
+}
+```
+
+#### 获取展示上下文
+
+```
+GET /api/v1/presentation/display/{identity_id}/context
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "current_device": "phone-primary",
+  "device_type": "phone",
+  "current_quality": "high",
+  "current_fps": 58.5,
+  "sync_status": "synced",
+  "sync_latency_ms": 45,
+  "battery_level": 0.75,
+  "thermal_state": "normal",
+  "connected_devices": ["watch-001", "tablet-001"],
+  "recommended_quality": "high",
+  "quality_adjustment_needed": false
+}
+```
+
+#### 同步展示状态
+
+```
+POST /api/v1/presentation/display/{identity_id}/sync
+```
+
+**请求体:**
+
+```json
+{
+  "device_id": "phone-primary",
+  "state": {
+    "avatar_position": {"x": 0, "y": 0, "z": 0},
+    "avatar_rotation": {"x": 0, "y": 0, "z": 0},
+    "current_animation": "idle",
+    "current_expression": "neutral"
+  },
+  "timestamp": 1711622400000
+}
+```
+
+---
+
+## 状态推送
+
+Center 通过 WebSocket 向设备端推送状态更新：
+
+### WebSocket 连接
+
+```
+ws://localhost:8080/ws/{identity_id}/{device_id}
+```
+
+### 推送消息格式
+
+```json
+{
+  "type": "state_update",
+  "module": "emotion",
+  "data": {
+    "current_emotion": "joy",
+    "intensity": 0.8
+  },
+  "timestamp": 1711622400000
+}
+```
+
+### 推送类型
+
+| type | 说明 |
+|------|------|
+| `state_update` | 状态更新 |
+| `decision_context` | 决策上下文 |
+| `scene_change` | 场景变化 |
+| `sync_request` | 同步请求 |
+
+---
+
+## 基础 REST API
+
+### 健康检查
 
 ```
 GET /health
@@ -28,12 +880,14 @@ GET /health
 
 ```json
 {
-    "status": "healthy",
-    "version": "v{version}"
+  "status": "healthy",
+  "version": "v5.5.0"
 }
 ```
 
 ---
+
+### Agent 管理
 
 #### 获取Agent列表
 
@@ -50,52 +904,11 @@ GET /api/v1/agents
 | page | int | 页码，默认1 |
 | page_size | int | 每页数量，默认20 |
 
-**响应:**
-
-```json
-{
-    "agents": [
-        {
-            "agent_id": "abc123",
-            "status": 1,
-            "capabilities": [
-                {
-                    "id": "text.process",
-                    "name": "Text Process",
-                    "version": "1.0.0"
-                }
-            ],
-            "last_seen": 1711622400
-        }
-    ],
-    "total": 1,
-    "page": 1,
-    "page_size": 20
-}
-```
-
----
-
 #### 获取单个Agent
 
 ```
 GET /api/v1/agents/{id}
 ```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "agent": {
-        "agent_id": "abc123",
-        "status": 1,
-        "capabilities": []
-    }
-}
-```
-
----
 
 #### 删除Agent
 
@@ -103,15 +916,9 @@ GET /api/v1/agents/{id}
 DELETE /api/v1/agents/{id}
 ```
 
-**响应:**
-
-```json
-{
-    "success": true
-}
-```
-
 ---
+
+### 任务管理
 
 #### 提交任务
 
@@ -123,35 +930,13 @@ POST /api/v1/tasks
 
 ```json
 {
-    "skill_id": "text.process",
-    "input": "eyJ0ZXh0IjoiaGVsbG8iLCJvcGVyYXRpb24iOiJ1cHBlcmNhc2UifQ==",
-    "target_agent": "",
-    "priority": 0,
-    "timeout_ms": 30000
+  "skill_id": "text.process",
+  "input": "eyJ0ZXh0IjoiaGVsbG8iLCJvcGVyYXRpb24iOiJ1cHBlcmNhc2UifQ==",
+  "target_agent": "",
+  "priority": 0,
+  "timeout_ms": 30000
 }
 ```
-
-> 注: input字段为Base64编码的JSON字符串
-
-**输入JSON解码后:**
-
-```json
-{
-    "text": "hello",
-    "operation": "uppercase"
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "task_id": "task-abc123"
-}
-```
-
----
 
 #### 获取任务列表
 
@@ -159,60 +944,11 @@ POST /api/v1/tasks
 GET /api/v1/tasks
 ```
 
-**查询参数:**
-
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| status | int | 状态过滤 |
-| agent_id | string | Agent过滤 |
-| page | int | 页码 |
-| page_size | int | 每页数量 |
-
-**响应:**
-
-```json
-{
-    "tasks": [
-        {
-            "task_id": "task-abc123",
-            "skill_id": "text.process",
-            "status": 3,
-            "output": "eyJyZXN1bHQiOiJIRUxMTyJ9",
-            "created_at": 1711622400,
-            "completed_at": 1711622401,
-            "duration_ms": 100
-        }
-    ],
-    "total": 1,
-    "page": 1,
-    "page_size": 20
-}
-```
-
----
-
 #### 获取任务状态
 
 ```
 GET /api/v1/tasks/{id}
 ```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "task": {
-        "task_id": "task-abc123",
-        "skill_id": "text.process",
-        "status": 3,
-        "output": "eyJyZXN1bHQiOiJIRUxMTyJ9",
-        "error": ""
-    }
-}
-```
-
----
 
 #### 取消任务
 
@@ -220,23 +956,9 @@ GET /api/v1/tasks/{id}
 POST /api/v1/tasks/{id}/cancel
 ```
 
-**请求体:**
-
-```json
-{
-    "reason": "User requested"
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true
-}
-```
-
 ---
+
+### 消息通信
 
 #### 发送消息
 
@@ -244,56 +966,11 @@ POST /api/v1/tasks/{id}/cancel
 POST /api/v1/messages
 ```
 
-**请求体:**
-
-```json
-{
-    "from_agent": "agent-1",
-    "to_agent": "agent-2",
-    "action": "ping",
-    "payload": "e30=",
-    "ttl": 3600
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "msg_id": "msg-abc123"
-}
-```
-
----
-
 #### 广播消息
 
 ```
 POST /api/v1/messages/broadcast
 ```
-
-**请求体:**
-
-```json
-{
-    "from_agent": "agent-1",
-    "action": "announcement",
-    "payload": "e30=",
-    "ttl": 3600
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "delivered_count": 5
-}
-```
-
----
 
 #### 组播消息
 
@@ -301,27 +978,9 @@ POST /api/v1/messages/broadcast
 POST /api/v1/messages/multicast
 ```
 
-**请求体:**
-
-```json
-{
-    "from_agent": "agent-1",
-    "to_agents": ["agent-2", "agent-3"],
-    "action": "notify",
-    "payload": "e30="
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "delivered_count": 2
-}
-```
-
 ---
+
+### 技能管理
 
 #### 获取技能列表
 
@@ -329,34 +988,9 @@ POST /api/v1/messages/multicast
 GET /api/v1/skills
 ```
 
-**查询参数:**
-
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| category | string | 分类过滤 |
-
-**响应:**
-
-```json
-{
-    "skills": [
-        {
-            "id": "text.process",
-            "name": "Text Process",
-            "version": "1.0.0",
-            "category": "text"
-        },
-        {
-            "id": "json.process",
-            "name": "JSON Process",
-            "version": "1.0.0",
-            "category": "data"
-        }
-    ]
-}
-```
-
 ---
+
+### 系统信息
 
 #### 获取系统信息
 
@@ -364,36 +998,10 @@ GET /api/v1/skills
 GET /api/v1/system/info
 ```
 
-**响应:**
-
-```json
-{
-    "version": "v{version}",
-    "uptime_seconds": 3600,
-    "agent_count": 5,
-    "task_count": 10
-}
-```
-
----
-
 #### 获取系统指标
 
 ```
 GET /api/v1/system/metrics
-```
-
-**响应:**
-
-```json
-{
-    "metrics": {
-        "agents_online": 5,
-        "tasks_pending": 2,
-        "tasks_completed": 100,
-        "tasks_failed": 3
-    }
-}
 ```
 
 ---
@@ -407,45 +1015,82 @@ GET /api/v1/system/metrics
 | AgentService | Agent管理与任务执行 |
 | MessageService | 消息通信 |
 | ManagementService | 系统管理 |
+| SoulService | 灵魂特征管理 (v4.x) |
+| PresentationService | 外在呈现管理 (v5.x) |
 
 ### AgentService
 
 ```protobuf
 service AgentService {
-    rpc Connect(stream AgentMessage) returns (stream CenterMessage);
-    rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse);
-    rpc GetTaskStatus(GetTaskStatusRequest) returns (GetTaskStatusResponse);
-    rpc CancelTask(CancelTaskRequest) returns (CancelTaskResponse);
-    rpc SubscribeTask(SubscribeTaskRequest) returns (stream TaskEvent);
-    rpc RegisterCapabilities(RegisterCapabilitiesRequest) returns (RegisterCapabilitiesResponse);
-    rpc GetCapabilities(GetCapabilitiesRequest) returns (GetCapabilitiesResponse);
+  rpc Connect(stream AgentMessage) returns (stream CenterMessage);
+  rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse);
+  rpc GetTaskStatus(GetTaskStatusRequest) returns (GetTaskStatusResponse);
+  rpc CancelTask(CancelTaskRequest) returns (CancelTaskResponse);
+  rpc SubscribeTask(SubscribeTaskRequest) returns (stream TaskEvent);
+  rpc RegisterCapabilities(RegisterCapabilitiesRequest) returns (RegisterCapabilitiesResponse);
+  rpc GetCapabilities(GetCapabilitiesRequest) returns (GetCapabilitiesResponse);
 }
 ```
 
-### MessageService
+### SoulService (v4.x)
 
 ```protobuf
-service MessageService {
-    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
-    rpc Broadcast(BroadcastRequest) returns (BroadcastResponse);
-    rpc Multicast(MulticastRequest) returns (MulticastResponse);
-    rpc Subscribe(SubscribeMessageRequest) returns (stream Message);
+service SoulService {
+  // 情绪系统
+  rpc GetEmotionState(GetEmotionStateRequest) returns (EmotionState);
+  rpc UpdateEmotion(UpdateEmotionRequest) returns (EmotionState);
+  rpc GetDesireState(GetDesireStateRequest) returns (DesireState);
+
+  // 三观系统
+  rpc GetWorldview(GetWorldviewRequest) returns (Worldview);
+  rpc GetLifeView(GetLifeViewRequest) returns (LifeView);
+  rpc GetValueSystem(GetValueSystemRequest) returns (ValueSystem);
+
+  // 社会身份
+  rpc GetSocialIdentity(GetSocialIdentityRequest) returns (SocialIdentity);
+
+  // 地域文化
+  rpc GetRegionalCulture(GetRegionalCultureRequest) returns (RegionalCulture);
+
+  // 人生阶段
+  rpc GetLifeStage(GetLifeStageRequest) returns (LifeStage);
+
+  // 情绪行为
+  rpc GetEmotionBehavior(GetEmotionBehaviorRequest) returns (EmotionBehavior);
+
+  // 人际关系
+  rpc GetRelationship(GetRelationshipRequest) returns (RelationshipState);
 }
 ```
 
-### ManagementService
+### PresentationService (v5.x)
 
 ```protobuf
-service ManagementService {
-    rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse);
-    rpc GetAgent(GetAgentRequest) returns (GetAgentResponse);
-    rpc DeleteAgent(DeleteAgentRequest) returns (DeleteAgentResponse);
-    rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
-    rpc GetTask(GetTaskRequest) returns (GetTaskResponse);
-    rpc ListSkills(ListSkillsRequest) returns (ListSkillsResponse);
-    rpc InstallSkill(InstallSkillRequest) returns (InstallSkillResponse);
-    rpc GetSystemInfo(GetSystemInfoRequest) returns (GetSystemInfoResponse);
-    rpc GetMetrics(GetMetricsRequest) returns (GetMetricsResponse);
+service PresentationService {
+  // 外在形象
+  rpc GetAvatar(GetAvatarRequest) returns (Avatar);
+  rpc UpdateAvatar(UpdateAvatarRequest) returns (Avatar);
+
+  // 语音合成
+  rpc GetVoiceProfile(GetVoiceProfileRequest) returns (VoiceProfile);
+  rpc SynthesizeVoice(SynthesizeVoiceRequest) returns (SynthesizeVoiceResponse);
+
+  // 表达内容
+  rpc GetSpeechContent(GetSpeechContentRequest) returns (SpeechContentProfile);
+  rpc GetSpeechContext(GetSpeechContextRequest) returns (SpeechDecisionContext);
+
+  // 表情动作
+  rpc GetExpressionGesture(GetExpressionGestureRequest) returns (ExpressionGestureProfile);
+  rpc GetCurrentExpression(GetCurrentExpressionRequest) returns (ExpressionGestureContext);
+
+  // 形象个性化
+  rpc GetPersonalization(GetPersonalizationRequest) returns (AvatarPersonalizationProfile);
+  rpc GetPersonalizationContext(GetPersonalizationContextRequest) returns (PersonalizationContext);
+
+  // 多端展示
+  rpc GetDisplaySettings(GetDisplaySettingsRequest) returns (MultiDisplayProfile);
+  rpc GetDisplayContext(GetDisplayContextRequest) returns (DisplayContext);
+  rpc SyncDisplayState(SyncDisplayStateRequest) returns (SyncDisplayStateResponse);
 }
 ```
 
@@ -486,6 +1131,49 @@ service ManagementService {
 | 5 | CANCELLED |
 | 6 | TIMEOUT |
 
+### EmotionType
+
+| 值 | 说明 |
+|---|------|
+| JOY | 喜 |
+| ANGER | 怒 |
+| SADNESS | 哀 |
+| FEAR | 惧 |
+| LOVE | 爱 |
+| DISGUST | 恶 |
+| DESIRE | 欲 |
+
+### LifeStage
+
+| 值 | 说明 |
+|---|------|
+| CHILDHOOD | 童年 |
+| ADOLESCENCE | 青春期 |
+| EARLY_ADULTHOOD | 青年 |
+| YOUNG_ADULTHOOD | 成年早期 |
+| MIDDLE_AGE | 中年 |
+| MATURE | 成熟期 |
+| ELDERLY | 老年 |
+
+### AttachmentStyle
+
+| 值 | 说明 |
+|---|------|
+| SECURE | 安全型 |
+| ANXIOUS | 焦虑型 |
+| AVOIDANT | 回避型 |
+| DISORGANIZED | 混乱型 |
+
+### QualityPreset
+
+| 值 | 说明 |
+|---|------|
+| LOW | 低质量 |
+| MEDIUM | 中等质量 |
+| HIGH | 高质量 |
+| ULTRA | 超高质量 |
+| CUSTOM | 自定义 |
+
 ---
 
 ## 错误处理
@@ -503,1683 +1191,15 @@ service ManagementService {
 
 ```json
 {
-    "error": "错误描述信息"
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "message": "Invalid parameter: identity_id is required",
+    "details": {}
+  }
 }
 ```
 
 ---
 
-## 示例
-
-### PowerShell 示例
-
-```powershell
-# 健康检查
-Invoke-RestMethod -Uri "http://localhost:8080/health"
-
-# 提交任务
-$body = @{
-    skill_id = "text.process"
-    input = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('{"text":"hello","operation":"uppercase"}'))
-} | ConvertTo-Json
-
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tasks" `
-    -Method POST `
-    -ContentType "application/json" `
-    -Body $body
-```
-
-### curl 示例
-
-```bash
-# 健康检查
-curl http://localhost:8080/health
-
-# 提交任务
-curl -X POST http://localhost:8080/api/v1/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"skill_id":"text.process","input":"eyJ0ZXh0IjoiaGVsbG8iLCJvcGVyYXRpb24iOiJ1cHBlcmNhc2UifQ=="}'
-```
-
----
-
-## Android SDK API
-
-### 核心模块
-
-| 模块 | 包路径 | 说明 |
-|------|--------|------|
-| Intent | `com.ofa.agent.intent` | 意图理解系统 |
-| Skill | `com.ofa.agent.skill` | 技能编排系统 |
-| Memory | `com.ofa.agent.memory` | 用户记忆系统 |
-| Tool | `com.ofa.agent.tool` | 工具系统 |
-| LLM | `com.ofa.agent.llm` | LLM集成 |
-| MCP | `com.ofa.agent.mcp` | MCP协议 |
-
-### Intent API
-
-```java
-// 获取意图注册表
-IntentRegistry registry = IntentRegistry.getInstance();
-
-// 创建意图引擎
-IntentEngine engine = new IntentEngine(registry);
-
-// 识别意图
-UserIntent intent = engine.recognizeOne("帮我点一杯珍珠奶茶");
-// → intentId="order_food", confidence=0.85, slots={item="珍珠奶茶", count="1"}
-
-// 执行意图
-TaskExecutor executor = new TaskExecutor(toolRegistry);
-executor.execute(intent, context);
-```
-
-### Skill API
-
-```java
-// 创建技能定义
-SkillDefinition skill = new SkillDefinition.Builder()
-    .id("order_bubble_tea")
-    .name("点奶茶")
-    .step("launch_app", StepType.TOOL, "app.launch", Map.of("app", "美团"))
-    .step("search", StepType.TOOL, "app.search", Map.of("query", "${drink_name}"))
-    .step("select_sweetness", StepType.INPUT, "选择甜度", null)
-    .step("confirm", StepType.CONFIRM, "确认下单", null)
-    .build();
-
-// 执行技能
-CompositeSkillExecutor executor = new CompositeSkillExecutor(context, toolRegistry);
-SkillResult result = executor.execute(skill, inputs).get();
-```
-
-### Memory API
-
-```java
-// 获取记忆管理器
-UserMemoryManager memory = UserMemoryManager.getInstance(context);
-
-// 记录偏好
-memory.rememberPreference("bubble_tea.drink_name", "珍珠奶茶", "food",
-    Map.of("sweetness", "五分糖", "ice", "少冰"));
-
-// 获取推荐值
-String recommended = memory.getRecommendedValue("bubble_tea.drink_name");
-// → "珍珠奶茶" (使用最多)
-
-// 获取智能默认值
-SmartDefault defaults = memory.getSmartDefault("bubble_tea.drink_name");
-// → recommended, lastUsed, mostUsed, confidence
-
-// 导出记忆
-memory.exportMemories(callback);
-```
-
-### Tool API
-
-```java
-// 获取工具注册表
-ToolRegistry registry = ToolRegistry.getInstance();
-
-// 执行工具
-ToolResult result = registry.execute("app.launch", Map.of("app", "美团"));
-
-// 注册自定义工具
-registry.register(new ToolDefinition.Builder()
-    .id("custom.action")
-    .name("自定义动作")
-    .handler((params, ctx) -> ToolResult.success("done"))
-    .build());
-```
-
-### LLM API
-
-```java
-// 配置LLM
-LLMConfig config = new LLMConfig.Builder()
-    .provider(LLMProviderType.CLOUD)
-    .apiKey("your-api-key")
-    .model("claude-3-sonnet")
-    .build();
-
-// 获取LLM Orchestrator
-LLMOrchestrator orchestrator = LLMOrchestrator.getInstance(config);
-
-// 发送请求
-LLMResponse response = orchestrator.chat("帮我点一杯奶茶");
-```
-
-### 三层记忆架构
-
-```
-┌─────────────────────────────────────┐
-│         L1: MemoryCache             │
-│   内存缓存 (LRU策略, <1ms访问)       │
-└─────────────────────────────────────┘
-                 ↓ 未命中
-┌─────────────────────────────────────┐
-│         L2: Room Database           │
-│   持久化存储 (可靠存储)              │
-└─────────────────────────────────────┘
-                 ↓ 归档
-┌─────────────────────────────────────┐
-│         L3: MemoryArchive           │
-│   文件归档 (冷数据备份)              │
-└─────────────────────────────────────┘
-```
-
-### 12种步骤类型
-
-| 类型 | 说明 | 示例 |
-|------|------|------|
-| TOOL | 执行工具 | 启动APP、发送消息 |
-| INTENT | 触发意图识别 | 解析用户指令 |
-| DELAY | 延时等待 | 等待3秒 |
-| WAIT_FOR | 等待条件 | 等外卖送达 |
-| CONDITION | 条件分支 | 判断是否需要支付 |
-| ASSIGN | 变量赋值 | 设置默认值 |
-| INPUT | 获取用户输入 | 选择甜度 |
-| CONFIRM | 请求确认 | 确认下单 |
-| NOTIFY | 发送通知 | 提醒外卖快到了 |
-| PARALLEL | 并行执行 | 同时搜索多个APP |
-| LOOP | 循环执行 | 每分钟检查状态 |
-| SUB_SKILL | 调用子技能 | 执行支付流程 |
-
-### 22个内置意图
-
-| 类别 | 意图 |
-|------|------|
-| 查询 | weather_query, stock_query, news_query, traffic_query, price_query, search_query, info_query, location_query |
-| 操作 | app_launch, app_close, call_contact, send_message, send_email, play_media, take_photo, set_timer |
-| 设置 | setting_change, alarm_set, reminder_set, schedule_add |
-| 其他 | order_food, control_device |
-
----
-
-## v3.x 多设备协同 API (新增)
-
-### 消息总线 API (v3.0.0)
-
-#### 发送设备消息
-
-```
-POST /api/v3/messages/device
-```
-
-**请求体:**
-
-```json
-{
-    "id": "msg-001",
-    "from_agent": "agent-phone",
-    "to_agent": "agent-watch",
-    "identity_id": "identity-001",
-    "type": "data",
-    "priority": 2,
-    "payload": {
-        "key": "value"
-    },
-    "ttl": 3600
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "queued": true
-}
-```
-
-#### 获取离线消息
-
-```
-GET /api/v3/messages/offline/{agent_id}
-```
-
-**响应:**
-
-```json
-{
-    "messages": [
-        {
-            "id": "msg-001",
-            "from_agent": "center",
-            "payload": {}
-        }
-    ],
-    "count": 1
-}
-```
-
----
-
-### 设备状态同步 API (v3.1.0)
-
-#### 上报设备状态
-
-```
-POST /api/v3/devices/{agent_id}/state
-```
-
-**请求体:**
-
-```json
-{
-    "battery_level": 85,
-    "battery_charging": false,
-    "network_type": "wifi",
-    "network_strength": 90,
-    "scene": "meeting",
-    "location": {
-        "latitude": 39.9,
-        "longitude": 116.4,
-        "accuracy": 10
-    }
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "synced": true
-}
-```
-
-#### 获取设备状态
-
-```
-GET /api/v3/devices/{agent_id}/state
-```
-
-**响应:**
-
-```json
-{
-    "state": {
-        "battery_level": 85,
-        "network_type": "wifi",
-        "scene": "meeting",
-        "online": true,
-        "last_update": 1711622400
-    }
-}
-```
-
-#### 获取身份下所有设备状态
-
-```
-GET /api/v3/identities/{identity_id}/devices/states
-```
-
-**响应:**
-
-```json
-{
-    "devices": [
-        {
-            "agent_id": "agent-phone",
-            "state": {}
-        },
-        {
-            "agent_id": "agent-watch",
-            "state": {}
-        }
-    ]
-}
-```
-
-#### 订阅状态变更
-
-```
-WebSocket /api/v3/devices/states/subscribe
-```
-
-**消息格式:**
-
-```json
-{
-    "agent_id": "agent-phone",
-    "changes": ["battery", "scene"],
-    "old_state": {},
-    "new_state": {}
-}
-```
-
----
-
-### 场景感知路由 API (v3.2.0)
-
-#### 路由消息
-
-```
-POST /api/v3/route
-```
-
-**请求体:**
-
-```json
-{
-    "identity_id": "identity-001",
-    "message_type": "social",
-    "priority": 2,
-    "scene": "running",
-    "payload": {}
-}
-```
-
-**响应:**
-
-```json
-{
-    "target_agents": ["agent-watch"],
-    "action": "deliver",
-    "reason": "Scene running -> route to watch"
-}
-```
-
-#### 配置路由规则
-
-```
-POST /api/v3/route/rules
-```
-
-**请求体:**
-
-```json
-{
-    "identity_id": "identity-001",
-    "scenes": ["running", "walking"],
-    "message_types": ["social", "message"],
-    "target_device_types": ["watch"],
-    "action": "deliver",
-    "priority": 100
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "rule_id": "rule-001"
-}
-```
-
-#### 获取路由规则
-
-```
-GET /api/v3/route/rules/{identity_id}
-```
-
----
-
-### 任务协同 API (v3.3.0)
-
-#### 创建协同任务
-
-```
-POST /api/v3/tasks/collaborative
-```
-
-**请求体:**
-
-```json
-{
-    "identity_id": "identity-001",
-    "skill_id": "data.collect",
-    "split_strategy": "parallel",
-    "merge_strategy": "aggregate",
-    "target_agents": ["agent-phone", "agent-watch", "agent-tablet"],
-    "input": {},
-    "constraints": {
-        "max_sub_tasks": 3,
-        "timeout_per_task": 30000,
-        "min_success_count": 2
-    }
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "task_id": "collab-001",
-    "sub_tasks": [
-        {
-            "sub_task_id": "sub-001",
-            "agent_id": "agent-phone"
-        },
-        {
-            "sub_task_id": "sub-002",
-            "agent_id": "agent-watch"
-        }
-    ]
-}
-```
-
-#### 获取子任务状态
-
-```
-GET /api/v3/tasks/collaborative/{task_id}/subtasks
-```
-
-**响应:**
-
-```json
-{
-    "sub_tasks": [
-        {
-            "sub_task_id": "sub-001",
-            "status": "completed",
-            "result": {}
-        },
-        {
-            "sub_task_id": "sub-002",
-            "status": "running"
-        }
-    ],
-    "progress": 0.5
-}
-```
-
-#### 上报子任务结果
-
-```
-POST /api/v3/tasks/collaborative/{task_id}/subtasks/{sub_task_id}/result
-```
-
-**请求体:**
-
-```json
-{
-    "agent_id": "agent-phone",
-    "success": true,
-    "result": {
-        "data": "collected"
-    },
-    "duration_ms": 1000
-}
-```
-
-#### 获取合并结果
-
-```
-GET /api/v3/tasks/collaborative/{task_id}/result
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "result": {
-        "merged": "aggregated result"
-    },
-    "sub_task_count": 3,
-    "success_count": 2
-}
-```
-
----
-
-### 跨设备通知 API (v3.4.0)
-
-#### 创建通知
-
-```
-POST /api/v3/notifications
-```
-
-**请求体:**
-
-```json
-{
-    "identity_id": "identity-001",
-    "type": "message",
-    "priority": "normal",
-    "title": "New Message",
-    "body": "You have a new message",
-    "source_app": "com.example.app",
-    "category": "social",
-    "group_id": "group-001",
-    "actions": [
-        {
-            "action_id": "open",
-            "title": "Open",
-            "type": "open"
-        },
-        {
-            "action_id": "dismiss",
-            "title": "Dismiss",
-            "type": "dismiss"
-        }
-    ],
-    "target_devices": [],
-    "ttl": 3600
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "notification_id": "notif-001",
-    "target_devices": ["agent-phone", "agent-watch"]
-}
-```
-
-#### 获取通知
-
-```
-GET /api/v3/notifications/{notification_id}
-```
-
-**响应:**
-
-```json
-{
-    "notification": {
-        "notification_id": "notif-001",
-        "status": "delivered",
-        "delivered_to": ["agent-phone"],
-        "read_by": [],
-        "created_at": 1711622400
-    }
-}
-```
-
-#### 获取身份通知列表
-
-```
-GET /api/v3/identities/{identity_id}/notifications
-```
-
-**查询参数:**
-
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| status | string | 状态过滤 (pending/delivered/read/dismissed) |
-| type | string | 类型过滤 |
-| unread_only | bool | 只返回未读 |
-| limit | int | 数量限制 |
-
-#### 标记通知已读
-
-```
-POST /api/v3/notifications/{notification_id}/read
-```
-
-**请求体:**
-
-```json
-{
-    "agent_id": "agent-phone"
-}
-```
-
-#### 标记通知忽略
-
-```
-POST /api/v3/notifications/{notification_id}/dismiss
-```
-
-**请求体:**
-
-```json
-{
-    "agent_id": "agent-phone"
-}
-```
-
-#### 全部标记已读
-
-```
-POST /api/v3/identities/{identity_id}/notifications/read-all
-```
-
-**请求体:**
-
-```json
-{
-    "agent_id": "agent-phone"
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "count": 5
-}
-```
-
-#### 获取通知统计
-
-```
-GET /api/v3/identities/{identity_id}/notifications/stats
-```
-
-**响应:**
-
-```json
-{
-    "stats": {
-        "total": 10,
-        "pending": 2,
-        "delivered": 3,
-        "read": 4,
-        "dismissed": 1,
-        "unread": 5
-    }
-}
-```
-
----
-
-### Android SDK v3.x API
-
-#### 消息总线客户端
-
-```java
-// 获取消息总线
-MessageBus messageBus = agent.getMessageBus();
-
-// 发送消息
-Message msg = new Message();
-msg.fromAgent = agentId;
-msg.toAgent = "agent-watch";
-msg.type = Message.TYPE_DATA;
-msg.priority = Message.PRIORITY_NORMAL;
-msg.payload = Map.of("key", "value");
-
-messageBus.send(msg);
-
-// 添加消息监听器
-messageBus.addListener(message -> {
-    if (message.type == Message.TYPE_DATA) {
-        // 处理数据消息
-    }
-});
-
-// 获取离线消息
-List<Message> offline = messageBus.getOfflineMessages();
-```
-
-#### 设备状态同步
-
-```java
-// 获取状态同步服务
-StateSyncService stateSync = agent.getStateSyncService();
-
-// 上报状态
-stateSync.reportBattery(85, false);
-stateSync.reportNetwork("wifi", 90);
-stateSync.reportScene("meeting");
-
-// 添加状态变更监听器
-stateSync.addStateChangeListener(change -> {
-    if (change.field == "battery") {
-        // 电池状态变更
-    }
-});
-
-// 获取当前状态
-DeviceState state = stateSync.getCurrentState();
-```
-
-#### 场景感知路由
-
-```java
-// 获取场景路由器
-SceneAwareRouter router = agent.getSceneAwareRouter();
-
-// 本地路由决策
-RoutingResult result = router.routeLocally(
-    "social",
-    Message.PRIORITY_NORMAL
-);
-
-if (result.targetAgents.contains("watch")) {
-    // 路由到手表
-}
-
-// 添加路由规则
-router.addRule(new RoutingRule.Builder()
-    .scenes(Set.of("running"))
-    .messageTypes(Set.of("social"))
-    .targetDeviceTypes(Set.of("watch"))
-    .action(RoutingAction.DELIVER)
-    .build());
-```
-
-#### 任务协同
-
-```java
-// 获取任务协同器
-TaskCollaborator collaborator = agent.getTaskCollaborator();
-
-// 注册为执行者
-collaborator.registerExecutor("data.collect", subTask -> {
-    // 执行子任务
-    Object result = collectData();
-    // 上报结果
-    collaborator.reportResult(subTask.subTaskId, true, result);
-});
-
-// 创建协同任务
-CollaborativeTask task = new CollaborativeTask.Builder()
-    .skillId("data.collect")
-    .splitStrategy(SplitStrategy.PARALLEL)
-    .mergeStrategy(MergeStrategy.AGGREGATE)
-    .targetAgents(Set.of("phone", "watch", "tablet"))
-    .build();
-
-// 发起协同
-collaborator.initiateCollaboration(task);
-```
-
-#### 通知客户端
-
-```java
-// 获取通知客户端
-NotificationClient notificationClient = agent.getNotificationClient();
-
-// 设置本地通知处理器
-notificationClient.setLocalHandler(new LocalNotificationHandler() {
-    @Override
-    public void showNotification(CrossDeviceNotification notification) {
-        // 显示本地通知
-        showSystemNotification(notification);
-    }
-
-    @Override
-    public void cancelNotification(String notificationId) {
-        // 取消本地通知
-        cancelSystemNotification(notificationId);
-    }
-});
-
-// 添加通知监听器
-notificationClient.addListener(new NotificationListener() {
-    @Override
-    public void onNotificationReceived(CrossDeviceNotification notification) {
-        // 收到新通知
-    }
-
-    @Override
-    public void onNotificationUpdated(CrossDeviceNotification notification) {
-        // 通知状态更新
-    }
-});
-
-// 标记已读
-notificationClient.markAsRead("notif-001");
-
-// 获取未读数
-int unreadCount = notificationClient.getUnreadCount();
-
-// 执行通知动作
-notificationClient.executeAction("notif-001", "open");
-```
-
----
-
-### v3.x 新增枚举类型
-
-#### MessageType
-
-| 值 | 说明 |
-|---|------|
-| data | 数据消息 |
-| command | 命令消息 |
-| event | 事件消息 |
-| notification | 通知消息 |
-
-#### MessagePriority
-
-| 值 | 说明 |
-|---|------|
-| 0 | LOW |
-| 1 | NORMAL |
-| 2 | HIGH |
-| 3 | URGENT |
-
-#### NotificationType
-
-| 值 | 说明 |
-|---|------|
-| message | 普通消息 |
-| alert | 告警 |
-| reminder | 提醒 |
-| system | 系统通知 |
-| social | 社交消息 |
-| health | 健康提醒 |
-| calendar | 日历提醒 |
-| call | 通话通知 |
-
-#### NotificationPriority
-
-| 值 | 说明 |
-|---|------|
-| min | 最低优先级 |
-| low | 低优先级 |
-| normal | 正常优先级 |
-| high | 高优先级 |
-| max | 最高优先级 (勿扰时段仍显示) |
-
-#### NotificationStatus
-
-| 值 | 说明 |
-|---|------|
-| pending | 待发送 |
-| delivered | 已送达 |
-| read | 已读 |
-| dismissed | 已忽略 |
-| expired | 已过期 |
-
-#### SplitStrategy
-
-| 值 | 说明 |
-|---|------|
-| none | 不拆分 |
-| parallel | 并行拆分 |
-| sequence | 顺序拆分 |
-| map_reduce | MapReduce |
-| by_device | 按设备拆分 |
-
-#### MergeStrategy
-
-| 值 | 说明 |
-|---|------|
-| none | 不合并 |
-| all | 收集所有结果 |
-| first | 取首个完成结果 |
-| consensus | 共识合并 |
-| aggregate | 聚合统计 |
-| best | 取最佳结果 |
-
-#### DeviceScene
-
-| 值 | 说明 |
-|---|------|
-| unknown | 未知 |
-| idle | 空闲 |
-| running | 跑步 |
-| walking | 步行 |
-| driving | 驾驶 |
-| meeting | 会议 |
-| sleeping | 睡眠 |
-| working | 工作 |
-| relaxing | 休息 |
-
-#### RoutingAction
-
-| 值 | 说明 |
-|---|------|
-| deliver | 直接送达 |
-| delay | 延迟送达 |
-| filter | 过滤不送 |
-| broadcast | 广播所有 |
-| quiet | 勿扰模式 |
-
----
-
-## v4.x 灵魂特征系统 API (新增)
-
-### 概述
-
-v4.x 系统实现"灵魂特征"，让数字灵魂更加真实、立体。每个子系统遵循统一架构：
-
-- **Center端**: 模型文件 + 引擎文件（深度管理）
-- **Agent端**: 状态文件 + 客户端文件（轻量接收）
-
----
-
-### 情绪系统 API (v4.0.0)
-
-#### 获取情绪状态
-
-```
-GET /api/v4/emotion/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-    "emotions": {
-        "joy": 0.6,
-        "anger": 0.1,
-        "sadness": 0.2,
-        "fear": 0.1,
-        "love": 0.5,
-        "disgust": 0.0,
-        "desire": 0.4
-    },
-    "dominant_emotion": "joy",
-    "emotion_stability": 0.75,
-    "last_trigger": "positive_interaction"
-}
-```
-
-#### 触发情绪
-
-```
-POST /api/v4/emotion/{identity_id}/trigger
-```
-
-**请求体:**
-
-```json
-{
-    "trigger_type": "event",
-    "event_data": {
-        "type": "positive_interaction",
-        "intensity": 0.7,
-        "source": "social"
-    }
-}
-```
-
-**响应:**
-
-```json
-{
-    "success": true,
-    "emotion_change": {
-        "joy": "+0.3",
-        "love": "+0.2"
-    }
-}
-```
-
-#### 获取欲望状态
-
-```
-GET /api/v4/desire/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-    "desires": {
-        "physiological": {"level": 0.8, "satisfied": 0.9},
-        "safety": {"level": 0.7, "satisfied": 0.85},
-        "love_belonging": {"level": 0.6, "satisfied": 0.5},
-        "esteem": {"level": 0.5, "satisfied": 0.6},
-        "self_actualization": {"level": 0.4, "satisfied": 0.3}
-    },
-    "dominant_desire": "love_belonging",
-    "priority_queue": ["love_belonging", "esteem", "physiological"]
-}
-```
-
-#### Android SDK 情绪 API
-
-```java
-// 获取情绪客户端
-EmotionClient emotionClient = EmotionClient.getInstance();
-
-// 获取当前情绪
-EmotionState state = emotionClient.getCurrentState();
-double joy = state.getEmotion("joy");  // 获取喜悦值
-String dominant = state.getDominantEmotion();  // 获取主导情绪
-
-// 判断情绪状态
-if (emotionClient.isHappy()) {
-    // 喜悦主导
-}
-if (emotionClient.isStressed()) {
-    // 压力状态
-}
-
-// 获取欲望状态
-DesireState desireState = emotionClient.getDesireState();
-String unsatisfied = desireState.getMostUnsatisfiedDesire();  // 最未满足的欲望
-
-// 添加状态监听器
-emotionClient.addListener(state -> {
-    // 情绪状态变化
-});
-```
-
----
-
-### 三观系统 API (v4.1.0)
-
-#### 获取世界观
-
-```
-GET /api/v4/philosophy/{identity_id}/worldview
-```
-
-**响应:**
-
-```json
-{
-    "world_essence": "complex_adaptive",
-    "social_cognition": "cooperative_competitive",
-    "future_view": "optimistic_progressive",
-    "human_relationship_view": "interdependent",
-    "certainty_score": 0.7
-}
-```
-
-#### 获取人生观
-
-```
-GET /api/v4/philosophy/{identity_id}/lifeview
-```
-
-**响应:**
-
-```json
-{
-    "life_meaning": "growth_contribution",
-    "time_orientation": "balanced_present_future",
-    "life_attitude": "active_exploring",
-    "success_definition": "self_realization_balance",
-    "happiness_source": "relationships_growth"
-}
-```
-
-#### 获取价值观
-
-```
-GET /api/v4/philosophy/{identity_id}/values
-```
-
-**响应:**
-
-```json
-{
-    "core_values": ["honesty", "growth", "family", "freedom"],
-    "value_ranking": {
-        "honesty": 1,
-        "growth": 2,
-        "family": 3,
-        "freedom": 4
-    },
-    "moral_framework": "utilitarian_care",
-    "decision_principles": ["minimize_harm", "promote_growth"]
-}
-```
-
-#### 获取三观决策上下文
-
-```
-GET /api/v4/philosophy/{identity_id}/decision-context
-```
-
-**响应:**
-
-```json
-{
-    "value_alignment": 0.85,
-    "moral_judgment": "acceptable",
-    "life_goal_relevance": 0.7,
-    "worldview_compatibility": 0.8,
-    "recommendation": "align_with_values",
-    "reasoning": "此行动符合诚实和成长的核心价值观"
-}
-```
-
-#### Android SDK 三观 API
-
-```java
-// 获取三观客户端
-PhilosophyClient philosophyClient = PhilosophyClient.getInstance();
-
-// 获取世界观
-PhilosophyState.Worldview worldview = philosophyClient.getWorldview();
-String essence = worldview.worldEssence;  // 世界本质
-
-// 获取价值观
-PhilosophyState.ValueSystem values = philosophyClient.getValueSystem();
-List<String> coreValues = values.coreValues;  // 核心价值观
-
-// 判断价值观对齐
-if (philosophyClient.alignsWithValue("honesty")) {
-    // 与诚实价值观对齐
-}
-
-// 获取决策建议
-String recommendation = philosophyClient.getDecisionRecommendation(context);
-```
-
----
-
-### 社会身份 API (v4.2.0)
-
-#### 获取教育背景
-
-```
-GET /api/v4/social/{identity_id}/education
-```
-
-**响应:**
-
-```json
-{
-    "highest_level": "master",
-    "major_field": "computer_science",
-    "school_tier": "top",
-    "academic_performance": "excellent",
-    "continuous_learning": true,
-    "learning_fields": ["ai", "psychology"]
-}
-```
-
-#### 获取职业画像
-
-```
-GET /api/v4/social/{identity_id}/career
-```
-
-**响应:**
-
-```json
-{
-    "occupation": "software_engineer",
-    "industry": "technology",
-    "career_stage": "mid_level",
-    "job_satisfaction": 0.7,
-    "work_mode": "hybrid",
-    "income_level": "middle_high"
-}
-```
-
-#### 获取社会阶层
-
-```
-GET /api/v4/social/{identity_id}/social-class
-```
-
-**响应:**
-
-```json
-{
-    "economic_capital": {"income": "middle_high", "wealth": "middle"},
-    "cultural_capital": {"education": "high", "taste": "intellectual"},
-    "social_capital": {"connections": "moderate", "network_quality": "good"},
-    "class_position": "middle_class",
-    "mobility_trajectory": "upward"
-}
-```
-
-#### 获取身份认同
-
-```
-GET /api/v4/social/{identity_id}/identity-profile
-```
-
-**响应:**
-
-```json
-{
-    "primary_roles": ["professional", "family_member"],
-    "role_priorities": {"professional": 1, "family_member": 2},
-    "identity_confidence": 0.8,
-    "role_conflicts": []
-}
-```
-
-#### Android SDK 社会身份 API
-
-```java
-// 获取社会身份客户端
-SocialIdentityClient socialClient = SocialIdentityClient.getInstance();
-
-// 获取教育背景
-SocialIdentityState.EducationBackground edu = socialClient.getEducationBackground();
-String level = edu.highestLevel;  // 最高学历
-
-// 获取职业画像
-SocialIdentityState.CareerProfile career = socialClient.getCareerProfile();
-String occupation = career.occupation;  // 职业
-
-// 获取社会阶层
-SocialIdentityState.SocialClassProfile socialClass = socialClient.getSocialClassProfile();
-String position = socialClass.classPosition;  // 阶层位置
-
-// 判断身份
-if (socialClient.isProfessional()) {
-    // 职业身份主导
-}
-```
-
----
-
-### 地域文化 API (v4.3.0)
-
-#### 获取地域文化
-
-```
-GET /api/v4/culture/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-    "birthplace": {"province": "广东", "city": "深圳"},
-    "current_location": {"province": "北京", "city": "北京"},
-    "city_level": "first_tier",
-    "region": "north",
-    "hofstede_dimensions": {
-        "collectivism": 0.6,
-        "power_distance": 0.5,
-        "uncertainty_avoidance": 0.4,
-        "long_term_orientation": 0.7
-    },
-    "communication_style": "context_dependent",
-    "social_style": "reserved",
-    "migration_history": [
-        {"from": "广东", "to": "北京", "year": 2015}
-    ]
-}
-```
-
-#### 获取文化决策上下文
-
-```
-GET /api/v4/culture/{identity_id}/decision-context
-```
-
-**响应:**
-
-```json
-{
-    "communication_adjustment": "formal",
-    "social_expectation": "group_harmony",
-    "conflict_handling": "indirect_negotiation",
-    "decision_influence": {
-        "collectivism_weight": 0.6,
-        "authority_weight": 0.5
-    }
-}
-```
-
-#### Android SDK 地域文化 API
-
-```java
-// 获取地域文化客户端
-RegionalCultureClient cultureClient = RegionalCultureClient.getInstance();
-
-// 获取当前地域
-RegionalCultureState.CultureLocation location = cultureClient.getCurrentLocation();
-String province = location.province;
-
-// 获取文化维度
-RegionalCultureState.HofstedeDimensions dims = cultureClient.getHofstedeDimensions();
-double collectivism = dims.collectivism;
-
-// 判断沟通风格
-if (cultureClient.isDirectCommunicator()) {
-    // 直接沟通风格
-}
-
-// 获取文化建议
-String suggestion = cultureClient.getCommunicationSuggestion("business");
-```
-
----
-
-### 人生阶段 API (v4.4.0)
-
-#### 获取人生阶段
-
-```
-GET /api/v4/lifestage/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-    "current_stage": "early_adult",
-    "stage_progress": 0.3,
-    "stage_characteristics": {
-        "exploration": "high",
-        "stability_seeking": "medium",
-        "identity_building": "high"
-    },
-    "development_metrics": {
-        "physical_mental": {"score": 0.85, "trend": "stable"},
-        "social": {"score": 0.7, "trend": "improving"},
-        "career": {"score": 0.6, "trend": "improving"},
-        "self_realization": {"score": 0.5, "trend": "exploring"}
-    }
-}
-```
-
-#### 获取人生事件
-
-```
-GET /api/v4/lifestage/{identity_id}/events
-```
-
-**响应:**
-
-```json
-{
-    "events": [
-        {
-            "event_id": "evt-001",
-            "type": "education",
-            "title": "大学毕业",
-            "impact": 0.8,
-            "timestamp": 1711622400
-        },
-        {
-            "event_id": "evt-002",
-            "type": "career",
-            "title": "首次就业",
-            "impact": 0.7,
-            "timestamp": 1711622500
-        }
-    ],
-    "total": 2
-}
-```
-
-#### 添加人生事件
-
-```
-POST /api/v4/lifestage/{identity_id}/events
-```
-
-**请求体:**
-
-```json
-{
-    "type": "career",
-    "title": "晋升",
-    "description": "晋升为高级工程师",
-    "impact": 0.6,
-    "lessons": ["持续学习的重要性", "团队合作的价值"]
-}
-```
-
-#### Android SDK 人生阶段 API
-
-```java
-// 获取人生阶段客户端
-LifeStageClient lifeStageClient = LifeStageClient.getInstance();
-
-// 获取当前阶段
-LifeStageState stage = lifeStageClient.getCurrentState();
-String currentStage = stage.currentStage;  // 当前阶段
-
-// 获取发展指标
-LifeStageState.DevelopmentMetrics metrics = lifeStageClient.getDevelopmentMetrics();
-double socialScore = metrics.social.score;  // 社会发展得分
-
-// 判断阶段特征
-if (lifeStageClient.isInExplorationPhase()) {
-    // 处于探索阶段
-}
-
-// 获取阶段建议
-String advice = lifeStageClient.getStageAdvice();
-```
-
----
-
-### 情绪行为联动 API (v4.5.0)
-
-#### 获取情绪决策影响
-
-```
-GET /api/v4/behavior/{identity_id}/decision-influence
-```
-
-**响应:**
-
-```json
-{
-    "risk_preference": "moderate",
-    "impulse_control": 0.6,
-    "social_tendency": "approach",
-    "decision_style": "analytical_emotional",
-    "risk_tolerance": 0.5,
-    "delay_discounting": 0.3
-}
-```
-
-#### 获取情绪表达影响
-
-```
-GET /api/v4/behavior/{identity_id}/expression-influence
-```
-
-**响应:**
-
-```json
-{
-    "tone_style": "warm_friendly",
-    "wording_preference": "positive_constructive",
-    "emoji_usage": "moderate",
-    "response_style": "thoughtful_responsive",
-    "emotional_expressiveness": 0.7
-}
-```
-
-#### 获取行为指导
-
-```
-GET /api/v4/behavior/{identity_id}/guidance
-```
-
-**响应:**
-
-```json
-{
-    "decision_suggestion": "考虑情绪因素，选择保守方案",
-    "expression_suggestion": "温和表达，避免冲动言辞",
-    "risk_warning": "当前情绪可能导致冲动决策",
-    "regulation_suggestion": "先冷静5分钟再做决定",
-    "recommended_coping": "problem_focused"
-}
-```
-
-#### Android SDK 情绪行为 API
-
-```java
-// 获取情绪行为客户端
-EmotionBehaviorClient behaviorClient = EmotionBehaviorClient.getInstance();
-
-// 获取决策影响
-EmotionBehaviorState.DecisionInfluence decision = behaviorClient.getDecisionInfluence();
-String riskPref = decision.riskPreference;  // 风险偏好
-
-// 获取表达影响
-EmotionBehaviorState.ExpressionInfluence expression = behaviorClient.getExpressionInfluence();
-String toneStyle = expression.toneStyle;  // 语调风格
-
-// 获取行为建议
-EmotionBehaviorState.BehaviorGuidance guidance = behaviorClient.getBehaviorGuidance();
-String suggestion = guidance.decisionSuggestion;
-
-// 判断情绪风险
-if (behaviorClient.hasImpulseRisk()) {
-    // 存在冲动风险
-}
-```
-
----
-
-### 人际关系 API (v4.6.0)
-
-#### 获取社交网络
-
-```
-GET /api/v4/relationship/{identity_id}/network
-```
-
-**响应:**
-
-```json
-{
-    "total_contacts": 50,
-    "close_contacts": 8,
-    "support_contacts": 5,
-    "weak_ties": 35,
-    "network_density": 0.3,
-    "network_diversity": 0.6,
-    "social_capital": 0.7,
-    "network_health": 0.8,
-    "has_support": true
-}
-```
-
-#### 获取依恋风格
-
-```
-GET /api/v4/relationship/{identity_id}/attachment
-```
-
-**响应:**
-
-```json
-{
-    "primary_style": "secure",
-    "anxiety_level": 0.2,
-    "avoidance_level": 0.3,
-    "style_description": "安全型依恋，信任他人，适度依赖"
-}
-```
-
-#### 获取社交风格
-
-```
-GET /api/v4/relationship/{identity_id}/social-style
-```
-
-**响应:**
-
-```json
-{
-    "directness": 0.6,
-    "expressiveness": 0.5,
-    "listening_style": "active",
-    "social_energy": 0.7,
-    "small_talk_comfort": 0.5,
-    "deep_talk_preference": 0.7,
-    "group_vs_one_on_one": "one_on_one"
-}
-```
-
-#### 获取社交建议
-
-```
-GET /api/v4/relationship/{identity_id}/guidance
-```
-
-**响应:**
-
-```json
-{
-    "should_socialize": true,
-    "social_energy_level": 0.7,
-    "preferred_group_size": "one_on_one",
-    "preferred_depth": "deep",
-    "conflict_risk": 0.2,
-    "needs_self_care": false,
-    "maintenance_needed": ["friend_a", "friend_b"],
-    "tension_relationships": [],
-    "boundary_reminders": ["注意边界"],
-    "growth_opportunities": ["尝试新社交圈"]
-}
-```
-
-#### Android SDK 人际关系 API
-
-```java
-// 获取人际关系客户端
-RelationshipClient relationshipClient = RelationshipClient.getInstance();
-
-// 获取网络摘要
-RelationshipState.NetworkSummary network = relationshipClient.getNetworkSummary();
-int closeContacts = network.closeContacts;  // 亲密联系人数
-
-// 获取依恋风格
-RelationshipState.AttachmentStyle attachment = relationshipClient.getAttachmentStyle();
-String style = attachment.primaryStyle;  // 主要依恋风格
-
-// 判断依恋类型
-if (relationshipClient.isSecurelyAttached()) {
-    // 安全型依恋
-}
-
-// 获取社交建议
-RelationshipState.SocialGuidance guidance = relationshipClient.getSocialGuidance();
-boolean shouldSocialize = guidance.shouldSocialize;
-
-// 获取社交推荐
-String approach = relationshipClient.getRecommendedSocialApproach();
-String advice = relationshipClient.getRelationshipAdvice();
-```
-
----
-
-### v4.x 新增枚举类型
-
-#### EmotionType
-
-| 值 | 说明 |
-|---|------|
-| joy | 喜悦 |
-| anger | 愤怒 |
-| sadness | 悲哀 |
-| fear | 恐惧 |
-| love | 喜爱 |
-| disgust | 厌恶 |
-| desire | 欲望 |
-
-#### DesireType (马斯洛需求)
-
-| 值 | 说明 |
-|---|------|
-| physiological | 生理需求 |
-| safety | 安全需求 |
-| love_belonging | 归属与爱 |
-| esteem | 尊重需求 |
-| self_actualization | 自我实现 |
-
-#### LifeStageType
-
-| 值 | 说明 |
-|---|------|
-| childhood | 童年 |
-| adolescence | 青春期 |
-| youth | 青年 |
-| early_adult | 成年早期 |
-| mid_adult | 中年 |
-| mature | 成熟期 |
-| elderly | 老年 |
-
-#### AttachmentStyleType
-
-| 值 | 说明 |
-|---|------|
-| secure | 安全型 |
-| anxious | 焦虑型 |
-| avoidant | 回避型 |
-| disorganized | 混乱型 |
-
-#### CopingStrategyType
-
-| 值 | 说明 |
-|---|------|
-| problem_focused | 问题聚焦 |
-| emotion_focused | 情绪聚焦 |
-| avoidance | 回避 |
-| support_seeking | 寻求支持 |
+*最后更新: 2026-04-07*
+*版本: v5.5.0*
