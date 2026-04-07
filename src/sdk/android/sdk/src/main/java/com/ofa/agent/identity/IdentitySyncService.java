@@ -360,8 +360,9 @@ public class IdentitySyncService {
                 PersonalIdentity remoteIdentity = PersonalIdentity.fromJson(identityJson.toString());
 
                 if (conflict) {
-                    // 冲突处理：取最新版本
-                    remoteIdentity = resolveConflict(localIdentity, remoteIdentity);
+                    // v2.6.0: Center 是权威仲裁者
+                    // 冲突时直接接受 Center 返回的身份，不做本地决策
+                    Log.i(TAG, "Conflict detected, accepting Center authority");
                     return SyncResult.conflict(remoteIdentity);
                 }
 
@@ -373,24 +374,6 @@ public class IdentitySyncService {
         } catch (Exception e) {
             Log.e(TAG, "Failed to parse sync response", e);
             return SyncResult.failure("Parse error: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 冲突解决策略
-     *
-     * 规则：
-     * - 同一 key: 取最新时间戳的值
-     * - 计数字段: 累加各设备计数
-     * - 分数字段: 取平均值
-     */
-    private PersonalIdentity resolveConflict(@NonNull PersonalIdentity local,
-                                              @NonNull PersonalIdentity remote) {
-        // 简化版：取 updatedAt 更新的
-        if (local.getUpdatedAt() >= remote.getUpdatedAt()) {
-            return local;
-        } else {
-            return remote;
         }
     }
 

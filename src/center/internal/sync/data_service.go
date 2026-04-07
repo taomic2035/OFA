@@ -12,12 +12,12 @@ import (
 
 // === 数据同步服务 ===
 
-// DataService - 数据中心服务 (v2.1.0)
+// DataService - 数据中心服务 (v2.6.0)
 //
-// Center 从"控制中心"转变为"数据中心"：
-// - 不再主动调度任务
-// - Agent 主动拉取/推送数据
-// - 提供身份、记忆、偏好的同步服务
+// Center 是永远在线的灵魂载体：
+// - 保持最终基准
+// - 设备冲突由 Center 统一决策和纠偏
+// - 设备可能离线、更换，但 Center 一直在
 type DataService struct {
 	mu sync.RWMutex
 
@@ -31,6 +31,12 @@ type DataService struct {
 
 	// 性格推断引擎
 	inferencer *identity.Inferencer
+
+	// v2.6.0: 冲突仲裁器
+	arbiter *ConflictArbiter
+
+	// v2.6.0: 设备管理器
+	deviceManager *DeviceManager
 
 	// 同步状态
 	syncStates map[string]*SyncState // identityId -> syncState
@@ -103,6 +109,8 @@ func NewDataService() *DataService {
 		listeners:     make([]DataSyncListener, 0),
 		behaviorStore: make(map[string][]models.BehaviorObservation),
 		inferencer:    identity.NewInferencer(),
+		arbiter:       NewConflictArbiter(),
+		deviceManager: NewDeviceManager(DefaultDeviceManagerConfig()),
 	}
 }
 
@@ -149,8 +157,13 @@ func (s *DataService) SyncIdentity(ctx context.Context, req *SyncIdentityRequest
 		identityID = req.Identity.ID
 	}
 
-	// 获取现有身份
+	// 获取现有身份（Center 基准）
 	existing, err := s.identityStore.GetIdentity(ctx, identityID)
+
+	// 更新设备心跳
+	if s.deviceManager != nil {
+		s.deviceManager.UpdateHeartbeat(req.AgentID, req.Version)
+	}
 
 	// 更新同步状态
 	state := s.getOrCreateSyncState(identityID)
@@ -182,27 +195,33 @@ func (s *DataService) SyncIdentity(ctx context.Context, req *SyncIdentityRequest
 		}, nil
 	}
 
-	// 版本比较
-	if req.Version > state.Version {
-		// 客户端版本更新，保存
-		if req.Identity != nil {
-			if err := s.identityStore.SaveIdentity(ctx, req.Identity); err != nil {
-				return &SyncIdentityResponse{Success: false}, err
-			}
-			state.Version = req.Version
-			state.LastSyncTime = time.Now()
+	// v2.6.0: 使用冲突仲裁器
+	// Center 是权威，设备版本冲突时由 Center 决策
+	if req.Version != state.Version && req.Identity != nil {
+		// 冲突仲裁
+		resolved := s.arbiter.Arbitrate(existing, req.Identity, req.AgentID)
+
+		// 保存仲裁结果
+		if err := s.identityStore.SaveIdentity(ctx, resolved); err != nil {
+			return &SyncIdentityResponse{Success: false}, err
 		}
+
+		state.Version = resolved.Version
+		state.LastSyncTime = time.Now()
 
 		s.notifyIdentitySynced(identityID, state.DeviceCount)
 
 		return &SyncIdentityResponse{
-			Success:  true,
-			Identity: req.Identity,
-			Version:  req.Version,
+			Success:     true,
+			Identity:    resolved,
+			Version:     resolved.Version,
+			Conflict:    true,
+			ConflictRes: "arbitrated",
 		}, nil
 	}
 
 	// 服务端版本更新或相同，返回服务端版本
+	// 设备需要纠偏到 Center 状态
 	return &SyncIdentityResponse{
 		Success:  true,
 		Identity: existing,
@@ -540,4 +559,116 @@ func (s *DataService) notifyPreferenceSynced(identityID string) {
 	for _, listener := range s.listeners {
 		listener.OnPreferenceSynced(identityID)
 	}
+}
+
+// === 设备管理 API (v2.6.0) ===
+
+// RegisterDeviceRequest 设备注册请求
+type RegisterDeviceRequest struct {
+	AgentID      string   `json:"agent_id"`
+	IdentityID   string   `json:"identity_id"`
+	DeviceType   string   `json:"device_type"`
+	DeviceName   string   `json:"device_name"`
+	Capabilities []string `json:"capabilities"`
+}
+
+// RegisterDevice 注册设备
+func (s *DataService) RegisterDevice(ctx context.Context, req *RegisterDeviceRequest) (*DeviceInfo, error) {
+	if s.deviceManager == nil {
+		return nil, nil
+	}
+
+	device := s.deviceManager.RegisterDevice(
+		req.AgentID,
+		req.IdentityID,
+		req.DeviceType,
+		req.DeviceName,
+		req.Capabilities,
+	)
+
+	log.Printf("Device registered: %s -> identity %s", req.AgentID, req.IdentityID)
+
+	return device, nil
+}
+
+// UnregisterDevice 注销设备
+func (s *DataService) UnregisterDevice(agentID string) {
+	if s.deviceManager != nil {
+		s.deviceManager.UnregisterDevice(agentID)
+	}
+}
+
+// GetDevice 获取设备信息
+func (s *DataService) GetDevice(agentID string) *DeviceInfo {
+	if s.deviceManager == nil {
+		return nil
+	}
+	return s.deviceManager.GetDevice(agentID)
+}
+
+// GetDevicesByIdentity 获取身份关联的所有设备
+func (s *DataService) GetDevicesByIdentity(identityID string) []*DeviceInfo {
+	if s.deviceManager == nil {
+		return nil
+	}
+	return s.deviceManager.GetDevicesByIdentity(identityID)
+}
+
+// DetectOfflineDevices 检测离线设备
+func (s *DataService) DetectOfflineDevices() []string {
+	if s.deviceManager == nil {
+		return nil
+	}
+	return s.deviceManager.DetectOfflineDevices()
+}
+
+// === 纠偏同步 (v2.6.0) ===
+
+// ReconcileDevice 纠偏设备
+//
+// 当设备重连时，检查版本是否落后于 Center。
+// 如果落后，推送 Center 最新状态给设备。
+func (s *DataService) ReconcileDevice(ctx context.Context, agentID string) (*models.PersonalIdentity, bool, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.deviceManager == nil || s.identityStore == nil {
+		return nil, false, nil
+	}
+
+	device := s.deviceManager.GetDevice(agentID)
+	if device == nil {
+		return nil, false, nil
+	}
+
+	// 获取 Center 当前身份
+	identity, err := s.identityStore.GetIdentity(ctx, device.IdentityID)
+	if err != nil || identity == nil {
+		return nil, false, err
+	}
+
+	// 检查设备版本是否落后
+	if s.deviceManager.NeedsReconciliation(agentID, identity.Version) {
+		log.Printf("Device %s needs reconciliation: device_v%d < center_v%d",
+			agentID, device.SyncVersion, identity.Version)
+		return identity, true, nil
+	}
+
+	return nil, false, nil
+}
+
+// UpdateDeviceHeartbeat 更新设备心跳
+func (s *DataService) UpdateDeviceHeartbeat(agentID string, syncVersion int64) bool {
+	if s.deviceManager == nil {
+		return false
+	}
+	return s.deviceManager.UpdateHeartbeat(agentID, syncVersion)
+}
+
+// GetDeviceStats 获取设备统计
+func (s *DataService) GetDeviceStats(identityID string) *DeviceStats {
+	if s.deviceManager == nil {
+		return nil
+	}
+	return s.deviceManager.GetStats(identityID)
 }
