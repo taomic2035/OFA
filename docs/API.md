@@ -1427,3 +1427,759 @@ notificationClient.executeAction("notif-001", "open");
 | filter | 过滤不送 |
 | broadcast | 广播所有 |
 | quiet | 勿扰模式 |
+
+---
+
+## v4.x 灵魂特征系统 API (新增)
+
+### 概述
+
+v4.x 系统实现"灵魂特征"，让数字灵魂更加真实、立体。每个子系统遵循统一架构：
+
+- **Center端**: 模型文件 + 引擎文件（深度管理）
+- **Agent端**: 状态文件 + 客户端文件（轻量接收）
+
+---
+
+### 情绪系统 API (v4.0.0)
+
+#### 获取情绪状态
+
+```
+GET /api/v4/emotion/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+    "emotions": {
+        "joy": 0.6,
+        "anger": 0.1,
+        "sadness": 0.2,
+        "fear": 0.1,
+        "love": 0.5,
+        "disgust": 0.0,
+        "desire": 0.4
+    },
+    "dominant_emotion": "joy",
+    "emotion_stability": 0.75,
+    "last_trigger": "positive_interaction"
+}
+```
+
+#### 触发情绪
+
+```
+POST /api/v4/emotion/{identity_id}/trigger
+```
+
+**请求体:**
+
+```json
+{
+    "trigger_type": "event",
+    "event_data": {
+        "type": "positive_interaction",
+        "intensity": 0.7,
+        "source": "social"
+    }
+}
+```
+
+**响应:**
+
+```json
+{
+    "success": true,
+    "emotion_change": {
+        "joy": "+0.3",
+        "love": "+0.2"
+    }
+}
+```
+
+#### 获取欲望状态
+
+```
+GET /api/v4/desire/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+    "desires": {
+        "physiological": {"level": 0.8, "satisfied": 0.9},
+        "safety": {"level": 0.7, "satisfied": 0.85},
+        "love_belonging": {"level": 0.6, "satisfied": 0.5},
+        "esteem": {"level": 0.5, "satisfied": 0.6},
+        "self_actualization": {"level": 0.4, "satisfied": 0.3}
+    },
+    "dominant_desire": "love_belonging",
+    "priority_queue": ["love_belonging", "esteem", "physiological"]
+}
+```
+
+#### Android SDK 情绪 API
+
+```java
+// 获取情绪客户端
+EmotionClient emotionClient = EmotionClient.getInstance();
+
+// 获取当前情绪
+EmotionState state = emotionClient.getCurrentState();
+double joy = state.getEmotion("joy");  // 获取喜悦值
+String dominant = state.getDominantEmotion();  // 获取主导情绪
+
+// 判断情绪状态
+if (emotionClient.isHappy()) {
+    // 喜悦主导
+}
+if (emotionClient.isStressed()) {
+    // 压力状态
+}
+
+// 获取欲望状态
+DesireState desireState = emotionClient.getDesireState();
+String unsatisfied = desireState.getMostUnsatisfiedDesire();  // 最未满足的欲望
+
+// 添加状态监听器
+emotionClient.addListener(state -> {
+    // 情绪状态变化
+});
+```
+
+---
+
+### 三观系统 API (v4.1.0)
+
+#### 获取世界观
+
+```
+GET /api/v4/philosophy/{identity_id}/worldview
+```
+
+**响应:**
+
+```json
+{
+    "world_essence": "complex_adaptive",
+    "social_cognition": "cooperative_competitive",
+    "future_view": "optimistic_progressive",
+    "human_relationship_view": "interdependent",
+    "certainty_score": 0.7
+}
+```
+
+#### 获取人生观
+
+```
+GET /api/v4/philosophy/{identity_id}/lifeview
+```
+
+**响应:**
+
+```json
+{
+    "life_meaning": "growth_contribution",
+    "time_orientation": "balanced_present_future",
+    "life_attitude": "active_exploring",
+    "success_definition": "self_realization_balance",
+    "happiness_source": "relationships_growth"
+}
+```
+
+#### 获取价值观
+
+```
+GET /api/v4/philosophy/{identity_id}/values
+```
+
+**响应:**
+
+```json
+{
+    "core_values": ["honesty", "growth", "family", "freedom"],
+    "value_ranking": {
+        "honesty": 1,
+        "growth": 2,
+        "family": 3,
+        "freedom": 4
+    },
+    "moral_framework": "utilitarian_care",
+    "decision_principles": ["minimize_harm", "promote_growth"]
+}
+```
+
+#### 获取三观决策上下文
+
+```
+GET /api/v4/philosophy/{identity_id}/decision-context
+```
+
+**响应:**
+
+```json
+{
+    "value_alignment": 0.85,
+    "moral_judgment": "acceptable",
+    "life_goal_relevance": 0.7,
+    "worldview_compatibility": 0.8,
+    "recommendation": "align_with_values",
+    "reasoning": "此行动符合诚实和成长的核心价值观"
+}
+```
+
+#### Android SDK 三观 API
+
+```java
+// 获取三观客户端
+PhilosophyClient philosophyClient = PhilosophyClient.getInstance();
+
+// 获取世界观
+PhilosophyState.Worldview worldview = philosophyClient.getWorldview();
+String essence = worldview.worldEssence;  // 世界本质
+
+// 获取价值观
+PhilosophyState.ValueSystem values = philosophyClient.getValueSystem();
+List<String> coreValues = values.coreValues;  // 核心价值观
+
+// 判断价值观对齐
+if (philosophyClient.alignsWithValue("honesty")) {
+    // 与诚实价值观对齐
+}
+
+// 获取决策建议
+String recommendation = philosophyClient.getDecisionRecommendation(context);
+```
+
+---
+
+### 社会身份 API (v4.2.0)
+
+#### 获取教育背景
+
+```
+GET /api/v4/social/{identity_id}/education
+```
+
+**响应:**
+
+```json
+{
+    "highest_level": "master",
+    "major_field": "computer_science",
+    "school_tier": "top",
+    "academic_performance": "excellent",
+    "continuous_learning": true,
+    "learning_fields": ["ai", "psychology"]
+}
+```
+
+#### 获取职业画像
+
+```
+GET /api/v4/social/{identity_id}/career
+```
+
+**响应:**
+
+```json
+{
+    "occupation": "software_engineer",
+    "industry": "technology",
+    "career_stage": "mid_level",
+    "job_satisfaction": 0.7,
+    "work_mode": "hybrid",
+    "income_level": "middle_high"
+}
+```
+
+#### 获取社会阶层
+
+```
+GET /api/v4/social/{identity_id}/social-class
+```
+
+**响应:**
+
+```json
+{
+    "economic_capital": {"income": "middle_high", "wealth": "middle"},
+    "cultural_capital": {"education": "high", "taste": "intellectual"},
+    "social_capital": {"connections": "moderate", "network_quality": "good"},
+    "class_position": "middle_class",
+    "mobility_trajectory": "upward"
+}
+```
+
+#### 获取身份认同
+
+```
+GET /api/v4/social/{identity_id}/identity-profile
+```
+
+**响应:**
+
+```json
+{
+    "primary_roles": ["professional", "family_member"],
+    "role_priorities": {"professional": 1, "family_member": 2},
+    "identity_confidence": 0.8,
+    "role_conflicts": []
+}
+```
+
+#### Android SDK 社会身份 API
+
+```java
+// 获取社会身份客户端
+SocialIdentityClient socialClient = SocialIdentityClient.getInstance();
+
+// 获取教育背景
+SocialIdentityState.EducationBackground edu = socialClient.getEducationBackground();
+String level = edu.highestLevel;  // 最高学历
+
+// 获取职业画像
+SocialIdentityState.CareerProfile career = socialClient.getCareerProfile();
+String occupation = career.occupation;  // 职业
+
+// 获取社会阶层
+SocialIdentityState.SocialClassProfile socialClass = socialClient.getSocialClassProfile();
+String position = socialClass.classPosition;  // 阶层位置
+
+// 判断身份
+if (socialClient.isProfessional()) {
+    // 职业身份主导
+}
+```
+
+---
+
+### 地域文化 API (v4.3.0)
+
+#### 获取地域文化
+
+```
+GET /api/v4/culture/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+    "birthplace": {"province": "广东", "city": "深圳"},
+    "current_location": {"province": "北京", "city": "北京"},
+    "city_level": "first_tier",
+    "region": "north",
+    "hofstede_dimensions": {
+        "collectivism": 0.6,
+        "power_distance": 0.5,
+        "uncertainty_avoidance": 0.4,
+        "long_term_orientation": 0.7
+    },
+    "communication_style": "context_dependent",
+    "social_style": "reserved",
+    "migration_history": [
+        {"from": "广东", "to": "北京", "year": 2015}
+    ]
+}
+```
+
+#### 获取文化决策上下文
+
+```
+GET /api/v4/culture/{identity_id}/decision-context
+```
+
+**响应:**
+
+```json
+{
+    "communication_adjustment": "formal",
+    "social_expectation": "group_harmony",
+    "conflict_handling": "indirect_negotiation",
+    "decision_influence": {
+        "collectivism_weight": 0.6,
+        "authority_weight": 0.5
+    }
+}
+```
+
+#### Android SDK 地域文化 API
+
+```java
+// 获取地域文化客户端
+RegionalCultureClient cultureClient = RegionalCultureClient.getInstance();
+
+// 获取当前地域
+RegionalCultureState.CultureLocation location = cultureClient.getCurrentLocation();
+String province = location.province;
+
+// 获取文化维度
+RegionalCultureState.HofstedeDimensions dims = cultureClient.getHofstedeDimensions();
+double collectivism = dims.collectivism;
+
+// 判断沟通风格
+if (cultureClient.isDirectCommunicator()) {
+    // 直接沟通风格
+}
+
+// 获取文化建议
+String suggestion = cultureClient.getCommunicationSuggestion("business");
+```
+
+---
+
+### 人生阶段 API (v4.4.0)
+
+#### 获取人生阶段
+
+```
+GET /api/v4/lifestage/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+    "current_stage": "early_adult",
+    "stage_progress": 0.3,
+    "stage_characteristics": {
+        "exploration": "high",
+        "stability_seeking": "medium",
+        "identity_building": "high"
+    },
+    "development_metrics": {
+        "physical_mental": {"score": 0.85, "trend": "stable"},
+        "social": {"score": 0.7, "trend": "improving"},
+        "career": {"score": 0.6, "trend": "improving"},
+        "self_realization": {"score": 0.5, "trend": "exploring"}
+    }
+}
+```
+
+#### 获取人生事件
+
+```
+GET /api/v4/lifestage/{identity_id}/events
+```
+
+**响应:**
+
+```json
+{
+    "events": [
+        {
+            "event_id": "evt-001",
+            "type": "education",
+            "title": "大学毕业",
+            "impact": 0.8,
+            "timestamp": 1711622400
+        },
+        {
+            "event_id": "evt-002",
+            "type": "career",
+            "title": "首次就业",
+            "impact": 0.7,
+            "timestamp": 1711622500
+        }
+    ],
+    "total": 2
+}
+```
+
+#### 添加人生事件
+
+```
+POST /api/v4/lifestage/{identity_id}/events
+```
+
+**请求体:**
+
+```json
+{
+    "type": "career",
+    "title": "晋升",
+    "description": "晋升为高级工程师",
+    "impact": 0.6,
+    "lessons": ["持续学习的重要性", "团队合作的价值"]
+}
+```
+
+#### Android SDK 人生阶段 API
+
+```java
+// 获取人生阶段客户端
+LifeStageClient lifeStageClient = LifeStageClient.getInstance();
+
+// 获取当前阶段
+LifeStageState stage = lifeStageClient.getCurrentState();
+String currentStage = stage.currentStage;  // 当前阶段
+
+// 获取发展指标
+LifeStageState.DevelopmentMetrics metrics = lifeStageClient.getDevelopmentMetrics();
+double socialScore = metrics.social.score;  // 社会发展得分
+
+// 判断阶段特征
+if (lifeStageClient.isInExplorationPhase()) {
+    // 处于探索阶段
+}
+
+// 获取阶段建议
+String advice = lifeStageClient.getStageAdvice();
+```
+
+---
+
+### 情绪行为联动 API (v4.5.0)
+
+#### 获取情绪决策影响
+
+```
+GET /api/v4/behavior/{identity_id}/decision-influence
+```
+
+**响应:**
+
+```json
+{
+    "risk_preference": "moderate",
+    "impulse_control": 0.6,
+    "social_tendency": "approach",
+    "decision_style": "analytical_emotional",
+    "risk_tolerance": 0.5,
+    "delay_discounting": 0.3
+}
+```
+
+#### 获取情绪表达影响
+
+```
+GET /api/v4/behavior/{identity_id}/expression-influence
+```
+
+**响应:**
+
+```json
+{
+    "tone_style": "warm_friendly",
+    "wording_preference": "positive_constructive",
+    "emoji_usage": "moderate",
+    "response_style": "thoughtful_responsive",
+    "emotional_expressiveness": 0.7
+}
+```
+
+#### 获取行为指导
+
+```
+GET /api/v4/behavior/{identity_id}/guidance
+```
+
+**响应:**
+
+```json
+{
+    "decision_suggestion": "考虑情绪因素，选择保守方案",
+    "expression_suggestion": "温和表达，避免冲动言辞",
+    "risk_warning": "当前情绪可能导致冲动决策",
+    "regulation_suggestion": "先冷静5分钟再做决定",
+    "recommended_coping": "problem_focused"
+}
+```
+
+#### Android SDK 情绪行为 API
+
+```java
+// 获取情绪行为客户端
+EmotionBehaviorClient behaviorClient = EmotionBehaviorClient.getInstance();
+
+// 获取决策影响
+EmotionBehaviorState.DecisionInfluence decision = behaviorClient.getDecisionInfluence();
+String riskPref = decision.riskPreference;  // 风险偏好
+
+// 获取表达影响
+EmotionBehaviorState.ExpressionInfluence expression = behaviorClient.getExpressionInfluence();
+String toneStyle = expression.toneStyle;  // 语调风格
+
+// 获取行为建议
+EmotionBehaviorState.BehaviorGuidance guidance = behaviorClient.getBehaviorGuidance();
+String suggestion = guidance.decisionSuggestion;
+
+// 判断情绪风险
+if (behaviorClient.hasImpulseRisk()) {
+    // 存在冲动风险
+}
+```
+
+---
+
+### 人际关系 API (v4.6.0)
+
+#### 获取社交网络
+
+```
+GET /api/v4/relationship/{identity_id}/network
+```
+
+**响应:**
+
+```json
+{
+    "total_contacts": 50,
+    "close_contacts": 8,
+    "support_contacts": 5,
+    "weak_ties": 35,
+    "network_density": 0.3,
+    "network_diversity": 0.6,
+    "social_capital": 0.7,
+    "network_health": 0.8,
+    "has_support": true
+}
+```
+
+#### 获取依恋风格
+
+```
+GET /api/v4/relationship/{identity_id}/attachment
+```
+
+**响应:**
+
+```json
+{
+    "primary_style": "secure",
+    "anxiety_level": 0.2,
+    "avoidance_level": 0.3,
+    "style_description": "安全型依恋，信任他人，适度依赖"
+}
+```
+
+#### 获取社交风格
+
+```
+GET /api/v4/relationship/{identity_id}/social-style
+```
+
+**响应:**
+
+```json
+{
+    "directness": 0.6,
+    "expressiveness": 0.5,
+    "listening_style": "active",
+    "social_energy": 0.7,
+    "small_talk_comfort": 0.5,
+    "deep_talk_preference": 0.7,
+    "group_vs_one_on_one": "one_on_one"
+}
+```
+
+#### 获取社交建议
+
+```
+GET /api/v4/relationship/{identity_id}/guidance
+```
+
+**响应:**
+
+```json
+{
+    "should_socialize": true,
+    "social_energy_level": 0.7,
+    "preferred_group_size": "one_on_one",
+    "preferred_depth": "deep",
+    "conflict_risk": 0.2,
+    "needs_self_care": false,
+    "maintenance_needed": ["friend_a", "friend_b"],
+    "tension_relationships": [],
+    "boundary_reminders": ["注意边界"],
+    "growth_opportunities": ["尝试新社交圈"]
+}
+```
+
+#### Android SDK 人际关系 API
+
+```java
+// 获取人际关系客户端
+RelationshipClient relationshipClient = RelationshipClient.getInstance();
+
+// 获取网络摘要
+RelationshipState.NetworkSummary network = relationshipClient.getNetworkSummary();
+int closeContacts = network.closeContacts;  // 亲密联系人数
+
+// 获取依恋风格
+RelationshipState.AttachmentStyle attachment = relationshipClient.getAttachmentStyle();
+String style = attachment.primaryStyle;  // 主要依恋风格
+
+// 判断依恋类型
+if (relationshipClient.isSecurelyAttached()) {
+    // 安全型依恋
+}
+
+// 获取社交建议
+RelationshipState.SocialGuidance guidance = relationshipClient.getSocialGuidance();
+boolean shouldSocialize = guidance.shouldSocialize;
+
+// 获取社交推荐
+String approach = relationshipClient.getRecommendedSocialApproach();
+String advice = relationshipClient.getRelationshipAdvice();
+```
+
+---
+
+### v4.x 新增枚举类型
+
+#### EmotionType
+
+| 值 | 说明 |
+|---|------|
+| joy | 喜悦 |
+| anger | 愤怒 |
+| sadness | 悲哀 |
+| fear | 恐惧 |
+| love | 喜爱 |
+| disgust | 厌恶 |
+| desire | 欲望 |
+
+#### DesireType (马斯洛需求)
+
+| 值 | 说明 |
+|---|------|
+| physiological | 生理需求 |
+| safety | 安全需求 |
+| love_belonging | 归属与爱 |
+| esteem | 尊重需求 |
+| self_actualization | 自我实现 |
+
+#### LifeStageType
+
+| 值 | 说明 |
+|---|------|
+| childhood | 童年 |
+| adolescence | 青春期 |
+| youth | 青年 |
+| early_adult | 成年早期 |
+| mid_adult | 中年 |
+| mature | 成熟期 |
+| elderly | 老年 |
+
+#### AttachmentStyleType
+
+| 值 | 说明 |
+|---|------|
+| secure | 安全型 |
+| anxious | 焦虑型 |
+| avoidant | 回避型 |
+| disorganized | 混乱型 |
+
+#### CopingStrategyType
+
+| 值 | 说明 |
+|---|------|
+| problem_focused | 问题聚焦 |
+| emotion_focused | 情绪聚焦 |
+| avoidance | 回避 |
+| support_seeking | 寻求支持 |

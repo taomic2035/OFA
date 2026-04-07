@@ -1,176 +1,160 @@
-# OFA v0.10.0 迭代计划
+# OFA 版本路线图
 
-**目标版本**: 0.10.0
-**迭代主题**: 去中心化增强 + 质量提升
-**计划周期**: 2026-03-31 ~ 2026-04-15
+## 当前版本: v4.6.0
+
+**核心愿景**: "万物皆为我所用，但万物都是我"
+
+**架构理念**: Center 作为永远在线的灵魂载体，设备端 Agent 可离线、可更换、定期同步
 
 ---
 
-## 迭代概览
+## v4.x 灵魂特征系列 (当前)
+
+### ✅ v4.0.0 - 情绪系统核心
+- 七情模型 (喜怒哀惧爱恶欲)
+- 六欲模型 (马斯洛需求层次)
+- EmotionEngine 情绪引擎
+- 情绪触发、衰减、传播、记忆
+
+### ✅ v4.1.0 - 三观系统完善
+- Worldview 世界观 (世界本质、社会认知、未来观)
+- LifeView 人生观 (人生意义、时间观、生活态度)
+- EnhancedValueSystem 价值观 (20+价值观、道德判断)
+
+### ✅ v4.2.0 - 社会身份画像
+- EducationBackground 教育背景
+- CareerProfile 职业画像
+- SocialClassProfile 社会阶层 (三种资本)
+- IdentityProfile 身份认同
+
+### ✅ v4.3.0 - 地域文化影响
+- RegionalCulture 地域文化
+- Hofstede 文化维度
+- 沟通风格、社交风格
+- 迁移经历、文化适应
+
+### ✅ v4.4.0 - 人生阶段系统
+- LifeStage 人生阶段 (童年→老年)
+- LifeEvent 人生事件
+- LifeLesson 人生感悟
+- DevelopmentMetrics 发展指标
+
+### ✅ v4.5.0 - 情绪行为联动
+- EmotionDecisionInfluence 情绪决策影响
+- EmotionalExpressionInfluence 情绪表达影响
+- EmotionTriggeredBehavior 情绪触发行为
+- CopingStrategy 应对策略
+
+### ✅ v4.6.0 - 人际关系系统
+- Relationship 人际关系模型
+- SocialNetwork 社交网络
+- AttachmentStyle 依恋风格
+- RelationshipProfile 关系画像
+
+---
+
+## v3.x 多设备协同系列 (已完成)
+
+| 版本 | 特性 | 描述 |
+|------|------|------|
+| v3.0.0 | 设备消息总线 | Center-设备消息通道、离线消息、优先级管理 |
+| v3.1.0 | 设备状态同步 | 设备在线/电池/网络/场景状态实时同步 |
+| v3.2.0 | 场景感知路由 | 消息根据场景智能路由、自定义规则 |
+| v3.3.0 | 任务协同执行 | 多设备任务拆分、分配、结果合并 |
+| v3.4.0 | 跨设备通知 | 通知智能分发、优先级管理、勿扰模式 |
+| v3.5.0 | 设备群组管理 | 群组创建/成员管理、群组内广播 |
+| v3.6.0 | 数据同步优化 | 增量同步、冲突检测与解决、版本管理 |
+| v3.7.0 | 安全增强 | 端到端加密、AES-GCM/CBC、安全会话 |
+
+---
+
+## v2.x 去中心化架构系列 (已完成)
+
+| 版本 | 特性 | 描述 |
+|------|------|------|
+| v2.0.0 | 身份同步基础层 | 所有设备共享同一人格 |
+| v2.1.0 | Center 角色转变 | 从控制中心转为数据中心 |
+| v2.2.0 | Memory 跨设备同步 | 记忆系统跨设备一致 |
+| v2.3.0 | 运行模式简化 | 默认 SYNC 模式 |
+| v2.4.0 | 行为上报与性格推断 | BehaviorCollector 自动收集行为 |
+| v2.5.0 | 身份同步完善 | JSON 完整解析、HTTP 行为上报 |
+| v2.6.0 | Center 权威与冲突仲裁 | Center 是灵魂载体，统一决策 |
+| v2.7.0 | 数据持久化增强 | PostgreSQL + Redis 混合存储 |
+| v2.8.0 | 设备生命周期完善 | 设备优先级、信任级别、设备更换 |
+| v2.9.0 | 性格进化引擎 | 稳定性检测、MBTI 收敛、趋势分析 |
+
+---
+
+## 项目结构
 
 ```
-Phase 1: 基础设施 (测试 + 文档)
-    ↓
-Phase 2: 核心功能 (去中心化完善)
-    ↓
-Phase 3: 用户界面 (Dashboard + SDK)
-    ↓
-Phase 4: 集成验证
+OFA/
+├── src/
+│   ├── center/                    # Center 服务 (Go)
+│   │   ├── cmd/center/           # 入口
+│   │   ├── internal/
+│   │   │   ├── models/           # 数据模型
+│   │   │   │   ├── emotion.go    # v4.0.0 情绪模型
+│   │   │   │   ├── desire.go     # v4.0.0 欲望模型
+│   │   │   │   ├── worldview.go  # v4.1.0 世界观
+│   │   │   │   ├── value_system.go # v4.1.0 价值观
+│   │   │   │   ├── social_identity.go # v4.2.0 社会身份
+│   │   │   │   ├── regional_culture.go # v4.3.0 地域文化
+│   │   │   │   ├── life_stage.go # v4.4.0 人生阶段
+│   │   │   │   ├── emotion_behavior.go # v4.5.0 情绪行为
+│   │   │   │   └── relationship.go # v4.6.0 人际关系
+│   │   │   ├── emotion/          # v4.0.0 情绪引擎
+│   │   │   ├── philosophy/       # v4.1.0 三观引擎
+│   │   │   ├── social/           # v4.2.0 社会身份引擎
+│   │   │   ├── culture/          # v4.3.0 地域文化引擎
+│   │   │   ├── lifestage/        # v4.4.0 人生阶段引擎
+│   │   │   ├── behavior/         # v4.5.0 情绪行为引擎
+│   │   │   └── relationship/     # v4.6.0 人际关系引擎
+│   │   └── pkg/                  # 工具包
+│   │
+│   ├── sdk/android/              # Android SDK
+│   │   └── sdk/src/main/java/com/ofa/agent/
+│   │       ├── emotion/          # v4.0.0 情绪状态
+│   │       ├── philosophy/       # v4.1.0 三观状态
+│   │       ├── social/           # v4.2.0 社会身份状态
+│   │       ├── culture/          # v4.3.0 地域文化状态
+│   │       ├── lifestage/        # v4.4.0 人生阶段状态
+│   │       ├── behavior/         # v4.5.0 情绪行为状态
+│   │       └── relationship/     # v4.6.0 人际关系状态
+│   │
+│   └── dashboard/                # Web 管理控制台
+│
+└── docs/                         # 文档
 ```
 
 ---
 
-## Phase 1: 基础设施 (Day 1-4)
+## 统计信息
 
-### 1.1 测试框架完善
-- [x] 约束检查引擎单元测试
-- [x] 本地调度器单元测试
-- [x] P2P 通信测试
-- [x] 离线模式集成测试
-
-### 1.2 文档更新
-- [ ] 架构设计文档 (更新去中心化架构)
-- [ ] API 文档 (新增离线/P2P API)
-- [ ] 部署指南 (离线部署场景)
-- [ ] SDK 文档 (OpenHarmony)
+| 组件 | 数量 |
+|------|------|
+| Center Go 文件 | 100+ |
+| Android SDK Java 文件 | 150+ |
+| Center 数据模型 | 20+ |
+| Android SDK 状态模型 | 14 |
 
 ---
 
-## Phase 2: 核心功能 (Day 5-9)
+## 后续规划
 
-### 2.1 去中心化完善
-- [ ] 交互规则配置文件
-- [ ] 离线数据同步机制
-- [ ] Agent 间直接通信协议
-- [ ] 约束运行时检查
+### v4.7.0+ 可能方向
+- 认知风格系统
+- 学习能力模型
+- 创造力系统
+- 自我意识增强
 
-### 2.2 离线能力增强
-- [ ] 离线任务队列持久化
-- [ ] 断点续传支持
-- [ ] 冲突解决机制
-- [ ] 网络状态感知
-
----
-
-## Phase 3: 用户界面 (Day 10-13)
-
-### 3.1 Dashboard 增强
-- [ ] WebSocket 实时更新
-- [ ] 离线模式状态显示
-- [ ] 约束状态面板
-- [ ] P2P 网络拓扑图
-
-### 3.2 SDK 完善
-- [ ] OpenHarmony NAPI 实现
-- [ ] Go Agent 离线模式
-- [ ] Python SDK 离线支持
-- [ ] SDK 示例代码
+### v5.0.0 企业级特性
+- 多租户支持完善
+- 权限管理增强
+- 审计日志
+- 合规支持
 
 ---
 
-## Phase 4: 集成验证 (Day 14-15)
-
-### 4.1 端到端测试
-- [ ] 完全离线场景测试
-- [ ] 局域网协作测试
-- [ ] 弱网同步测试
-- [ ] 约束违反检测测试
-
-### 4.2 发布准备
-- [ ] 版本号更新 (0.9.0 → 0.10.0)
-- [ ] CHANGELOG 更新
-- [ ] Release Notes 编写
-
----
-
-## 详细任务列表
-
-### Phase 1.1: 测试框架
-
-| 任务 | 文件 | 状态 |
-|------|------|------|
-| 约束引擎测试 | `pkg/constraint/engine_test.go` | ✅ 完成 |
-| 本地调度器测试 | `pkg/local/scheduler_test.go` | ✅ 完成 |
-| P2P 通信测试 | `pkg/messaging/p2p_test.go` | ✅ 完成 |
-| 离线模式测试 | `pkg/local/offline_test.go` | ✅ 完成 |
-
-### Phase 1.2: 文档更新
-
-| 任务 | 文件 | 状态 |
-|------|------|------|
-| 架构文档 | `docs/03-ARCHITECTURE_DESIGN.md` | 待开始 |
-| API 文档 | `docs/API.md` | 待更新 |
-| 离线部署 | `docs/DEPLOYMENT.md` | 待更新 |
-| OpenHarmony SDK | `src/sdk/openharmony/README.md` | 已完成基础 |
-
-### Phase 2.1: 去中心化
-
-| 任务 | 文件 | 状态 |
-|------|------|------|
-| 交互规则配置 | `configs/interaction_rules.yaml` | 待开始 |
-| 同步机制 | `pkg/sync/manager.go` | 待开始 |
-| 通信协议 | `pkg/p2p/protocol.go` | 待开始 |
-| 运行时检查 | `pkg/constraint/runtime.go` | 待开始 |
-
-### Phase 2.2: 离线能力
-
-| 任务 | 文件 | 状态 |
-|------|------|------|
-| 任务持久化 | `pkg/local/persistence.go` | 待开始 |
-| 断点续传 | `pkg/transfer/resume.go` | 待开始 |
-| 冲突解决 | `pkg/sync/conflict.go` | 待开始 |
-| 网络感知 | `pkg/network/detector.go` | 待开始 |
-
-### Phase 3.1: Dashboard
-
-| 任务 | 文件 | 状态 |
-|------|------|------|
-| WebSocket | `src/dashboard/src/api/websocket.ts` | 待开始 |
-| 离线状态 | `src/dashboard/src/views/Status.vue` | 待开始 |
-| 约束面板 | `src/dashboard/src/views/Constraints.vue` | 待开始 |
-| 网络拓扑 | `src/dashboard/src/views/Topology.vue` | 待开始 |
-
-### Phase 3.2: SDK
-
-| 任务 | 文件 | 状态 |
-|------|------|------|
-| OpenHarmony NAPI | `src/sdk/openharmony/napi/` | 待开始 |
-| Go Agent 离线 | `src/agent/go/pkg/offline/` | 待开始 |
-| Python SDK 离线 | `src/sdk/python/ofa/offline.py` | 待开始 |
-| 示例代码 | `examples/` | 待开始 |
-
----
-
-## 验收标准
-
-### 功能验收
-- [ ] Agent 可完全离线运行本地技能
-- [ ] Agent 间可在约束范围内直接通信
-- [ ] Dashboard 实时显示系统状态
-- [ ] 约束引擎正确阻止违规操作
-
-### 质量验收
-- [ ] 测试覆盖率 > 70%
-- [ ] 所有测试通过
-- [ ] 文档完整更新
-- [ ] 代码编译无警告
-
----
-
-## 当前进度
-
-**Phase**: Phase 1 完成，Phase 2 SDK开发进行中
-**已完成**: 约束引擎测试 (18 tests), 本地调度器测试 (22 tests), P2P通信测试 (18 tests), 离线模式测试 (5 tests)
-**SDK完成情况**:
-- ✅ OpenHarmony SDK - 核心实现完成
-- ✅ Python SDK - 离线/P2P/约束完成
-- ✅ Android SDK - 离线/P2P/约束完成
-- ✅ iOS SDK - 离线/P2P/约束完成
-- ✅ Node.js SDK - 离线/P2P/约束完成
-- ✅ Rust SDK - 离线/P2P/约束完成
-**下一个任务**: C++ SDK 离线增强, Go Agent SDK 离线增强
-
----
-
-*创建时间: 2026-03-31*
-*最后更新: 2026-04-01*
+*最后更新: 2026-04-07*
+*版本: v4.6.0*
