@@ -8,6 +8,9 @@ import androidx.annotation.Nullable;
 
 import com.ofa.agent.automation.AutomationOrchestrator;
 import com.ofa.agent.distributed.DistributedOrchestrator;
+import com.ofa.agent.identity.IdentityManager;
+import com.ofa.agent.identity.PersonalIdentity;
+import com.ofa.agent.identity.DecisionContext;
 import com.ofa.agent.intent.IntentEngine;
 import com.ofa.agent.memory.UserMemoryManager;
 import com.ofa.agent.skill.SkillDefinition;
@@ -57,6 +60,7 @@ public class OFAAndroidAgent {
 
     // Subsystems
     private UserMemoryManager memoryManager;
+    private IdentityManager identityManager;  // v2.0.0: Identity Manager
     private AutomationOrchestrator automationOrchestrator;
     private SocialOrchestrator socialOrchestrator;
     private ToolRegistry toolRegistry;
@@ -149,6 +153,10 @@ public class OFAAndroidAgent {
 
         // Initialize memory
         this.memoryManager = new UserMemoryManager(context);
+
+        // v2.0.0: Initialize identity manager
+        this.identityManager = new IdentityManager(context);
+        this.identityManager.initialize();
 
         // Initialize automation if enabled
         if (builder.enableAutomation) {
@@ -318,6 +326,58 @@ public class OFAAndroidAgent {
         return null;
     }
 
+    // ===== Identity (v2.0.0) =====
+
+    /**
+     * Get identity manager
+     */
+    @Nullable
+    public IdentityManager getIdentityManager() {
+        return identityManager;
+    }
+
+    /**
+     * Get current identity
+     */
+    @Nullable
+    public PersonalIdentity getIdentity() {
+        if (identityManager != null) {
+            return identityManager.getIdentity();
+        }
+        return null;
+    }
+
+    /**
+     * Get decision context for AI
+     */
+    @Nullable
+    public DecisionContext getDecisionContext() {
+        if (identityManager != null) {
+            return identityManager.getDecisionContext();
+        }
+        return null;
+    }
+
+    /**
+     * Generate AI prompt context
+     */
+    @NonNull
+    public String generatePromptContext() {
+        if (identityManager != null) {
+            return identityManager.generatePromptContext();
+        }
+        return "";
+    }
+
+    /**
+     * Sync identity with Center
+     */
+    public void syncIdentity() {
+        if (identityManager != null && modeManager.isCenterConnected()) {
+            identityManager.syncToCenter();
+        }
+    }
+
     // ===== Peer Communication =====
 
     /**
@@ -440,6 +500,17 @@ public class OFAAndroidAgent {
             sb.append("  - ").append(cap.name).append(" (").append(cap.id).append(")\n");
         }
 
+        // v2.0.0: Add identity info
+        if (identityManager != null && identityManager.hasIdentity()) {
+            sb.append("\nIdentity:\n");
+            sb.append("  ID: ").append(identityManager.getIdentityId()).append("\n");
+            PersonalIdentity identity = identityManager.getIdentity();
+            if (identity != null) {
+                sb.append("  Name: ").append(identity.getName()).append("\n");
+                sb.append("  Version: ").append(identity.getVersion()).append("\n");
+            }
+        }
+
         return sb.toString();
     }
 
@@ -468,6 +539,11 @@ public class OFAAndroidAgent {
 
         if (memoryManager != null) {
             memoryManager.close();
+        }
+
+        // v2.0.0: Shutdown identity manager
+        if (identityManager != null) {
+            identityManager.shutdown();
         }
 
         initialized = false;

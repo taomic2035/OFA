@@ -24,6 +24,7 @@ type CenterService struct {
 	store    *store.Store
 	scheduler *scheduler.Scheduler
 	identity *identity.Service // v1.2.0: Identity Service
+	syncService *identity.SyncService // v2.0.0: Identity Sync Service
 
 	// Active agent connections
 	connections sync.Map // map[string]*models.AgentConnection
@@ -62,6 +63,9 @@ func NewCenterService(ctx context.Context, cfg *config.Config) (*CenterService, 
 	identityStore := identity.NewMemoryStore() // Use memory store for now, can be FileStore
 	service.identity = identity.NewService(identityStore)
 
+	// v2.0.0: Initialize Identity Sync Service
+	service.syncService = identity.NewSyncService(identityStore)
+
 	// Start background workers
 	go service.taskDispatcher()
 	go service.messageDispatcher()
@@ -92,6 +96,11 @@ func (s *CenterService) GetScheduler() *scheduler.Scheduler {
 // GetIdentity returns the identity service instance (v1.2.0)
 func (s *CenterService) GetIdentity() *identity.Service {
 	return s.identity
+}
+
+// GetSyncService returns the sync service instance (v2.0.0)
+func (s *CenterService) GetSyncService() *identity.SyncService {
+	return s.syncService
 }
 
 // GetTaskQueue returns the task queue channel
@@ -1358,4 +1367,41 @@ func convertProtoToWritingStyle(w *pb.WritingStyle) *models.WritingStyle {
 		PreferredGreeting: w.PreferredGreeting,
 		PreferredClosing:  w.PreferredClosing,
 	}
+}
+
+// ===== Identity Sync API Methods (v2.0.0) =====
+
+// SyncIdentity syncs identity from agent to center
+func (s *CenterService) SyncIdentity(ctx context.Context, req *identity.IdentitySyncRequest) (*identity.IdentitySyncResponse, error) {
+	return s.syncService.SyncIdentity(ctx, req)
+}
+
+// GetIdentityForAgent gets identity bound to an agent
+func (s *CenterService) GetIdentityForAgent(ctx context.Context, agentID string) (*models.PersonalIdentity, error) {
+	return s.syncService.GetIdentityForAgent(ctx, agentID)
+}
+
+// SyncMemories syncs memories from agent to center
+func (s *CenterService) SyncMemories(ctx context.Context, req *identity.MemorySyncRequest) (*identity.MemorySyncResponse, error) {
+	return s.syncService.SyncMemories(ctx, req)
+}
+
+// SyncPreferences syncs preferences from agent to center
+func (s *CenterService) SyncPreferences(ctx context.Context, req *identity.PreferenceSyncRequest) (*identity.PreferenceSyncResponse, error) {
+	return s.syncService.SyncPreferences(ctx, req)
+}
+
+// ReportBehavior reports behavior observation from agent
+func (s *CenterService) ReportBehavior(ctx context.Context, req *identity.BehaviorReportRequest) error {
+	return s.syncService.ReportBehavior(ctx, req)
+}
+
+// BindAgentToIdentity binds an agent to an identity
+func (s *CenterService) BindAgentToIdentity(agentID, identityID string) {
+	s.syncService.BindAgentToIdentity(agentID, identityID)
+}
+
+// UnbindAgent unbinds an agent from its identity
+func (s *CenterService) UnbindAgent(agentID string) {
+	s.syncService.UnbindAgent(agentID)
 }

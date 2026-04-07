@@ -23,6 +23,7 @@ public class AgentProfile {
 
     // Identity
     private final String agentId;
+    private String identityId;  // v2.0.0: 绑定的身份 ID
     private final String name;
     private final AgentType type;
 
@@ -201,6 +202,7 @@ public class AgentProfile {
      */
     public static class Builder {
         private String agentId;
+        private String identityId;  // v2.0.0
         private String name;
         private AgentType type = AgentType.MOBILE;
         private DeviceInfo deviceInfo;
@@ -214,6 +216,11 @@ public class AgentProfile {
 
         public Builder agentId(String agentId) {
             this.agentId = agentId;
+            return this;
+        }
+
+        public Builder identityId(String identityId) {
+            this.identityId = identityId;
             return this;
         }
 
@@ -304,6 +311,10 @@ public class AgentProfile {
 
     @NonNull
     public String getAgentId() { return agentId; }
+
+    @Nullable
+    public String getIdentityId() { return identityId; }
+    public void setIdentityId(String identityId) { this.identityId = identityId; }
 
     @NonNull
     public String getName() { return name; }
