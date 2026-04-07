@@ -20,6 +20,8 @@ import java.util.concurrent.Executors;
  * L1: MemoryCache (热数据缓存, LRU策略)
  * L2: Room Database (持久化存储)
  * L3: MemoryArchive (文件归档, 冷数据备份)
+ *
+ * v2.2.0 新增：跨设备同步支持
  */
 public class UserMemoryManager {
 
@@ -28,6 +30,9 @@ public class UserMemoryManager {
     private static final int ARCHIVE_THRESHOLD_DAYS = 60; // 60天以上的数据归档
 
     private static volatile UserMemoryManager instance;
+
+    // Context for sync service
+    private final Context context;
 
     // 三层存储
     private final MemoryCache cache;           // L1: 内存缓存
@@ -40,13 +45,16 @@ public class UserMemoryManager {
     // 异步执行器
     private final ExecutorService executor;
 
+    // v2.2.0: 记忆同步服务
+    private MemorySyncService syncService;
+
     private UserMemoryManager(@NonNull Context context) {
-        Context appContext = context.getApplicationContext();
+        this.context = context.getApplicationContext();
 
         // 初始化三层存储
         this.cache = new MemoryCache(100);  // L1: 缓存100条热数据
-        this.dao = MemoryDatabase.getInstance(appContext).memoryDao();  // L2
-        this.archive = new MemoryArchive(appContext);  // L3
+        this.dao = MemoryDatabase.getInstance(this.context).memoryDao();  // L2
+        this.archive = new MemoryArchive(this.context);  // L3
 
         this.lastActions = new ConcurrentHashMap<>();
         this.executor = Executors.newSingleThreadExecutor();
@@ -622,5 +630,86 @@ public class UserMemoryManager {
             MemoryDatabase.clearInstance();
             instance = null;
         }
+    }
+
+    // ===== v2.2.0: 跨设备同步 =====
+
+    /**
+     * 启用记忆同步
+     */
+    public void enableSync(@NonNull String identityId, @Nullable String centerAddress, int centerPort) {
+        if (syncService != null) {
+            syncService.disableSync();
+        }
+
+        syncService = new MemorySyncService(
+            context,  // 使用 this.context 但这里没有 context 变量，需要修复
+            this,
+            identityId,
+            centerAddress,
+            centerPort
+        );
+
+        syncService.enableSync();
+        Log.i(TAG, "Memory sync enabled with Center: " + centerAddress);
+    }
+
+    /**
+     * 禁用记忆同步
+     */
+    public void disableSync() {
+        if (syncService != null) {
+            syncService.disableSync();
+            syncService = null;
+        }
+        Log.i(TAG, "Memory sync disabled");
+    }
+
+    /**
+     * 同步记忆到 Center
+     */
+    public void syncToCenter() {
+        if (syncService != null) {
+            syncService.sync();
+        }
+    }
+
+    /**
+     * 从 Center 全量恢复记忆
+     */
+    public void restoreFromCenter() {
+        if (syncService != null) {
+            syncService.fullSync();
+        }
+    }
+
+    /**
+     * 获取同步服务
+     */
+    @Nullable
+    public MemorySyncService getSyncService() {
+        return syncService;
+    }
+
+    /**
+     * 设置同步状态监听器
+     */
+    public void setSyncStatusListener(@Nullable MemorySyncService.SyncStatusListener listener) {
+        if (syncService != null) {
+            syncService.setStatusListener(listener);
+        }
+    }
+
+    /**
+     * 获取所有记忆（用于同步）
+     */
+    @NonNull
+    public List<MemoryEntry> getAllMemories() {
+        List<MemoryEntity> entities = dao.getAll();
+        List<MemoryEntry> entries = new ArrayList<>();
+        for (MemoryEntity entity : entities) {
+            entries.add(entity.toEntry());
+        }
+        return entries;
     }
 }
