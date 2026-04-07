@@ -140,6 +140,58 @@ public class Interest {
         return sb.toString();
     }
 
+    /**
+     * 从 JSON 解析
+     */
+    @Nullable
+    public static Interest fromJson(@NonNull String json) {
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject(json);
+            return fromJsonObject(obj);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 从 JSONObject 解析
+     */
+    @Nullable
+    public static Interest fromJsonObject(org.json.JSONObject obj) {
+        if (obj == null) return null;
+        try {
+            String id = obj.optString("id", generateId());
+            String category = obj.optString("category", "");
+            String name = obj.optString("name", "");
+
+            if (category.isEmpty() || name.isEmpty()) {
+                return null;
+            }
+
+            double level = obj.optDouble("level", 0.5);
+
+            List<String> keywords = new ArrayList<>();
+            if (obj.has("keywords")) {
+                org.json.JSONArray arr = obj.getJSONArray("keywords");
+                for (int i = 0; i < arr.length(); i++) {
+                    keywords.add(arr.getString(i));
+                }
+            }
+
+            String description = obj.optString("description", "");
+            long since = obj.optLong("since", System.currentTimeMillis());
+            long lastActive = obj.optLong("last_active", System.currentTimeMillis());
+
+            return new Interest(id, category, name, level, keywords, description, since, lastActive);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String generateId() {
+        return System.currentTimeMillis() + "_" + Integer.toHexString((int)(Math.random() * 10000));
+    }
+
     @NonNull
     @Override
     public String toString() {

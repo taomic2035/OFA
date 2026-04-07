@@ -147,4 +147,77 @@ public class WritingStyle {
         sb.append("}");
         return sb.toString();
     }
+
+    /**
+     * 从 JSON 解析
+     */
+    @Nullable
+    public static WritingStyle fromJson(@NonNull String json) {
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject(json);
+            return fromJsonObject(obj);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 从 JSONObject 解析
+     */
+    @Nullable
+    public static WritingStyle fromJsonObject(org.json.JSONObject obj) {
+        if (obj == null) return null;
+        try {
+            WritingStyle style = new WritingStyle();
+
+            if (obj.has("formality")) {
+                style.formality = obj.getDouble("formality");
+            }
+            if (obj.has("verbosity")) {
+                style.verbosity = obj.getDouble("verbosity");
+            }
+            if (obj.has("humor")) {
+                style.humor = obj.getDouble("humor");
+            }
+            if (obj.has("technicality")) {
+                style.technicality = obj.getDouble("technicality");
+            }
+            if (obj.has("use_emoji")) {
+                style.useEmoji = obj.getBoolean("use_emoji");
+            }
+            if (obj.has("use_gifs")) {
+                style.useGIFs = obj.getBoolean("use_gifs");
+            }
+            if (obj.has("use_markdown")) {
+                style.useMarkdown = obj.getBoolean("use_markdown");
+            }
+            if (obj.has("signature_phrase")) {
+                style.signaturePhrase = obj.getString("signature_phrase");
+            }
+            if (obj.has("preferred_greeting")) {
+                style.preferredGreeting = obj.getString("preferred_greeting");
+            }
+            if (obj.has("preferred_closing")) {
+                style.preferredClosing = obj.getString("preferred_closing");
+            }
+
+            // 解析词汇列表
+            if (obj.has("frequent_words")) {
+                org.json.JSONArray arr = obj.getJSONArray("frequent_words");
+                for (int i = 0; i < arr.length(); i++) {
+                    style.frequentWords.add(arr.getString(i));
+                }
+            }
+            if (obj.has("avoid_words")) {
+                org.json.JSONArray arr = obj.getJSONArray("avoid_words");
+                for (int i = 0; i < arr.length(); i++) {
+                    style.avoidWords.add(arr.getString(i));
+                }
+            }
+
+            return style;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

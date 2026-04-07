@@ -286,7 +286,7 @@ public class PersonalIdentity {
     }
 
     /**
-     * 从 JSON 解析（简化版）
+     * 从 JSON 解析（完整版）
      */
     @Nullable
     public static PersonalIdentity fromJson(@NonNull String json) {
@@ -295,6 +295,7 @@ public class PersonalIdentity {
 
             PersonalIdentity identity = new PersonalIdentity();
 
+            // 基本信息
             if (obj.has("id")) {
                 identity.id = obj.getString("id");
             }
@@ -304,9 +305,67 @@ public class PersonalIdentity {
             if (obj.has("nickname")) {
                 identity.nickname = obj.getString("nickname");
             }
+            if (obj.has("avatar")) {
+                identity.avatar = obj.getString("avatar");
+            }
+            if (obj.has("birthday")) {
+                identity.birthday = obj.getLong("birthday");
+            }
+            if (obj.has("gender")) {
+                identity.gender = obj.getString("gender");
+            }
+            if (obj.has("location")) {
+                identity.location = obj.getString("location");
+            }
+            if (obj.has("occupation")) {
+                identity.occupation = obj.getString("occupation");
+            }
             if (obj.has("timezone")) {
                 identity.timezone = obj.getString("timezone");
             }
+
+            // 语言列表
+            if (obj.has("languages")) {
+                org.json.JSONArray langArr = obj.getJSONArray("languages");
+                identity.languages = new ArrayList<>();
+                for (int i = 0; i < langArr.length(); i++) {
+                    identity.languages.add(langArr.getString(i));
+                }
+            }
+
+            // 性格
+            if (obj.has("personality")) {
+                identity.personality = Personality.fromJsonObject(obj.getJSONObject("personality"));
+            }
+
+            // 价值观
+            if (obj.has("value_system")) {
+                identity.valueSystem = ValueSystem.fromJsonObject(obj.getJSONObject("value_system"));
+            }
+
+            // 兴趣列表
+            if (obj.has("interests")) {
+                org.json.JSONArray interestArr = obj.getJSONArray("interests");
+                identity.interests = new ArrayList<>();
+                for (int i = 0; i < interestArr.length(); i++) {
+                    Interest interest = Interest.fromJsonObject(interestArr.getJSONObject(i));
+                    if (interest != null) {
+                        identity.interests.add(interest);
+                    }
+                }
+            }
+
+            // 语音配置
+            if (obj.has("voice_profile")) {
+                identity.voiceProfile = VoiceProfile.fromJsonObject(obj.getJSONObject("voice_profile"));
+            }
+
+            // 写作风格
+            if (obj.has("writing_style")) {
+                identity.writingStyle = WritingStyle.fromJsonObject(obj.getJSONObject("writing_style"));
+            }
+
+            // 元数据
             if (obj.has("version")) {
                 identity.version = obj.getLong("version");
             }
@@ -316,8 +375,6 @@ public class PersonalIdentity {
             if (obj.has("updated_at")) {
                 identity.updatedAt = obj.getLong("updated_at");
             }
-
-            // TODO: 解析 personality, valueSystem, interests 等
 
             return identity;
         } catch (Exception e) {

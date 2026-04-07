@@ -213,4 +213,72 @@ public class ValueSystem {
         sb.append("}");
         return sb.toString();
     }
+
+    /**
+     * 从 JSON 解析
+     */
+    @Nullable
+    public static ValueSystem fromJson(@NonNull String json) {
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject(json);
+            return fromJsonObject(obj);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 从 JSONObject 解析
+     */
+    @Nullable
+    public static ValueSystem fromJsonObject(org.json.JSONObject obj) {
+        if (obj == null) return null;
+        try {
+            ValueSystem valueSystem = new ValueSystem();
+
+            if (obj.has("privacy")) {
+                valueSystem.privacy = obj.getDouble("privacy");
+            }
+            if (obj.has("efficiency")) {
+                valueSystem.efficiency = obj.getDouble("efficiency");
+            }
+            if (obj.has("health")) {
+                valueSystem.health = obj.getDouble("health");
+            }
+            if (obj.has("family")) {
+                valueSystem.family = obj.getDouble("family");
+            }
+            if (obj.has("career")) {
+                valueSystem.career = obj.getDouble("career");
+            }
+            if (obj.has("entertainment")) {
+                valueSystem.entertainment = obj.getDouble("entertainment");
+            }
+            if (obj.has("learning")) {
+                valueSystem.learning = obj.getDouble("learning");
+            }
+            if (obj.has("social")) {
+                valueSystem.social = obj.getDouble("social");
+            }
+            if (obj.has("finance")) {
+                valueSystem.finance = obj.getDouble("finance");
+            }
+            if (obj.has("environment")) {
+                valueSystem.environment = obj.getDouble("environment");
+            }
+            if (obj.has("risk_tolerance")) {
+                valueSystem.riskTolerance = obj.getDouble("risk_tolerance");
+            }
+            if (obj.has("impulsiveness")) {
+                valueSystem.impulsiveness = obj.getDouble("impulsiveness");
+            }
+            if (obj.has("patience")) {
+                valueSystem.patience = obj.getDouble("patience");
+            }
+
+            return valueSystem;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

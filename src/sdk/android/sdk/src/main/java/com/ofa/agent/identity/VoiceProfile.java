@@ -142,4 +142,69 @@ public class VoiceProfile {
         sb.append("}");
         return sb.toString();
     }
+
+    /**
+     * 从 JSON 解析
+     */
+    @Nullable
+    public static VoiceProfile fromJson(@NonNull String json) {
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject(json);
+            return fromJsonObject(obj);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 从 JSONObject 解析
+     */
+    @Nullable
+    public static VoiceProfile fromJsonObject(org.json.JSONObject obj) {
+        if (obj == null) return null;
+        try {
+            VoiceProfile profile = new VoiceProfile();
+
+            if (obj.has("id")) {
+                profile.id = obj.getString("id");
+            }
+            if (obj.has("voice_type")) {
+                profile.voiceType = obj.getString("voice_type");
+            }
+            if (obj.has("preset_voice_id")) {
+                profile.presetVoiceId = obj.getString("preset_voice_id");
+            }
+            if (obj.has("clone_reference_id")) {
+                profile.cloneReferenceId = obj.getString("clone_reference_id");
+            }
+            if (obj.has("pitch")) {
+                profile.pitch = obj.getDouble("pitch");
+            }
+            if (obj.has("speed")) {
+                profile.speed = obj.getDouble("speed");
+            }
+            if (obj.has("volume")) {
+                profile.volume = obj.getDouble("volume");
+            }
+            if (obj.has("tone")) {
+                profile.tone = obj.getString("tone");
+            }
+            if (obj.has("accent")) {
+                profile.accent = obj.getString("accent");
+            }
+            if (obj.has("emotion_level")) {
+                profile.emotionLevel = obj.getDouble("emotion_level");
+            }
+            if (obj.has("pause_pattern")) {
+                profile.pausePattern = obj.getString("pause_pattern");
+            }
+            if (obj.has("emphasis_style")) {
+                profile.emphasisStyle = obj.getString("emphasis_style");
+            }
+
+            return profile;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

@@ -330,4 +330,96 @@ public class Personality {
         sb.append("}");
         return sb.toString();
     }
+
+    /**
+     * 从 JSON 解析
+     */
+    @Nullable
+    public static Personality fromJson(@NonNull String json) {
+        try {
+            org.json.JSONObject obj = new org.json.JSONObject(json);
+            Personality personality = new Personality();
+
+            if (obj.has("mbti_type")) {
+                personality.mbtiType = obj.getString("mbti_type");
+            }
+            if (obj.has("openness")) {
+                personality.openness = obj.getDouble("openness");
+            }
+            if (obj.has("conscientiousness")) {
+                personality.conscientiousness = obj.getDouble("conscientiousness");
+            }
+            if (obj.has("extraversion")) {
+                personality.extraversion = obj.getDouble("extraversion");
+            }
+            if (obj.has("agreeableness")) {
+                personality.agreeableness = obj.getDouble("agreeableness");
+            }
+            if (obj.has("neuroticism")) {
+                personality.neuroticism = obj.getDouble("neuroticism");
+            }
+            if (obj.has("speaking_tone")) {
+                personality.speakingTone = obj.getString("speaking_tone");
+            }
+            if (obj.has("response_length")) {
+                personality.responseLength = obj.getString("response_length");
+            }
+            if (obj.has("emoji_usage")) {
+                personality.emojiUsage = obj.getDouble("emoji_usage");
+            }
+            if (obj.has("stability_score")) {
+                personality.stabilityScore = obj.getDouble("stability_score");
+            }
+            if (obj.has("observed_count")) {
+                personality.observedCount = obj.getInt("observed_count");
+            }
+
+            return personality;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 从 JSONObject 解析
+     */
+    @Nullable
+    public static Personality fromJsonObject(org.json.JSONObject obj) {
+        if (obj == null) return null;
+        try {
+            Personality personality = new Personality();
+
+            if (obj.has("mbti_type")) {
+                personality.mbtiType = obj.getString("mbti_type");
+            }
+            if (obj.has("openness")) {
+                personality.openness = obj.getDouble("openness");
+            }
+            if (obj.has("conscientiousness")) {
+                personality.conscientiousness = obj.getDouble("conscientiousness");
+            }
+            if (obj.has("extraversion")) {
+                personality.extraversion = obj.getDouble("extraversion");
+            }
+            if (obj.has("agreeableness")) {
+                personality.agreeableness = obj.getDouble("agreeableness");
+            }
+            if (obj.has("neuroticism")) {
+                personality.neuroticism = obj.getDouble("neuroticism");
+            }
+            if (obj.has("speaking_tone")) {
+                personality.speakingTone = obj.getString("speaking_tone");
+            }
+            if (obj.has("response_length")) {
+                personality.responseLength = obj.getString("response_length");
+            }
+            if (obj.has("emoji_usage")) {
+                personality.emojiUsage = obj.getDouble("emoji_usage");
+            }
+
+            return personality;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ofa/center/internal/identity"
 	"github.com/ofa/center/internal/models"
 )
 
@@ -21,9 +22,15 @@ type DataService struct {
 	mu sync.RWMutex
 
 	// 存储接口
-	identityStore IdentityDataStore
-	memoryStore   MemoryDataStore
+	identityStore   IdentityDataStore
+	memoryStore     MemoryDataStore
 	preferenceStore PreferenceDataStore
+
+	// 行为存储（内存缓存，用于性格推断）
+	behaviorStore map[string][]models.BehaviorObservation // identityId -> observations
+
+	// 性格推断引擎
+	inferencer *identity.Inferencer
 
 	// 同步状态
 	syncStates map[string]*SyncState // identityId -> syncState
@@ -92,8 +99,10 @@ type MemoryEntry struct {
 // NewDataService 创建数据服务
 func NewDataService() *DataService {
 	return &DataService{
-		syncStates: make(map[string]*SyncState),
-		listeners:  make([]DataSyncListener, 0),
+		syncStates:    make(map[string]*SyncState),
+		listeners:     make([]DataSyncListener, 0),
+		behaviorStore: make(map[string][]models.BehaviorObservation),
+		inferencer:    identity.NewInferencer(),
 	}
 }
 
@@ -351,20 +360,126 @@ func (s *DataService) GetPreferences(ctx context.Context, identityID string) (ma
 
 // BehaviorReport - 行为上报
 type BehaviorReport struct {
+	ID         string
 	AgentID    string
 	IdentityID string
 	Type       string
 	Context    map[string]interface{}
+	Inferences map[string]float64
 	Timestamp  time.Time
 }
 
 // ReportBehavior 上报行为（用于性格推断）
 func (s *DataService) ReportBehavior(ctx context.Context, report *BehaviorReport) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	log.Printf("Behavior reported: %s from agent %s", report.Type, report.AgentID)
 
-	// TODO: 存储行为观察，用于后续性格推断
+	// 构建行为观察
+	observation := models.BehaviorObservation{
+		ID:         report.ID,
+		UserID:     report.IdentityID,
+		Type:       report.Type,
+		Context:    report.Context,
+		Inferences: report.Inferences,
+		Timestamp:  report.Timestamp,
+	}
+
+	// 存储行为观察
+	identityID := report.IdentityID
+	if identityID == "" {
+		identityID = report.AgentID // fallback
+	}
+
+	if s.behaviorStore[identityID] == nil {
+		s.behaviorStore[identityID] = make([]models.BehaviorObservation, 0)
+	}
+
+	// 添加观察（保留最近100条）
+	observations := s.behaviorStore[identityID]
+	observations = append(observations, observation)
+	if len(observations) > 100 {
+		observations = observations[len(observations)-100:]
+	}
+	s.behaviorStore[identityID] = observations
+
+	// 每10条触发一次性格推断
+	if len(observations)%10 == 0 && s.identityStore != nil {
+		s.triggerPersonalityInference(ctx, identityID, observations)
+	}
 
 	return nil
+}
+
+// triggerPersonalityInference 触发性格推断
+func (s *DataService) triggerPersonalityInference(ctx context.Context, identityID string, observations []models.BehaviorObservation) {
+	// 获取现有身份
+	existing, err := s.identityStore.GetIdentity(ctx, identityID)
+	if err != nil || existing == nil {
+		log.Printf("Cannot infer personality: identity not found %s", identityID)
+		return
+	}
+
+	// 使用推断引擎更新性格
+	if existing.Personality == nil {
+		existing.Personality = &models.Personality{
+			Openness:          0.5,
+			Conscientiousness: 0.5,
+			Extraversion:      0.5,
+			Agreeableness:     0.5,
+			Neuroticism:       0.5,
+			CustomTraits:      make(map[string]float64),
+			SpeakingTone:      "casual",
+			ResponseLength:    "moderate",
+			EmojiUsage:        0.3,
+		}
+	}
+
+	// 更新性格
+	updatedPersonality := s.inferencer.UpdatePersonalityWithConvergence(existing.Personality, observations)
+	existing.Personality = updatedPersonality
+
+	// 更新价值观
+	if existing.ValueSystem == nil {
+		existing.ValueSystem = &models.ValueSystem{
+			Privacy:       0.7,
+			Efficiency:    0.6,
+			Health:        0.7,
+			Family:        0.8,
+			Career:        0.6,
+			Entertainment: 0.5,
+			Learning:      0.6,
+			Social:        0.5,
+			Finance:       0.6,
+			Environment:   0.5,
+			RiskTolerance: 0.4,
+			Impulsiveness: 0.3,
+			Patience:      0.6,
+			CustomValues:  make(map[string]float64),
+		}
+	}
+
+	updatedValueSystem := s.inferencer.InferValueSystemFromBehavior(observations)
+	if updatedValueSystem != nil {
+		existing.ValueSystem = updatedValueSystem
+	}
+
+	// 保存更新
+	if err := s.identityStore.SaveIdentity(ctx, existing); err != nil {
+		log.Printf("Failed to save inferred personality: %v", err)
+		return
+	}
+
+	log.Printf("Personality inferred for %s: MBTI=%s, stability=%.2f, observations=%d",
+		identityID, updatedPersonality.MBTIType, updatedPersonality.StabilityScore, len(observations))
+}
+
+// GetBehaviorObservations 获取行为观察（用于调试）
+func (s *DataService) GetBehaviorObservations(identityID string) []models.BehaviorObservation {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.behaviorStore[identityID]
 }
 
 // === 同步状态 ===

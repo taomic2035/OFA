@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -181,18 +182,57 @@ public class IdentitySyncService {
      * 上报行为观察
      */
     public void reportBehavior(@NonNull BehaviorObservation observation) {
-        if (!syncEnabled || centerConnection == null || !centerConnection.isConnected()) {
-            Log.w(TAG, "Cannot report behavior: not connected");
+        if (!syncEnabled) {
+            Log.d(TAG, "Sync disabled, behavior not reported");
             return;
         }
 
+        // 在后台线程执行
+        new Thread(() -> {
+            try {
+                // 构建请求
+                String requestJson = buildBehaviorReport(observation);
+
+                // 发送到 Center
+                String url = "http://" + centerAddress + ":" + centerPort + "/api/v1/behavior/report";
+                String response = sendHttpPost(url, requestJson);
+
+                Log.d(TAG, "Behavior reported: " + observation.getType() + ", response: " + response);
+
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to report behavior: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    /**
+     * 构建行为上报请求
+     */
+    private String buildBehaviorReport(@NonNull BehaviorObservation observation) {
+        JSONObject request = new JSONObject();
         try {
-            // TODO: 实现行为上报
-            Log.d(TAG, "Behavior reported: " + observation.getType());
+            request.put("id", observation.getId());
+            request.put("type", observation.getType());
+            request.put("timestamp", observation.getTimestamp());
+
+            // 上下文
+            JSONObject contextJson = new JSONObject();
+            for (Map.Entry<String, Object> entry : observation.getContext().entrySet()) {
+                contextJson.put(entry.getKey(), entry.getValue());
+            }
+            request.put("context", contextJson);
+
+            // 推断结果
+            JSONObject inferencesJson = new JSONObject();
+            for (Map.Entry<String, Double> entry : observation.getInferences().entrySet()) {
+                inferencesJson.put(entry.getKey(), entry.getValue());
+            }
+            request.put("inferences", inferencesJson);
 
         } catch (Exception e) {
-            Log.w(TAG, "Failed to report behavior", e);
+            Log.e(TAG, "Failed to build behavior report", e);
         }
+        return request.toString();
     }
 
     // === 启停控制 ===
