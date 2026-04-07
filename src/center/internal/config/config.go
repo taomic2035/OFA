@@ -16,6 +16,7 @@ type Config struct {
 	Etcd     EtcdConfig     `yaml:"etcd"`
 	Scheduler SchedulerConfig `yaml:"scheduler"`
 	Agent    AgentConfig    `yaml:"agent"`
+	TTS      TTSConfig      `yaml:"tts"` // v5.6.2
 }
 
 type ServerConfig struct {
@@ -61,6 +62,24 @@ type AgentConfig struct {
 	HeartbeatInterval time.Duration `yaml:"heartbeat_interval"`
 	HeartbeatTimeout  time.Duration `yaml:"heartbeat_timeout"`
 	OfflineThreshold  time.Duration `yaml:"offline_threshold"`
+}
+
+// TTSConfig holds TTS engine configuration (v5.6.2).
+type TTSConfig struct {
+	PrimaryProvider   string  `yaml:"primary_provider"`
+	FallbackProvider  string  `yaml:"fallback_provider"`
+	EnableCache       bool    `yaml:"enable_cache"`
+	CacheSizeMB       int     `yaml:"cache_size_mb"`
+	DefaultVoice      string  `yaml:"default_voice"`
+	DefaultFormat     string  `yaml:"default_format"`
+	DefaultSampleRate int     `yaml:"default_sample_rate"`
+	DefaultRate       float64 `yaml:"default_rate"`
+	DefaultPitch      float64 `yaml:"default_pitch"`
+	DefaultVolume     float64 `yaml:"default_volume"`
+	VolcengineAppID   string  `yaml:"volcengine_app_id"`
+	VolcengineToken   string  `yaml:"volcengine_token"`
+	DoubaoAppID       string  `yaml:"doubao_app_id"`
+	DoubaoToken       string  `yaml:"doubao_token"`
 }
 
 func Load(path string) (*Config, error) {
