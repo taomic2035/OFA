@@ -1,6 +1,6 @@
 # OFA 版本路线图
 
-## 当前版本: v4.6.0
+## 当前版本: v5.3.0
 
 **核心愿景**: "万物皆为我所用，但万物都是我"
 
@@ -19,7 +19,7 @@
 | **v5.0.0** | ✅ 外在形象系统 | Avatar模型、相貌特征、体型姿态、形象管理 |
 | **v5.1.0** | ✅ 语音合成系统 | VoiceSynthesizer、声音特征、情绪语音联动、TTS集成 |
 | **v5.2.0** | ✅ 表达内容系统 | SpeechContentGenerator、文化影响表达、三观影响深度 |
-| **v5.3.0** | 表情动作系统 | FacialExpression面部表情、BodyGesture身体动作、情绪联动 |
+| **v5.3.0** | ✅ 表情动作系统 | FacialExpression面部表情、BodyGesture身体动作、情绪联动 |
 | **v5.4.0** | 形象个性化系统 | 形象偏好、形象进化、场景适应、风格管理 |
 | **v5.5.0** | 多端展示系统 | 3D渲染引擎、设备端适配、形象同步 |
 
@@ -55,6 +55,23 @@
 - ContentDecisionContext 内容决策上下文
 - ContentTemplates 内容模板 (问候、道歉、感谢、结束)
 - Android SDK SpeechContentState/SpeechContentClient (轻量级状态接收)
+
+### ✅ v5.3.0 - 表情动作系统
+
+- ExpressionGestureProfile 表情动作模型 (面部表情设置、身体动作设置、情绪映射)
+- ExpressionGestureEngine 表情动作管理引擎
+- 与 v4.x 灵魂系统集成:
+  - Emotion → 表情映射 (七情对应的面部表情和身体动作)
+  - EmotionBehavior → 动作表达 (情绪触发行为、应对策略)
+  - Relationship → 社交姿态 (问候动作、聆听姿态、眼神交流)
+  - RegionalCulture → 礼仪表达 (触碰舒适度、距离偏好)
+- FacialExpressionSettings 面部表情设置 (表情范围、眼部表达、嘴部表达、微表情)
+- BodyGestureSettings 身体动作设置 (动作范围、手势风格、头部动作、姿态)
+- EmotionExpressionMapping 情绪表情映射 (七情对应表情/动作)
+- SocialGestureSettings 社交动作设置 (问候动作、聆听动作、触碰偏好)
+- AnimationSettings 动画设置 (空闲动画、唇形同步、呼吸动画、眼球运动)
+- ExpressionGestureContext 表情动作上下文 (当前状态、推荐状态、场景适应)
+- Android SDK ExpressionGestureState/ExpressionGestureClient (轻量级状态接收)
 
 ### 内在灵魂 → 外在呈现 映射
 
@@ -216,14 +233,22 @@ OFA/
 │   │   │   │   ├── regional_culture.go # v4.3.0 地域文化
 │   │   │   │   ├── life_stage.go # v4.4.0 人生阶段
 │   │   │   │   ├── emotion_behavior.go # v4.5.0 情绪行为
-│   │   │   │   └── relationship.go # v4.6.0 人际关系
+│   │   │   │   ├── relationship.go # v4.6.0 人际关系
+│   │   │   │   ├── avatar.go      # v5.0.0 外在形象
+│   │   │   │   ├── voice_profile.go # v5.1.0 语音配置
+│   │   │   │   ├── speech_content.go # v5.2.0 表达内容
+│   │   │   │   └── expression_gesture.go # v5.3.0 表情动作
 │   │   │   ├── emotion/          # v4.0.0 情绪引擎
 │   │   │   ├── philosophy/       # v4.1.0 三观引擎
 │   │   │   ├── social/           # v4.2.0 社会身份引擎
 │   │   │   ├── culture/          # v4.3.0 地域文化引擎
 │   │   │   ├── lifestage/        # v4.4.0 人生阶段引擎
 │   │   │   ├── behavior/         # v4.5.0 情绪行为引擎
-│   │   │   └── relationship/     # v4.6.0 人际关系引擎
+│   │   │   ├── relationship/     # v4.6.0 人际关系引擎
+│   │   │   ├── avatar/           # v5.0.0 形象引擎
+│   │   │   ├── voice/            # v5.1.0 语音引擎
+│   │   │   ├── speech/           # v5.2.0 内容引擎
+│   │   │   └── expression/       # v5.3.0 表情动作引擎
 │   │   └── pkg/                  # 工具包
 │   │
 │   ├── sdk/android/              # Android SDK
@@ -234,7 +259,11 @@ OFA/
 │   │       ├── culture/          # v4.3.0 地域文化状态
 │   │       ├── lifestage/        # v4.4.0 人生阶段状态
 │   │       ├── behavior/         # v4.5.0 情绪行为状态
-│   │       └── relationship/     # v4.6.0 人际关系状态
+│   │       ├── relationship/     # v4.6.0 人际关系状态
+│   │       ├── avatar/           # v5.0.0 外在形象状态
+│   │       ├── voice/            # v5.1.0 语音状态
+│   │       ├── speech/           # v5.2.0 表达内容状态
+│   │       └── expression/       # v5.3.0 表情动作状态
 │   │
 │   └── dashboard/                # Web 管理控制台
 │
@@ -247,10 +276,10 @@ OFA/
 
 | 组件 | 数量 |
 |------|------|
-| Center Go 文件 | 100+ |
-| Android SDK Java 文件 | 150+ |
-| Center 数据模型 | 20+ |
-| Android SDK 状态模型 | 14 |
+| Center Go 文件 | 120+ |
+| Android SDK Java 文件 | 180+ |
+| Center 数据模型 | 30+ |
+| Android SDK 状态模型 | 18 |
 
 ---
 
@@ -271,4 +300,4 @@ OFA/
 ---
 
 *最后更新: 2026-04-07*
-*版本: v4.6.0*
+*版本: v5.3.0*
