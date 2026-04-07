@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.ofa.agent.automation.AutomationOrchestrator;
+import com.ofa.agent.behavior.BehaviorCollector;
 import com.ofa.agent.distributed.DistributedOrchestrator;
 import com.ofa.agent.identity.IdentityManager;
 import com.ofa.agent.identity.PersonalIdentity;
@@ -61,6 +62,7 @@ public class OFAAndroidAgent {
     // Subsystems
     private UserMemoryManager memoryManager;
     private IdentityManager identityManager;  // v2.0.0: Identity Manager
+    private BehaviorCollector behaviorCollector;  // v2.4.0: Behavior Collector
     private AutomationOrchestrator automationOrchestrator;
     private SocialOrchestrator socialOrchestrator;
     private ToolRegistry toolRegistry;
@@ -158,6 +160,9 @@ public class OFAAndroidAgent {
         this.identityManager = new IdentityManager(context);
         this.identityManager.initialize();
 
+        // v2.4.0: Initialize behavior collector
+        this.behaviorCollector = new BehaviorCollector(context, identityManager);
+
         // Initialize automation if enabled
         if (builder.enableAutomation) {
             this.automationOrchestrator = new AutomationOrchestrator(context);
@@ -208,6 +213,11 @@ public class OFAAndroidAgent {
 
         // Initialize mode manager
         modeManager.initialize();
+
+        // v2.4.0: Enable behavior collection
+        if (behaviorCollector != null) {
+            behaviorCollector.enable();
+        }
 
         // Initialize distributed orchestrator
         if (distributedOrchestrator != null) {
@@ -378,6 +388,70 @@ public class OFAAndroidAgent {
         }
     }
 
+    // ===== Behavior Collection (v2.4.0) =====
+
+    /**
+     * Get behavior collector
+     */
+    @Nullable
+    public BehaviorCollector getBehaviorCollector() {
+        return behaviorCollector;
+    }
+
+    /**
+     * Observe decision behavior
+     */
+    public void observeDecision(@NonNull String decisionType, @NonNull Map<String, Object> details) {
+        if (behaviorCollector != null) {
+            behaviorCollector.observeDecision(decisionType, details);
+        }
+    }
+
+    /**
+     * Observe interaction behavior
+     */
+    public void observeInteraction(@NonNull String interactionType, @NonNull Map<String, Object> details) {
+        if (behaviorCollector != null) {
+            behaviorCollector.observeInteraction(interactionType, details);
+        }
+    }
+
+    /**
+     * Observe preference behavior
+     */
+    public void observePreference(@NonNull String preferenceType, @NonNull Map<String, Object> details) {
+        if (behaviorCollector != null) {
+            behaviorCollector.observePreference(preferenceType, details);
+        }
+    }
+
+    /**
+     * Observe activity behavior
+     */
+    public void observeActivity(@NonNull String activityType, @NonNull Map<String, Object> details) {
+        if (behaviorCollector != null) {
+            behaviorCollector.observeActivity(activityType, details);
+        }
+    }
+
+    /**
+     * Record purchase decision (convenience method)
+     */
+    public void recordPurchase(@NonNull String item, double price, boolean isImpulse) {
+        if (behaviorCollector != null) {
+            behaviorCollector.recordPurchase(item, price, isImpulse);
+        }
+    }
+
+    /**
+     * Record social interaction (convenience method)
+     */
+    public void recordSocialInteraction(@NonNull String type, int participantCount, boolean usedEmoji) {
+        if (behaviorCollector != null) {
+            behaviorCollector.recordSocialInteraction(type, participantCount, usedEmoji);
+        }
+    }
+
     // ===== Peer Communication =====
 
     /**
@@ -544,6 +618,11 @@ public class OFAAndroidAgent {
         // v2.0.0: Shutdown identity manager
         if (identityManager != null) {
             identityManager.shutdown();
+        }
+
+        // v2.4.0: Shutdown behavior collector
+        if (behaviorCollector != null) {
+            behaviorCollector.shutdown();
         }
 
         initialized = false;
