@@ -692,3 +692,738 @@ LLMResponse response = orchestrator.chat("帮我点一杯奶茶");
 | 操作 | app_launch, app_close, call_contact, send_message, send_email, play_media, take_photo, set_timer |
 | 设置 | setting_change, alarm_set, reminder_set, schedule_add |
 | 其他 | order_food, control_device |
+
+---
+
+## v3.x 多设备协同 API (新增)
+
+### 消息总线 API (v3.0.0)
+
+#### 发送设备消息
+
+```
+POST /api/v3/messages/device
+```
+
+**请求体:**
+
+```json
+{
+    "id": "msg-001",
+    "from_agent": "agent-phone",
+    "to_agent": "agent-watch",
+    "identity_id": "identity-001",
+    "type": "data",
+    "priority": 2,
+    "payload": {
+        "key": "value"
+    },
+    "ttl": 3600
+}
+```
+
+**响应:**
+
+```json
+{
+    "success": true,
+    "queued": true
+}
+```
+
+#### 获取离线消息
+
+```
+GET /api/v3/messages/offline/{agent_id}
+```
+
+**响应:**
+
+```json
+{
+    "messages": [
+        {
+            "id": "msg-001",
+            "from_agent": "center",
+            "payload": {}
+        }
+    ],
+    "count": 1
+}
+```
+
+---
+
+### 设备状态同步 API (v3.1.0)
+
+#### 上报设备状态
+
+```
+POST /api/v3/devices/{agent_id}/state
+```
+
+**请求体:**
+
+```json
+{
+    "battery_level": 85,
+    "battery_charging": false,
+    "network_type": "wifi",
+    "network_strength": 90,
+    "scene": "meeting",
+    "location": {
+        "latitude": 39.9,
+        "longitude": 116.4,
+        "accuracy": 10
+    }
+}
+```
+
+**响应:**
+
+```json
+{
+    "success": true,
+    "synced": true
+}
+```
+
+#### 获取设备状态
+
+```
+GET /api/v3/devices/{agent_id}/state
+```
+
+**响应:**
+
+```json
+{
+    "state": {
+        "battery_level": 85,
+        "network_type": "wifi",
+        "scene": "meeting",
+        "online": true,
+        "last_update": 1711622400
+    }
+}
+```
+
+#### 获取身份下所有设备状态
+
+```
+GET /api/v3/identities/{identity_id}/devices/states
+```
+
+**响应:**
+
+```json
+{
+    "devices": [
+        {
+            "agent_id": "agent-phone",
+            "state": {}
+        },
+        {
+            "agent_id": "agent-watch",
+            "state": {}
+        }
+    ]
+}
+```
+
+#### 订阅状态变更
+
+```
+WebSocket /api/v3/devices/states/subscribe
+```
+
+**消息格式:**
+
+```json
+{
+    "agent_id": "agent-phone",
+    "changes": ["battery", "scene"],
+    "old_state": {},
+    "new_state": {}
+}
+```
+
+---
+
+### 场景感知路由 API (v3.2.0)
+
+#### 路由消息
+
+```
+POST /api/v3/route
+```
+
+**请求体:**
+
+```json
+{
+    "identity_id": "identity-001",
+    "message_type": "social",
+    "priority": 2,
+    "scene": "running",
+    "payload": {}
+}
+```
+
+**响应:**
+
+```json
+{
+    "target_agents": ["agent-watch"],
+    "action": "deliver",
+    "reason": "Scene running -> route to watch"
+}
+```
+
+#### 配置路由规则
+
+```
+POST /api/v3/route/rules
+```
+
+**请求体:**
+
+```json
+{
+    "identity_id": "identity-001",
+    "scenes": ["running", "walking"],
+    "message_types": ["social", "message"],
+    "target_device_types": ["watch"],
+    "action": "deliver",
+    "priority": 100
+}
+```
+
+**响应:**
+
+```json
+{
+    "success": true,
+    "rule_id": "rule-001"
+}
+```
+
+#### 获取路由规则
+
+```
+GET /api/v3/route/rules/{identity_id}
+```
+
+---
+
+### 任务协同 API (v3.3.0)
+
+#### 创建协同任务
+
+```
+POST /api/v3/tasks/collaborative
+```
+
+**请求体:**
+
+```json
+{
+    "identity_id": "identity-001",
+    "skill_id": "data.collect",
+    "split_strategy": "parallel",
+    "merge_strategy": "aggregate",
+    "target_agents": ["agent-phone", "agent-watch", "agent-tablet"],
+    "input": {},
+    "constraints": {
+        "max_sub_tasks": 3,
+        "timeout_per_task": 30000,
+        "min_success_count": 2
+    }
+}
+```
+
+**响应:**
+
+```json
+{
+    "success": true,
+    "task_id": "collab-001",
+    "sub_tasks": [
+        {
+            "sub_task_id": "sub-001",
+            "agent_id": "agent-phone"
+        },
+        {
+            "sub_task_id": "sub-002",
+            "agent_id": "agent-watch"
+        }
+    ]
+}
+```
+
+#### 获取子任务状态
+
+```
+GET /api/v3/tasks/collaborative/{task_id}/subtasks
+```
+
+**响应:**
+
+```json
+{
+    "sub_tasks": [
+        {
+            "sub_task_id": "sub-001",
+            "status": "completed",
+            "result": {}
+        },
+        {
+            "sub_task_id": "sub-002",
+            "status": "running"
+        }
+    ],
+    "progress": 0.5
+}
+```
+
+#### 上报子任务结果
+
+```
+POST /api/v3/tasks/collaborative/{task_id}/subtasks/{sub_task_id}/result
+```
+
+**请求体:**
+
+```json
+{
+    "agent_id": "agent-phone",
+    "success": true,
+    "result": {
+        "data": "collected"
+    },
+    "duration_ms": 1000
+}
+```
+
+#### 获取合并结果
+
+```
+GET /api/v3/tasks/collaborative/{task_id}/result
+```
+
+**响应:**
+
+```json
+{
+    "success": true,
+    "result": {
+        "merged": "aggregated result"
+    },
+    "sub_task_count": 3,
+    "success_count": 2
+}
+```
+
+---
+
+### 跨设备通知 API (v3.4.0)
+
+#### 创建通知
+
+```
+POST /api/v3/notifications
+```
+
+**请求体:**
+
+```json
+{
+    "identity_id": "identity-001",
+    "type": "message",
+    "priority": "normal",
+    "title": "New Message",
+    "body": "You have a new message",
+    "source_app": "com.example.app",
+    "category": "social",
+    "group_id": "group-001",
+    "actions": [
+        {
+            "action_id": "open",
+            "title": "Open",
+            "type": "open"
+        },
+        {
+            "action_id": "dismiss",
+            "title": "Dismiss",
+            "type": "dismiss"
+        }
+    ],
+    "target_devices": [],
+    "ttl": 3600
+}
+```
+
+**响应:**
+
+```json
+{
+    "success": true,
+    "notification_id": "notif-001",
+    "target_devices": ["agent-phone", "agent-watch"]
+}
+```
+
+#### 获取通知
+
+```
+GET /api/v3/notifications/{notification_id}
+```
+
+**响应:**
+
+```json
+{
+    "notification": {
+        "notification_id": "notif-001",
+        "status": "delivered",
+        "delivered_to": ["agent-phone"],
+        "read_by": [],
+        "created_at": 1711622400
+    }
+}
+```
+
+#### 获取身份通知列表
+
+```
+GET /api/v3/identities/{identity_id}/notifications
+```
+
+**查询参数:**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| status | string | 状态过滤 (pending/delivered/read/dismissed) |
+| type | string | 类型过滤 |
+| unread_only | bool | 只返回未读 |
+| limit | int | 数量限制 |
+
+#### 标记通知已读
+
+```
+POST /api/v3/notifications/{notification_id}/read
+```
+
+**请求体:**
+
+```json
+{
+    "agent_id": "agent-phone"
+}
+```
+
+#### 标记通知忽略
+
+```
+POST /api/v3/notifications/{notification_id}/dismiss
+```
+
+**请求体:**
+
+```json
+{
+    "agent_id": "agent-phone"
+}
+```
+
+#### 全部标记已读
+
+```
+POST /api/v3/identities/{identity_id}/notifications/read-all
+```
+
+**请求体:**
+
+```json
+{
+    "agent_id": "agent-phone"
+}
+```
+
+**响应:**
+
+```json
+{
+    "success": true,
+    "count": 5
+}
+```
+
+#### 获取通知统计
+
+```
+GET /api/v3/identities/{identity_id}/notifications/stats
+```
+
+**响应:**
+
+```json
+{
+    "stats": {
+        "total": 10,
+        "pending": 2,
+        "delivered": 3,
+        "read": 4,
+        "dismissed": 1,
+        "unread": 5
+    }
+}
+```
+
+---
+
+### Android SDK v3.x API
+
+#### 消息总线客户端
+
+```java
+// 获取消息总线
+MessageBus messageBus = agent.getMessageBus();
+
+// 发送消息
+Message msg = new Message();
+msg.fromAgent = agentId;
+msg.toAgent = "agent-watch";
+msg.type = Message.TYPE_DATA;
+msg.priority = Message.PRIORITY_NORMAL;
+msg.payload = Map.of("key", "value");
+
+messageBus.send(msg);
+
+// 添加消息监听器
+messageBus.addListener(message -> {
+    if (message.type == Message.TYPE_DATA) {
+        // 处理数据消息
+    }
+});
+
+// 获取离线消息
+List<Message> offline = messageBus.getOfflineMessages();
+```
+
+#### 设备状态同步
+
+```java
+// 获取状态同步服务
+StateSyncService stateSync = agent.getStateSyncService();
+
+// 上报状态
+stateSync.reportBattery(85, false);
+stateSync.reportNetwork("wifi", 90);
+stateSync.reportScene("meeting");
+
+// 添加状态变更监听器
+stateSync.addStateChangeListener(change -> {
+    if (change.field == "battery") {
+        // 电池状态变更
+    }
+});
+
+// 获取当前状态
+DeviceState state = stateSync.getCurrentState();
+```
+
+#### 场景感知路由
+
+```java
+// 获取场景路由器
+SceneAwareRouter router = agent.getSceneAwareRouter();
+
+// 本地路由决策
+RoutingResult result = router.routeLocally(
+    "social",
+    Message.PRIORITY_NORMAL
+);
+
+if (result.targetAgents.contains("watch")) {
+    // 路由到手表
+}
+
+// 添加路由规则
+router.addRule(new RoutingRule.Builder()
+    .scenes(Set.of("running"))
+    .messageTypes(Set.of("social"))
+    .targetDeviceTypes(Set.of("watch"))
+    .action(RoutingAction.DELIVER)
+    .build());
+```
+
+#### 任务协同
+
+```java
+// 获取任务协同器
+TaskCollaborator collaborator = agent.getTaskCollaborator();
+
+// 注册为执行者
+collaborator.registerExecutor("data.collect", subTask -> {
+    // 执行子任务
+    Object result = collectData();
+    // 上报结果
+    collaborator.reportResult(subTask.subTaskId, true, result);
+});
+
+// 创建协同任务
+CollaborativeTask task = new CollaborativeTask.Builder()
+    .skillId("data.collect")
+    .splitStrategy(SplitStrategy.PARALLEL)
+    .mergeStrategy(MergeStrategy.AGGREGATE)
+    .targetAgents(Set.of("phone", "watch", "tablet"))
+    .build();
+
+// 发起协同
+collaborator.initiateCollaboration(task);
+```
+
+#### 通知客户端
+
+```java
+// 获取通知客户端
+NotificationClient notificationClient = agent.getNotificationClient();
+
+// 设置本地通知处理器
+notificationClient.setLocalHandler(new LocalNotificationHandler() {
+    @Override
+    public void showNotification(CrossDeviceNotification notification) {
+        // 显示本地通知
+        showSystemNotification(notification);
+    }
+
+    @Override
+    public void cancelNotification(String notificationId) {
+        // 取消本地通知
+        cancelSystemNotification(notificationId);
+    }
+});
+
+// 添加通知监听器
+notificationClient.addListener(new NotificationListener() {
+    @Override
+    public void onNotificationReceived(CrossDeviceNotification notification) {
+        // 收到新通知
+    }
+
+    @Override
+    public void onNotificationUpdated(CrossDeviceNotification notification) {
+        // 通知状态更新
+    }
+});
+
+// 标记已读
+notificationClient.markAsRead("notif-001");
+
+// 获取未读数
+int unreadCount = notificationClient.getUnreadCount();
+
+// 执行通知动作
+notificationClient.executeAction("notif-001", "open");
+```
+
+---
+
+### v3.x 新增枚举类型
+
+#### MessageType
+
+| 值 | 说明 |
+|---|------|
+| data | 数据消息 |
+| command | 命令消息 |
+| event | 事件消息 |
+| notification | 通知消息 |
+
+#### MessagePriority
+
+| 值 | 说明 |
+|---|------|
+| 0 | LOW |
+| 1 | NORMAL |
+| 2 | HIGH |
+| 3 | URGENT |
+
+#### NotificationType
+
+| 值 | 说明 |
+|---|------|
+| message | 普通消息 |
+| alert | 告警 |
+| reminder | 提醒 |
+| system | 系统通知 |
+| social | 社交消息 |
+| health | 健康提醒 |
+| calendar | 日历提醒 |
+| call | 通话通知 |
+
+#### NotificationPriority
+
+| 值 | 说明 |
+|---|------|
+| min | 最低优先级 |
+| low | 低优先级 |
+| normal | 正常优先级 |
+| high | 高优先级 |
+| max | 最高优先级 (勿扰时段仍显示) |
+
+#### NotificationStatus
+
+| 值 | 说明 |
+|---|------|
+| pending | 待发送 |
+| delivered | 已送达 |
+| read | 已读 |
+| dismissed | 已忽略 |
+| expired | 已过期 |
+
+#### SplitStrategy
+
+| 值 | 说明 |
+|---|------|
+| none | 不拆分 |
+| parallel | 并行拆分 |
+| sequence | 顺序拆分 |
+| map_reduce | MapReduce |
+| by_device | 按设备拆分 |
+
+#### MergeStrategy
+
+| 值 | 说明 |
+|---|------|
+| none | 不合并 |
+| all | 收集所有结果 |
+| first | 取首个完成结果 |
+| consensus | 共识合并 |
+| aggregate | 聚合统计 |
+| best | 取最佳结果 |
+
+#### DeviceScene
+
+| 值 | 说明 |
+|---|------|
+| unknown | 未知 |
+| idle | 空闲 |
+| running | 跑步 |
+| walking | 步行 |
+| driving | 驾驶 |
+| meeting | 会议 |
+| sleeping | 睡眠 |
+| working | 工作 |
+| relaxing | 休息 |
+
+#### RoutingAction
+
+| 值 | 说明 |
+|---|------|
+| deliver | 直接送达 |
+| delay | 延迟送达 |
+| filter | 过滤不送 |
+| broadcast | 广播所有 |
+| quiet | 勿扰模式 |
