@@ -14,17 +14,36 @@ import (
 	"github.com/ofa/center/internal/models"
 	"github.com/ofa/center/internal/scheduler"
 	"github.com/ofa/center/internal/store"
+	"github.com/ofa/center/internal/sync"
 
 	pb "github.com/ofa/center/proto"
+)
+
+// CenterMode - Center 运行模式
+type CenterMode string
+
+const (
+	// ModeControlCenter - 控制中心模式（旧版，调度任务）
+	ModeControlCenter CenterMode = "control"
+	// ModeDataCenter - 数据中心模式（v2.1.0，仅同步数据）
+	ModeDataCenter CenterMode = "data"
 )
 
 // CenterService is the main service orchestrating all components
 type CenterService struct {
 	cfg      *config.Config
 	store    *store.Store
+	mode     CenterMode // v2.1.0: 运行模式
+
+	// 旧版调度器（控制中心模式）
 	scheduler *scheduler.Scheduler
-	identity *identity.Service // v1.2.0: Identity Service
-	syncService *identity.SyncService // v2.0.0: Identity Sync Service
+
+	// v1.2.0: Identity Service
+	identity *identity.Service
+	// v2.0.0: Identity Sync Service
+	syncService *identity.SyncService
+	// v2.1.0: Data Service（数据中心模式）
+	dataService *sync.DataService
 
 	// Active agent connections
 	connections sync.Map // map[string]*models.AgentConnection
@@ -39,6 +58,11 @@ type CenterService struct {
 
 // NewCenterService creates a new Center service
 func NewCenterService(ctx context.Context, cfg *config.Config) (*CenterService, error) {
+	return NewCenterServiceWithMode(ctx, cfg, ModeDataCenter) // v2.1.0: 默认数据中心模式
+}
+
+// NewCenterServiceWithMode creates a new Center service with specified mode
+func NewCenterServiceWithMode(ctx context.Context, cfg *config.Config, mode CenterMode) (*CenterService, error) {
 	store, err := store.NewStore(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create store: %w", err)
@@ -47,29 +71,37 @@ func NewCenterService(ctx context.Context, cfg *config.Config) (*CenterService, 
 	ctx, cancel := context.WithCancel(ctx)
 
 	service := &CenterService{
-		cfg:        cfg,
-		store:      store,
-		taskQueue:  make(chan *models.Task, cfg.Scheduler.MaxConcurrent),
+		cfg:         cfg,
+		store:       store,
+		mode:        mode,
+		taskQueue:   make(chan *models.Task, cfg.Scheduler.MaxConcurrent),
 		messageChan: make(chan *models.Message, 1000),
-		ctx:        ctx,
-		cancel:     cancel,
+		ctx:         ctx,
+		cancel:      cancel,
 	}
 
-	// Initialize scheduler
-	service.scheduler = scheduler.NewScheduler(store, cfg.Scheduler.DefaultStrategy)
-	service.scheduler.SetTaskQueue(service.taskQueue)
-
 	// v1.2.0: Initialize Identity Service
-	identityStore := identity.NewMemoryStore() // Use memory store for now, can be FileStore
+	identityStore := identity.NewMemoryStore()
 	service.identity = identity.NewService(identityStore)
 
 	// v2.0.0: Initialize Identity Sync Service
 	service.syncService = identity.NewSyncService(identityStore)
 
+	// v2.1.0: Initialize Data Service
+	service.dataService = sync.NewDataService()
+
+	// 旧版调度器（仅在控制中心模式下启用）
+	if mode == ModeControlCenter {
+		service.scheduler = scheduler.NewScheduler(store, cfg.Scheduler.DefaultStrategy)
+		service.scheduler.SetTaskQueue(service.taskQueue)
+		go service.taskDispatcher()
+	}
+
 	// Start background workers
-	go service.taskDispatcher()
 	go service.messageDispatcher()
 	go service.agentMonitor()
+
+	log.Printf("Center started in %s mode", mode)
 
 	return service, nil
 }
@@ -77,8 +109,15 @@ func NewCenterService(ctx context.Context, cfg *config.Config) (*CenterService, 
 // Close closes the service
 func (s *CenterService) Close() {
 	s.cancel()
-	s.scheduler.Stop()
+	if s.scheduler != nil {
+		s.scheduler.Stop()
+	}
 	s.store.Close()
+}
+
+// GetMode returns the current mode
+func (s *CenterService) GetMode() CenterMode {
+	return s.mode
 }
 
 // ===== Accessor Methods =====
@@ -101,6 +140,11 @@ func (s *CenterService) GetIdentity() *identity.Service {
 // GetSyncService returns the sync service instance (v2.0.0)
 func (s *CenterService) GetSyncService() *identity.SyncService {
 	return s.syncService
+}
+
+// GetDataService returns the data service instance (v2.1.0)
+func (s *CenterService) GetDataService() *sync.DataService {
+	return s.dataService
 }
 
 // GetTaskQueue returns the task queue channel
@@ -1404,4 +1448,51 @@ func (s *CenterService) BindAgentToIdentity(agentID, identityID string) {
 // UnbindAgent unbinds an agent from its identity
 func (s *CenterService) UnbindAgent(agentID string) {
 	s.syncService.UnbindAgent(agentID)
+}
+
+// ===== Data Service API Methods (v2.1.0) =====
+
+// DataSyncIdentity 同步身份（数据中心模式）
+func (s *CenterService) DataSyncIdentity(ctx context.Context, req *sync.SyncIdentityRequest) (*sync.SyncIdentityResponse, error) {
+	return s.dataService.SyncIdentity(ctx, req)
+}
+
+// DataSyncMemories 同步记忆（数据中心模式）
+func (s *CenterService) DataSyncMemories(ctx context.Context, req *sync.SyncMemoriesRequest) (*sync.SyncMemoriesResponse, error) {
+	return s.dataService.SyncMemories(ctx, req)
+}
+
+// DataSyncPreferences 同步偏好（数据中心模式）
+func (s *CenterService) DataSyncPreferences(ctx context.Context, req *sync.SyncPreferencesRequest) (*sync.SyncPreferencesResponse, error) {
+	return s.dataService.SyncPreferences(ctx, req)
+}
+
+// DataGetIdentity 获取身份
+func (s *CenterService) DataGetIdentity(ctx context.Context, identityID string) (*models.PersonalIdentity, error) {
+	return s.dataService.GetIdentity(ctx, identityID)
+}
+
+// DataGetMemories 获取记忆
+func (s *CenterService) DataGetMemories(ctx context.Context, identityID string, query *sync.MemoryQuery) ([]*sync.MemoryEntry, error) {
+	return s.dataService.GetMemories(ctx, identityID, query)
+}
+
+// DataGetPreferences 获取偏好
+func (s *CenterService) DataGetPreferences(ctx context.Context, identityID string) (map[string]interface{}, error) {
+	return s.dataService.GetPreferences(ctx, identityID)
+}
+
+// DataReportBehavior 上报行为
+func (s *CenterService) DataReportBehavior(ctx context.Context, report *sync.BehaviorReport) error {
+	return s.dataService.ReportBehavior(ctx, report)
+}
+
+// DataGetSyncState 获取同步状态
+func (s *CenterService) DataGetSyncState(identityID string) *sync.SyncState {
+	return s.dataService.GetSyncState(identityID)
+}
+
+// DataGetDeviceCount 获取设备数量
+func (s *CenterService) DataGetDeviceCount(identityID string) int {
+	return s.dataService.GetDeviceCount(identityID)
 }

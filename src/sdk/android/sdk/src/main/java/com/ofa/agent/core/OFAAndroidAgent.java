@@ -75,7 +75,7 @@ public class OFAAndroidAgent {
      */
     public static class Builder {
         private final Context context;
-        private AgentProfile.RunMode runMode = AgentProfile.RunMode.HYBRID;
+        private AgentProfile.RunMode runMode = AgentProfile.RunMode.SYNC; // v2.1.0: 默认 SYNC 模式
         private String centerAddress = "localhost";
         private int centerPort = 9090;
         private boolean enableAutomation = true;
