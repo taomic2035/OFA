@@ -44,6 +44,8 @@ type CenterService struct {
 	syncService *identity.SyncService
 	// v2.1.0: Data Service（数据中心模式）
 	dataService *sync.DataService
+	// v5.6.2: TTS Service
+	ttsService *TTSService
 
 	// Active agent connections
 	connections sync.Map // map[string]*models.AgentConnection
@@ -89,6 +91,9 @@ func NewCenterServiceWithMode(ctx context.Context, cfg *config.Config, mode Cent
 
 	// v2.1.0: Initialize Data Service
 	service.dataService = sync.NewDataService()
+
+	// v5.6.2: Initialize TTS Service
+	service.ttsService = NewTTSService(cfg)
 
 	// 旧版调度器（仅在控制中心模式下启用）
 	if mode == ModeControlCenter {
@@ -145,6 +150,11 @@ func (s *CenterService) GetSyncService() *identity.SyncService {
 // GetDataService returns the data service instance (v2.1.0)
 func (s *CenterService) GetDataService() *sync.DataService {
 	return s.dataService
+}
+
+// GetTTSService returns the TTS service instance (v5.6.2)
+func (s *CenterService) GetTTSService() *TTSService {
+	return s.ttsService
 }
 
 // GetTaskQueue returns the task queue channel

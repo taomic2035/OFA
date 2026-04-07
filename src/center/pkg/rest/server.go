@@ -98,6 +98,13 @@ func (s *Server) setupRoutes() {
 	// Skill endpoints (with metrics)
 	s.router.HandleFunc("/api/v1/skills", s.withMetrics(s.listSkills)).Methods("GET")
 
+	// TTS endpoints (v5.6.4)
+	s.router.HandleFunc("/api/v1/tts/synthesize", s.withMetrics(s.ttsSynthesize)).Methods("POST")
+	s.router.HandleFunc("/api/v1/tts/voices", s.withMetrics(s.ttsListVoices)).Methods("GET")
+	s.router.HandleFunc("/api/v1/tts/clone", s.withMetrics(s.ttsCloneVoice)).Methods("POST")
+	s.router.HandleFunc("/api/v1/tts/identity/{id}/voice", s.withMetrics(s.ttsSetIdentityVoice)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/tts/identity/{id}/voice", s.withMetrics(s.ttsGetIdentityVoice)).Methods("GET")
+
 	// Dashboard static files
 	s.setupDashboardRoutes()
 }
@@ -459,6 +466,130 @@ func (s *Server) listSkills(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, http.StatusOK, &pb.ListSkillsResponse{Skills: skills})
 }
 
+// ===== TTS Handlers (v5.6.4) =====
+
+func (s *Server) ttsSynthesize(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req TTSSynthesizeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	// Get TTS service
+	ttsService := s.service.GetTTSService()
+	if ttsService == nil {
+		errorResponse(w, fmt.Errorf("TTS service not initialized"))
+		return
+	}
+
+	// Synthesize
+	result, err := ttsService.Synthesize(ctx, &req)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, result)
+}
+
+func (s *Server) ttsListVoices(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	provider := r.URL.Query().Get("provider")
+
+	// Get TTS service
+	ttsService := s.service.GetTTSService()
+	if ttsService == nil {
+		errorResponse(w, fmt.Errorf("TTS service not initialized"))
+		return
+	}
+
+	// List voices
+	voices, err := ttsService.ListVoices(ctx, provider)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"voices": voices,
+	})
+}
+
+func (s *Server) ttsCloneVoice(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req TTSCloneRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	// Get TTS service
+	ttsService := s.service.GetTTSService()
+	if ttsService == nil {
+		errorResponse(w, fmt.Errorf("TTS service not initialized"))
+		return
+	}
+
+	// Clone voice
+	result, err := ttsService.CloneVoice(ctx, &req)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, result)
+}
+
+func (s *Server) ttsSetIdentityVoice(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["id"]
+
+	var req struct {
+		VoiceID string `json:"voice_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	// Get TTS service
+	ttsService := s.service.GetTTSService()
+	if ttsService == nil {
+		errorResponse(w, fmt.Errorf("TTS service not initialized"))
+		return
+	}
+
+	// Set voice mapping
+	ttsService.SetVoiceForIdentity(identityID, req.VoiceID)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"identity_id": identityID,
+		"voice_id":    req.VoiceID,
+		"success":     true,
+	})
+}
+
+func (s *Server) ttsGetIdentityVoice(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["id"]
+
+	// Get TTS service
+	ttsService := s.service.GetTTSService()
+	if ttsService == nil {
+		errorResponse(w, fmt.Errorf("TTS service not initialized"))
+		return
+	}
+
+	// Get voice mapping
+	voiceID := ttsService.GetVoiceForIdentity(identityID)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"identity_id": identityID,
+		"voice_id":    voiceID,
+	})
+}
+
 // ===== Helper Functions =====
 
 func jsonResponse(w http.ResponseWriter, status int, data interface{}) {
@@ -520,4 +651,33 @@ type MulticastRequest struct {
 	Action    string   `json:"action"`
 	Payload   []byte   `json:"payload"`
 	TTL       int32    `json:"ttl"`
+}
+
+// ===== TTS Request Types (v5.6.4) =====
+
+type TTSSynthesizeRequest struct {
+	IdentityID string  `json:"identity_id"`
+	Text       string  `json:"text"`
+	VoiceID    string  `json:"voice_id,omitempty"`
+	Format     string  `json:"format,omitempty"`
+	SampleRate int     `json:"sample_rate,omitempty"`
+	Rate       float64 `json:"rate,omitempty"`
+	Pitch      float64 `json:"pitch,omitempty"`
+	Volume     float64 `json:"volume,omitempty"`
+	Emotion    string  `json:"emotion,omitempty"`
+	Style      string  `json:"style,omitempty"`
+	Streaming  bool    `json:"streaming,omitempty"`
+}
+
+type TTSCloneRequest struct {
+	IdentityID      string           `json:"identity_id"`
+	VoiceName       string           `json:"voice_name"`
+	Language        string           `json:"language"`
+	ReferenceAudios []TTSRefAudio    `json:"reference_audios"`
+}
+
+type TTSRefAudio struct {
+	AudioURL      string `json:"audio_url"`
+	DurationMs    int    `json:"duration_ms"`
+	Transcription string `json:"transcription"`
 }
