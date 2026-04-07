@@ -7,6 +7,59 @@
 
 ---
 
+## [2.9.0] - 2026-04-07 🧠 Personality Evolution Engine
+
+### 核心理念
+
+**Center 是永远在线的灵魂载体，性格进化引擎确保：**
+- 性格随时间稳定收敛
+- MBTI 类型趋于稳定
+- 长期行为模式识别
+- 重大事件影响追踪
+
+### 新增 - Center 性格进化引擎
+
+**EvolutionEngine (`evolution.go`):**
+- 性格稳定性检测 (StabilityReport)
+- MBTI 类型收敛追踪
+- 时间衰减机制 (30天半衰期)
+- 重大事件检测与记录
+- 性格快照历史 (90天)
+- 趋势分析 (TrendAnalysis)
+
+**稳定性指标:**
+- StabilityScore 收敛检测
+- 方差计算 (Variance)
+- MBTI 稳定窗口 (50次观察)
+- 性格固化阈值 (0.8)
+
+**时间衰减:**
+- 指数衰减权重
+- 最小观察权重 (0.1)
+- 重大事件影响权重 (1.5x)
+
+### 新增 - Android SDK 稳定性追踪
+
+**StabilityTracker (`StabilityTracker.java`):**
+- PersonalitySnapshot 性格快照
+- StabilityReport 稳定性报告
+- TrendAnalysis 趋势分析
+- MajorEvent 重大事件记录
+- MBTI 转换历史追踪
+- 时间衰减计算
+
+**配置参数:**
+| 参数 | 默认值 |
+|------|--------|
+| StabilityThreshold | 0.8 |
+| ConvergenceWindow | 20 |
+| MBTIStabilityWindow | 50 |
+| DecayHalfLife | 30天 |
+| MajorEventThreshold | 0.3 |
+| MaxSnapshots | 90 |
+
+---
+
 ## [2.8.0] - 2026-04-07 🔐 Device Lifecycle & Trust Chain
 
 ### 核心理念
