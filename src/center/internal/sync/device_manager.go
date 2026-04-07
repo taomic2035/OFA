@@ -358,13 +358,3 @@ func (m *DeviceManager) UpdateSyncVersion(agentID string, version int64) {
 		device.LastSeen = time.Now()
 	}
 }
-
-// === 设备统计 ===
-
-// DeviceStats 设备统计
-type DeviceStats struct {
-	TotalDevices   int            `json:"total_devices"`
-	OnlineDevices  int            `json:"online_devices"`
-	OfflineDevices int            `json:"offline_devices"`
-	ByType         map[string]int `json:"by_type"`
-}

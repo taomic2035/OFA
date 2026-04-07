@@ -1,3 +1,9 @@
+// Package scheduler provides task scheduling functionality.
+//
+// Deprecated: As of v2.1.0, Center has transformed from a control center to a data center.
+// Agents now make autonomous decisions and sync with Center proactively.
+// This package is retained for backward compatibility but may be removed in future versions.
+// New implementations should use Agent-side decision making with Center sync.
 package scheduler
 
 import (

@@ -7,6 +7,39 @@
 
 ---
 
+## [2.6.0] - 2026-04-07 👑 Center Authority
+
+### 核心理念纠正
+
+**Center 是永远在线的灵魂载体：**
+- 设备可能离线、更换，但 Center 一直在
+- Center 保持最终基准
+- 设备冲突由 Center 统一决策和纠偏
+
+### 新增 - Center 权威性
+
+**冲突仲裁器 (ConflictArbiter):**
+- AuthorityStrategy - Center 权威策略（默认）
+- MergeStrategy - 智能合并策略
+- TimestampStrategy - 时间戳优先策略
+
+**设备管理器 (DeviceManager):**
+- 设备注册/注销
+- 心跳检测
+- 离线检测
+- 设备统计
+
+**纠偏机制:**
+- 设备重连时检查版本落后
+- 自动推送 Center 最新状态
+
+### 改进 - Android SDK
+
+- 移除客户端冲突决策逻辑
+- 冲突时直接接受 Center 返回的结果
+
+---
+
 ## [2.5.0] - 2026-04-07 🔄 Identity Sync Enhancement
 
 ### 新增 - 身份同步完善
