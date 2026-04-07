@@ -7,6 +7,98 @@
 
 ---
 
+## [3.3.0] - 2026-04-07 🔄 Task Collaboration
+
+### 核心理念
+
+**Center 是永远在线的灵魂载体，任务协同执行确保：**
+- 多设备协同完成任务
+- 任务拆分与分配
+- 结果聚合与合并
+- 失败转移与重试
+
+### 新增 - Center 任务协调器
+
+**TaskCoordinator (`task_coordinator.go`):**
+- 任务创建与管理
+- 任务拆分（Split 策略）
+- 任务分配到设备
+- 结果合并（Merge 策略）
+- 失败重试机制
+- 任务监听器
+
+**拆分策略 (SplitStrategy):**
+| 策略 | 说明 |
+|------|------|
+| none | 不拆分，单设备执行 |
+| parallel | 并行拆分 |
+| sequence | 顺序拆分 |
+| map_reduce | MapReduce 模式 |
+| by_device | 按设备能力拆分 |
+
+**合并策略 (MergeStrategy):**
+| 策略 | 说明 |
+|------|------|
+| none | 不合并 |
+| all | 收集所有结果 |
+| first | 取第一个成功结果 |
+| consensus | 共识结果 |
+| aggregate | 聚合统计 |
+| best | 取最佳结果 |
+
+**任务状态:**
+| 状态 | 说明 |
+|------|------|
+| pending | 待执行 |
+| assigned | 已分配 |
+| running | 执行中 |
+| completed | 已完成 |
+| failed | 失败 |
+| cancelled | 已取消 |
+| timeout | 超时 |
+
+### 新增 - Android SDK 协同任务模型
+
+**CollaborativeTask:**
+- 完整的任务字段定义
+- 拆分与合并策略配置
+- 执行约束配置
+- JSON 序列化/反序列化
+
+**SubTask:**
+- 子任务模型
+- 状态管理
+- 重试机制
+
+**TaskCollaborator:**
+- 接收并执行分配的子任务
+- 向 Center 报告结果
+- 任务执行器注册机制
+- 任务取消支持
+- 本地任务管理
+
+### 任务执行约束
+
+| 约束 | 说明 |
+|------|------|
+| required_capabilities | 所需设备能力 |
+| preferred_devices | 首选设备 |
+| min_devices | 最少设备数 |
+| max_devices | 最多设备数 |
+| timeout | 超时时间 |
+| max_retries | 最大重试次数 |
+
+### 单元测试
+
+**Center:**
+- `task_coordinator_test.go` - 任务协调器测试
+- 任务创建测试
+- 拆分策略测试
+- 合并策略测试
+- JSON 序列化测试
+
+---
+
 ## [3.2.0] - 2026-04-07 🎯 Scene-Aware Routing
 
 ### 核心理念
