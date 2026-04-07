@@ -27,15 +27,18 @@ import java.util.function.Consumer;
 /**
  * Agent Mode Manager - manages different running modes and task routing.
  *
- * Three running modes:
- * 1. STANDALONE - Complete local execution, no Center connection
- * 2. CONNECTED - Connected to Center, receives remote tasks
- * 3. HYBRID - Local-first with cloud enhancement
+ * v2.1.0 运行模式（更新）：
+ * 1. STANDALONE - 完全独立运行，不连接 Center（默认）
+ * 2. SYNC - 定期与 Center 同步数据，本地优先
  *
- * Task sources in HYBRID mode:
- * - Local triggers (Intent, UI, Scheduled)
- * - Center assignments
- * - Peer requests
+ * 废弃的模式（向后兼容）：
+ * - CONNECTED - 现在等同于 SYNC
+ * - HYBRID - 现在等同于 SYNC
+ *
+ * 核心变化：
+ * - Center 不再调度任务，Agent 完全自主
+ * - Center 仅作为数据中心，提供同步服务
+ * - Agent 主动拉取/推送数据
  */
 public class AgentModeManager {
 
@@ -121,11 +124,14 @@ public class AgentModeManager {
             case STANDALONE:
                 initializeStandaloneMode();
                 break;
-            case CONNECTED:
-                initializeConnectedMode();
+            case SYNC:
+                initializeSyncMode();
                 break;
-            case HYBRID:
-                initializeHybridMode();
+            case CONNECTED: // deprecated, same as SYNC
+            case HYBRID:    // deprecated, same as SYNC
+                Log.w(TAG, "Mode " + currentMode + " is deprecated, using SYNC mode");
+                currentMode = AgentProfile.RunMode.SYNC;
+                initializeSyncMode();
                 break;
         }
 
@@ -147,38 +153,24 @@ public class AgentModeManager {
     }
 
     /**
-     * Initialize connected mode - connected to Center
+     * Initialize sync mode - local-first with Center data sync (v2.1.0)
      */
-    private void initializeConnectedMode() {
-        Log.i(TAG, "Initializing CONNECTED mode");
-        // Connect to Center
-        centerConnection = new CenterConnection(context, profile);
-        centerConnection.connect();
-
-        // Optionally enable peer network
-        if (profile.isAllowPeerCommunication()) {
-            peerNetwork = new PeerNetwork(context, profile);
-            peerNetwork.start();
-        }
-    }
-
-    /**
-     * Initialize hybrid mode - local-first with cloud enhancement
-     */
-    private void initializeHybridMode() {
-        Log.i(TAG, "Initializing HYBRID mode");
-        // Try to connect to Center, but don't fail if unavailable
+    private void initializeSyncMode() {
+        Log.i(TAG, "Initializing SYNC mode - Center as data center");
+        // Connect to Center for data sync (not task dispatch)
         centerConnection = new CenterConnection(context, profile);
         centerConnection.setConnectionListener(new CenterConnection.ConnectionListener() {
             @Override
             public void onConnected() {
-                Log.i(TAG, "Center connected in hybrid mode");
-                syncWithCenter();
+                Log.i(TAG, "Center connected, enabling data sync");
+                // 启动数据同步
+                startDataSync();
             }
 
             @Override
             public void onDisconnected() {
                 Log.i(TAG, "Center disconnected, continuing locally");
+                stopDataSync();
             }
 
             @Override
@@ -193,6 +185,22 @@ public class AgentModeManager {
             peerNetwork = new PeerNetwork(context, profile);
             peerNetwork.start();
         }
+    }
+
+    /**
+     * Start data sync with Center
+     */
+    private void startDataSync() {
+        // 数据同步由 IdentityManager 和 UserMemoryManager 负责
+        // 这里只做状态通知
+        Log.i(TAG, "Data sync started");
+    }
+
+    /**
+     * Stop data sync with Center
+     */
+    private void stopDataSync() {
+        Log.i(TAG, "Data sync stopped");
     }
 
     /**
@@ -263,11 +271,14 @@ public class AgentModeManager {
             case STANDALONE:
                 initializeStandaloneMode();
                 break;
-            case CONNECTED:
-                initializeConnectedMode();
+            case SYNC:
+                initializeSyncMode();
                 break;
-            case HYBRID:
-                initializeHybridMode();
+            case CONNECTED: // deprecated
+            case HYBRID:    // deprecated
+                Log.w(TAG, "Mode " + newMode + " is deprecated, using SYNC mode");
+                currentMode = AgentProfile.RunMode.SYNC;
+                initializeSyncMode();
                 break;
         }
 
@@ -295,40 +306,18 @@ public class AgentModeManager {
     }
 
     /**
-     * Execute task - routes to appropriate handler based on mode
+     * Execute task - always executes locally (v2.1.0)
+     *
+     * Center 不再调度任务，所有任务由 Agent 本地执行。
+     * Center 仅用于数据同步。
      */
     @NonNull
     public CompletableFuture<TaskResult> executeTask(@NonNull TaskRequest request) {
-        Log.i(TAG, "Executing task: " + request.taskId + " in mode: " + currentMode);
+        Log.i(TAG, "Executing task locally: " + request.taskId + " in mode: " + currentMode);
 
         setStatus(AgentProfile.AgentStatus.BUSY);
 
-        CompletableFuture<TaskResult> future = new CompletableFuture<>();
-
-        try {
-            switch (currentMode) {
-                case STANDALONE:
-                    // Always execute locally
-                    future = executeLocally(request);
-                    break;
-
-                case CONNECTED:
-                    // Prefer Center if available
-                    if (centerConnection != null && centerConnection.isConnected()) {
-                        future = executeViaCenter(request);
-                    } else {
-                        future.completeExceptionally(new Exception("Center not connected"));
-                    }
-                    break;
-
-                case HYBRID:
-                    // Decide based on task requirements and availability
-                    future = executeHybrid(request);
-                    break;
-            }
-        } catch (Exception e) {
-            future.completeExceptionally(e);
-        }
+        CompletableFuture<TaskResult> future = executeLocally(request);
 
         // Reset status after completion
         future.whenComplete((result, error) -> setStatus(AgentProfile.AgentStatus.IDLE));
@@ -345,52 +334,18 @@ public class AgentModeManager {
     }
 
     /**
-     * Execute via Center
+     * Sync data with Center (v2.1.0)
+     *
+     * 同步身份、记忆、偏好到 Center
      */
-    @NonNull
-    private CompletableFuture<TaskResult> executeViaCenter(@NonNull TaskRequest request) {
-        return centerConnection.executeTask(request);
-    }
-
-    /**
-     * Execute in hybrid mode - intelligent routing
-     */
-    @NonNull
-    private CompletableFuture<TaskResult> executeHybrid(@NonNull TaskRequest request) {
-        // Decision logic:
-        // 1. Can execute offline? → Local if no network
-        // 2. Needs cloud LLM? → Center if available
-        // 3. Local skills? → Local first
-        // 4. Complex coordination? → Center
-
-        boolean canBeOffline = localEngine.canExecute(request);
-        boolean needsCloud = request.requiresCloudCapability();
-        boolean centerAvailable = centerConnection != null && centerConnection.isConnected();
-
-        if (!networkAvailable && canBeOffline) {
-            Log.d(TAG, "Hybrid: executing locally (no network)");
-            return executeLocally(request);
+    public void syncDataWithCenter() {
+        if (centerConnection == null || !centerConnection.isConnected()) {
+            Log.w(TAG, "Cannot sync data: Center not connected");
+            return;
         }
 
-        if (needsCloud && centerAvailable) {
-            Log.d(TAG, "Hybrid: executing via Center (needs cloud)");
-            return executeViaCenter(request);
-        }
-
-        if (canBeOffline) {
-            Log.d(TAG, "Hybrid: executing locally (local capability)");
-            return executeLocally(request);
-        }
-
-        if (centerAvailable) {
-            Log.d(TAG, "Hybrid: executing via Center (fallback)");
-            return executeViaCenter(request);
-        }
-
-        // Cannot execute
-        CompletableFuture<TaskResult> future = new CompletableFuture<>();
-        future.completeExceptionally(new Exception("No execution path available"));
-        return future;
+        Log.i(TAG, "Syncing data with Center...");
+        centerConnection.sync();
     }
 
     /**

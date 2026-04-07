@@ -69,12 +69,15 @@ public class AgentProfile {
     }
 
     /**
-     * Run mode enum
+     * Run mode enum (v2.1.0 updated)
      */
     public enum RunMode {
         STANDALONE("standalone", "完全独立运行，不连接 Center"),
-        CONNECTED("connected", "连接 Center，接收远程任务"),
-        HYBRID("hybrid", "混合模式，本地优先，云端增强");
+        SYNC("sync", "定期与 Center 同步数据（推荐）"),
+        @Deprecated
+        CONNECTED("connected", "连接 Center，接收远程任务（已废弃，请使用 SYNC）"),
+        @Deprecated
+        HYBRID("hybrid", "混合模式（已废弃，请使用 SYNC）");
 
         private final String value;
         private final String description;
