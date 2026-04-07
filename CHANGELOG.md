@@ -7,6 +7,71 @@
 
 ---
 
+## [3.0.0] - 2026-04-07 📨 Device Message Bus
+
+### 核心理念
+
+**Center 是永远在线的灵魂载体，消息总线提供：**
+- Center 到设备的消息推送
+- 设备到设备的消息路由
+- 离线消息存储和投递
+- 消息优先级和过期管理
+
+### 新增 - Center 消息总线
+
+**MessageBus (`message_bus.go`):**
+- 消息发送/接收/确认
+- 离线消息存储和推送
+- 消息优先级 (LOW/NORMAL/HIGH/URGENT)
+- 消息过期机制
+- 消息重试机制
+- 设备连接状态管理
+
+**消息类型:**
+| 类型 | 用途 |
+|------|------|
+| command | 命令消息 |
+| notification | 通知消息 |
+| data | 数据消息 |
+| sync | 同步消息 |
+| ack | 确认消息 |
+| heartbeat | 心跳消息 |
+
+**消息状态:**
+| 状态 | 说明 |
+|------|------|
+| pending | 待发送 |
+| sent | 已发送 |
+| delivered | 已送达 |
+| acked | 已确认 |
+| failed | 发送失败 |
+| expired | 已过期 |
+
+### 新增 - Android SDK 消息总线
+
+**MessageBus 客户端:**
+- 消息发送/接收
+- 连接状态管理
+- 离线消息队列
+- 消息监听器
+
+**Message 模型:**
+- 完整的消息字段
+- JSON 序列化/反序列化
+- 便捷的创建方法
+
+**OfflineMessageQueue:**
+- 离线消息持久化
+- 优先级排序
+- 过期清理
+- 队列统计
+
+### 规划文档
+
+新增 `plans/v3-roadmap.md` 详细规划 v3.0.0 - v3.5.0 版本迭代计划。
+
+---
+
 ## [2.9.0] - 2026-04-07 🧠 Personality Evolution Engine
 
 ### 核心理念
