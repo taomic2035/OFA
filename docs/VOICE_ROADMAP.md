@@ -215,6 +215,155 @@ src/center/internal/tts/
 └─────────────────────────────────────────────────────────────┘
 ```
 
+#### 5. 火山引擎 Go 实现
+
+```go
+// src/center/internal/tts/providers/volcengine.go
+
+package providers
+
+import (
+    "context"
+    "crypto/md5"
+    "encoding/hex"
+    "encoding/json"
+    "fmt"
+    "net/http"
+    "net/url"
+    "time"
+
+    "github.com/gorilla/websocket"
+)
+
+// VolcengineProvider 火山引擎 TTS 提供者
+type VolcengineProvider struct {
+    appID      string
+    token      string
+    resourceID string // seed-tts-2.0 for Doubao
+
+    // HTTP client
+    httpClient *http.Client
+
+    // WebSocket connection
+    wsEndpoint string
+}
+
+// NewVolcengineProvider 创建火山引擎提供者
+func NewVolcengineProvider(appID, token string) *VolcengineProvider {
+    return &VolcengineProvider{
+        appID:      appID,
+        token:      token,
+        resourceID: "volc.bigasr.speech_optional_20k",
+        httpClient: &http.Client{Timeout: 60 * time.Second},
+        wsEndpoint: "wss://openspeech.bytedance.com/api/v1/tts/ws_binary",
+    }
+}
+
+// Synthesize HTTP 方式合成（简单场景）
+func (p *VolcengineProvider) Synthesize(ctx context.Context, req *SynthesisRequest) (*SynthesisResult, error) {
+    payload := map[string]interface{}{
+        "app": map[string]string{
+            "appid": p.appID,
+            "token": "access_token",
+        },
+        "user": map[string]string{
+            "uid": "ofa_user",
+        },
+        "audio": map[string]interface{}{
+            "voice_type":   req.VoiceID,
+            "encoding":     "mp3",
+            "speed_ratio":  req.Rate,
+            "volume_ratio": req.Volume,
+            "pitch_ratio":  req.Pitch,
+        },
+        "request": map[string]string{
+            "reqid":     p.generateReqID(req.Text),
+            "text":      req.Text,
+            "operation": "query",
+        },
+    }
+
+    // Call HTTP API...
+}
+
+// SynthesizeStream WebSocket 流式合成（实时场景）
+func (p *VolcengineProvider) SynthesizeStream(ctx context.Context, req *SynthesisRequest) (<-chan AudioChunk, error) {
+    // WebSocket connection with binary protocol
+    // 参考: D:\vibecoding\20260316\src\agent_framework\protocols\protocols.py
+}
+
+// DoubaoProvider 豆包 TTS 2.0 提供者（大模型音色）
+type DoubaoProvider struct {
+    *VolcengineProvider
+}
+
+// NewDoubaoProvider 创建豆包提供者
+func NewDoubaoProvider(appID, token string) *DoubaoProvider {
+    p := NewVolcengineProvider(appID, token)
+    p.resourceID = "seed-tts-2.0" // 豆包资源ID
+    p.wsEndpoint = "wss://openspeech.bytedance.com/api/v3/tts/bidirection"
+    return &DoubaoProvider{p}
+}
+```
+
+#### 6. WebSocket 协议实现
+
+```go
+// src/center/internal/tts/protocol/volcengine_protocol.go
+
+package protocol
+
+// MessageType 消息类型
+type MessageType byte
+
+const (
+    MsgFullClientRequest MessageType = 0x01
+    MsgAudioOnlyClient   MessageType = 0x02
+    MsgFullServerResponse MessageType = 0x09
+    MsgAudioOnlyServer   MessageType = 0x0B
+    MsgError             MessageType = 0x0F
+)
+
+// EventType 事件类型
+type EventType int32
+
+const (
+    EventStartConnection EventType = 1
+    EventFinishConnection EventType = 2
+    EventConnectionStarted EventType = 50
+    EventConnectionFailed EventType = 51
+    EventStartSession EventType = 100
+    EventFinishSession EventType = 102
+    EventSessionStarted EventType = 150
+    EventSessionFinished EventType = 152
+    EventTaskRequest EventType = 200
+)
+
+// Message WebSocket 消息
+type Message struct {
+    Version      byte
+    HeaderSize   byte
+    Type         MessageType
+    Flag         byte
+    Serialization byte
+    Compression  byte
+    Event        EventType
+    SessionID    string
+    Payload      []byte
+}
+
+// Marshal 序列化消息
+func (m *Message) Marshal() []byte {
+    // 参考: D:\vibecoding\20260316\src\agent_framework\protocols\protocols.py
+    // 二进制协议实现
+}
+
+// Unmarshal 反序列化消息
+func Unmarshal(data []byte) (*Message, error) {
+    // 解析服务器响应
+}
+```
+
 ---
 
 ### v6.1.0 - 韵律精细控制
@@ -467,15 +616,26 @@ func (e *VoiceEngine) CalculateFinalVoice(identity *PersonalIdentity,
 
 ## 技术选型建议
 
-### TTS引擎选择
+### TTS引擎选择（火山引擎优先）
 
 | 引擎 | 音色复刻 | 流式 | 质量 | 成本 | 推荐 |
 |------|----------|------|------|------|------|
-| ElevenLabs | ✅ 优秀 | ✅ | 极高 | 高 | 高端场景 |
+| **火山引擎** | ✅ 良好 | ✅ WebSocket | 极高 | 中 | **首选** |
+| 豆包 TTS 2.0 | ✅ 优秀 | ✅ WebSocket | 极高 | 中 | 高端中文场景 |
+| ElevenLabs | ✅ 优秀 | ✅ | 极高 | 高 | 国际场景 |
 | Azure Speech | ✅ 良好 | ✅ | 高 | 中 | 企业场景 |
-| Google Cloud TTS | ⚠️ 一般 | ✅ | 高 | 中 | 通用场景 |
-| 阿里云语音 | ✅ 良好 | ✅ | 高 | 低 | 中文场景 |
-| VITS/SoVITS | ✅ 良好 | ✅ | 中 | 免费 | 本地部署 |
+| 阿里云语音 | ✅ 良好 | ✅ | 高 | 低 | 中文备选 |
+
+### 火山引擎能力矩阵
+
+| 能力 | 支持 | 说明 |
+|------|------|------|
+| 大模型音色 | ✅ | 豆包TTS 2.0，30+音色（猴哥、魅力女友等） |
+| 情感语音 | ✅ | 开心、悲伤、愤怒、恐惧等 |
+| 方言支持 | ✅ | 东北、山东、四川、广东等 |
+| 流式合成 | ✅ | WebSocket 双向流式协议 |
+| 实时性 | ✅ | 首包延迟 < 200ms |
+| 自定义音色 | ✅ | 支持音色复刻 |
 
 ### 推荐架构
 
@@ -488,36 +648,111 @@ func (e *VoiceEngine) CalculateFinalVoice(identity *PersonalIdentity,
               ┌──────────────┼──────────────┐
               │              │              │
         ┌─────▼─────┐  ┌─────▼─────┐  ┌─────▼─────┐
-        │  Cloud    │  │   Local   │  │  Hybrid   │
-        │  TTS      │  │   TTS     │  │  Router   │
-        └───────────┘  └───────────┘  └───────────┘
-              │              │
-    ┌─────────┼─────────┐    │
-    │         │         │    │
-ElevenLabs Azure   Alibaba  VITS
-(高质量) (稳定)  (中文)   (本地)
+        │ Volcengine│  │   Cloud   │  │  Hybrid   │
+        │   TTS     │  │   TTS     │  │  Router   │
+        │  (首选)   │  │ (备选)    │  │ (智能路由)│
+        └─────┬─────┘  └───────────┘  └───────────┘
+              │
+    ┌─────────┼─────────┐
+    │         │         │
+豆包TTS 2.0 标准TTS   音色复刻
+(大模型)  (情感/方言)  (自定义)
+```
+
+### 火山引擎音色映射示例
+
+```go
+// 豆包 TTS 2.0 大模型音色
+var DoubaoVoices = map[string]string{
+    "zh_male_sunwukong_uranus_bigtts": "猴哥",
+    "zh_female_meilinvyou_uranus_bigtts": "魅力女友",
+    "zh_male_ruyayichen_uranus_bigtts": "儒雅逸辰",
+    "saturn_zh_male_shuanglangshaonian_tob": "爽朗少年",
+    "zh_female_cancan_uranus_bigtts": "知性灿灿",
+    // ... 30+ 音色
+}
+
+// 火山引擎标准音色
+var VolcengineVoices = map[string]string{
+    // 情感音色
+    "zh_female_happy": "开心女声",
+    "zh_female_sad": "悲伤女声",
+    "zh_female_angry": "愤怒女声",
+
+    // 方言
+    "zh_dongbei_dialect": "东北方言",
+    "zh_sichuan_dialect": "四川方言",
+    "zh_guangdong_dialect": "广东方言",
+}
 ```
 
 ---
 
 ## 下一步行动
 
-1. **v6.0.0 实现**
-   - [ ] 实现 TTSEngine 核心框架
-   - [ ] 集成 ElevenLabs API (P0)
-   - [ ] 集成 Azure Speech Services (P0)
-   - [ ] 实现 VoiceCloningModel (P0)
-   - [ ] 实现语音特征提取 (P0)
+### 1. v6.0.0 实现（火山引擎集成）
 
-2. **Android SDK 更新**
-   - [ ] 添加 TTSCClient 实时合成客户端
-   - [ ] 添加 VoiceCloningUI 音色复刻流程
-   - [ ] 实现流式音频播放
+**Center Go 服务端**:
+- [ ] 实现 VolcengineProvider HTTP API 调用
+- [ ] 实现 DoubaoProvider WebSocket 流式协议
+- [ ] 实现 volcengine_protocol 二进制协议
+- [ ] 集成到现有 VoiceEngine
 
-3. **测试验证**
-   - [ ] 音色复刻相似度测试 (>90%)
-   - [ ] 实时合成延迟测试 (<200ms首包)
-   - [ ] 情绪映射准确性测试
+**参考实现**:
+- `D:\vibecoding\20260316\src\agent_framework\agents\volcengine_tts_agent.py`
+- `D:\vibecoding\20260316\src\agent_framework\agents\doubao_tts_agent.py`
+- `D:\vibecoding\20260316\src\agent_framework\protocols\protocols.py`
+
+**文件结构**:
+```
+src/center/internal/tts/
+├── engine.go              # TTS引擎核心
+├── provider.go            # Provider接口
+├── providers/
+│   ├── volcengine.go      # 火山引擎标准TTS
+│   ├── doubao.go          # 豆包TTS 2.0
+│   └── fallback.go        # 备用引擎
+├── protocol/
+│   └── volcengine.go      # WebSocket协议
+└── cache/
+    └── synthesis_cache.go # 合成缓存
+```
+
+**Android SDK**:
+- [ ] 添加 TTSClient 实时合成客户端
+- [ ] 添加 AudioStreamer 音频流播放
+- [ ] 实现流式音频播放
+
+### 2. 配置说明
+
+**环境变量**:
+```bash
+# 火山引擎标准 TTS
+VOLCENGINE_TTS_APPID=your_appid
+VOLCENGINE_TTS_TOKEN=your_token
+
+# 豆包 TTS 2.0（可选，使用不同的appid）
+DOUBAO_TTS_APPID=your_appid
+DOUBAO_TTS_TOKEN=your_token
+DOUBAO_TTS_RESOURCE_ID=seed-tts-2.0
+```
+
+**获取方式**: https://console.volcengine.com/speech/app
+
+### 3. 测试验证
+
+- [ ] 火山引擎 HTTP 合成测试
+- [ ] 豆包 WebSocket 流式合成测试
+- [ ] 首包延迟测试 (< 200ms)
+- [ ] 音色相似度测试 (> 85%)
+- [ ] 情绪映射准确性测试
+
+### 4. 后续版本
+
+- v6.1.0: 韵律精细控制
+- v6.2.0: 多语言/方言支持
+- v6.3.0: 音色复刻功能
+- v6.4.0: 语音情感迁移
 
 ---
 
