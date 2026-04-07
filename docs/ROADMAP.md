@@ -8,6 +8,105 @@
 
 ---
 
+## v5.x 数字人外在呈现系列 (规划中)
+
+> **核心理念**: 内在灵魂(v4.x) → 外在呈现(v5.x)，形成完整数字人闭环
+
+### 规划版本
+
+| 版本 | 特性 | 描述 |
+|------|------|------|
+| **v5.0.0** | ✅ 外在形象系统 | Avatar模型、相貌特征、体型姿态、形象管理 |
+| **v5.1.0** | ✅ 语音合成系统 | VoiceSynthesizer、声音特征、情绪语音联动、TTS集成 |
+| **v5.2.0** | 表达内容系统 | SpeechContentGenerator、文化影响表达、三观影响深度 |
+| **v5.3.0** | 表情动作系统 | FacialExpression面部表情、BodyGesture身体动作、情绪联动 |
+| **v5.4.0** | 形象个性化系统 | 形象偏好、形象进化、场景适应、风格管理 |
+| **v5.5.0** | 多端展示系统 | 3D渲染引擎、设备端适配、形象同步 |
+
+### ✅ v5.0.0 - 外在形象系统
+
+- Avatar 模型 (面部特征、体型特征、年龄外观、风格偏好)
+- AvatarEngine 形象管理引擎
+- 与 v4.x 灵魂系统集成 (人生阶段、社会身份、地域文化、情绪)
+- AvatarDecisionContext 形象决策上下文
+- 3D 模型引用 (模型格式、动画集、渲染设置)
+- Android SDK AvatarState/AvatarClient (轻量级状态接收)
+
+### ✅ v5.1.0 - 语音合成系统
+
+- VoiceProfile 语音模型 (语音特征、语音风格、情绪语音、语言模式)
+- VoiceEngine 语音管理引擎
+- 与 v4.x 灵魂系统集成 (情绪影响语音、文化影响口音、人生阶段影响声音年龄)
+- VoiceDecisionContext 语音决策上下文
+- TTS 配置 (引擎选择、质量设置、流式输出)
+- Android SDK VoiceState/VoiceClient (轻量级状态接收)
+
+### 内在灵魂 → 外在呈现 映射
+
+```
+┌─────────────────────┐          ┌─────────────────────┐
+│     内在灵魂(v4.x)    │          │    外在呈现(v5.x)    │
+├─────────────────────┤          ├─────────────────────┤
+│ 情绪系统 (v4.0)     │   →→→    │ 表情动画 (v5.3)     │
+│                     │          │ 语音情感 (v5.1)     │
+│ 三观系统 (v4.1)     │   →→→    │ 表达深度 (v5.2)     │
+│                     │          │ 内容格调 (v5.2)     │
+│ 社会身份 (v4.2)     │   →→→    │ 形象风格 (v5.0)     │
+│                     │          │ 穿着品味 (v5.4)     │
+│ 地域文化 (v4.3)     │   →→→    │ 说话方式 (v5.2)     │
+│                     │          │ 表达内容 (v5.2)     │
+│ 人生阶段 (v4.4)     │   →→→    │ 形象年龄 (v5.0)     │
+│                     │          │ 声音年龄 (v5.1)     │
+│ 情绪行为 (v4.5)     │   →→→    │ 动作表达 (v5.3)     │
+│                     │          │ 行为动画 (v5.3)     │
+│ 人际关系 (v4.6)     │   →→→    │ 社交姿态 (v5.3)     │
+│                     │          │ 眼神交流 (v5.3)     │
+└─────────────────────┘          └─────────────────────┘
+```
+
+### v5.0.0 外在形象系统 详细设计
+
+**Avatar 模型结构**:
+```
+Avatar
+├── FacialFeatures        # 面部特征
+│   ├── faceShape         # 脸型 (oval/round/square/heart)
+│   ├── eyeShape          # 眸型 (almond/round/hooded)
+│   ├── eyeColor          # 眸色
+│   ├── noseShape         # 鼻型
+│   ├── lipShape          # 唇型
+│   ├── skinTone          # 肤色
+│   ├── hairStyle         # 发型
+│   └── hairColor         # 发色
+│
+├── BodyFeatures          # 体型特征
+│   ├── height            # 身高
+│   ├── weight            # 体重
+│   ├── bodyType          # 体型 (slim/average/athletic/curvy)
+│   ├── posture           # 姿态 (confident/modest/casual)
+│   └── movementStyle     # 动作风格 (graceful/energetic/calm)
+│
+├── AgeAppearance         # 年龄外观
+│   ├── apparentAge       # 外观年龄
+│   ├── agingStage        # 衰老阶段 (young/prime/mature/senior)
+│   ├── facialMaturity    # 面部成熟度
+│   └── bodyMaturity      # 身体成熟度
+│
+└── StylePreferences      # 风格偏好
+    ├── clothingStyle     # 穿着风格
+    ├── accessoryStyle    # 配饰风格
+    ├── groomingStyle     # 整理风格
+    └── overallVibe       # 整体气质
+```
+
+**与社会身份映射**:
+- EducationBackground → 形象知性度、穿着品味
+- CareerProfile → 职业形象、着装风格
+- SocialClassProfile → 形象档次、消费品味
+- LifeStage → 形象年龄化、风格演进
+
+---
+
 ## v4.x 灵魂特征系列 (当前)
 
 ### ✅ v4.0.0 - 情绪系统核心
