@@ -7,6 +7,65 @@
 
 ---
 
+## [2.8.0] - 2026-04-07 🔐 Device Lifecycle & Trust Chain
+
+### 核心理念
+
+**Center 是永远在线的灵魂载体，设备信任链确保：**
+- 只有授权设备能访问身份
+- 设备更换时安全迁移灵魂
+- 多设备优先级和权限管理
+
+### 新增 - Center 信任管理器
+
+**TrustManager (`trust_manager.go`):**
+- TrustLevel 信任级别 (NONE/LOW/MEDIUM/HIGH/PRIMARY)
+- DeviceAuthorization 设备授权管理
+- DeviceCredential 设备凭证管理
+- 设备注册/认证/令牌刷新
+- 灵魂迁移支持 (lost/upgrade/migration)
+
+**信任级别权限:**
+| 级别 | 权限 |
+|------|------|
+| PRIMARY | admin, read, write, sync, transfer |
+| HIGH | read, write, sync |
+| MEDIUM | read, sync |
+| LOW | read |
+
+### 新增 - DeviceManager 优先级管理
+
+**设备优先级 (v2.8.0):**
+- Priority 字段 (0-100)
+- SetDevicePriority() 设置优先级
+- GetHighestPriorityDevice() 获取最高优先级设备
+- GetDevicesByPriority() 按优先级排序
+
+**设备更换支持:**
+- PrepareDeviceTransfer() 准备迁移
+- CompleteDeviceTransfer() 完成迁移
+- 支持场景: 设备丢失/设备升级/主动迁移
+
+### 新增 - Android SDK 信任管理
+
+**TrustLevel 枚举:**
+- NONE/LOW/MEDIUM/HIGH/PRIMARY 五个级别
+- hasPermission() 权限检查
+
+**DeviceAuthorization 类:**
+- 完整的授权信息
+- JSON 序列化/反序列化
+- 权限检查方法
+
+**DeviceTrustManager 类:**
+- 设备注册与认证
+- 令牌刷新
+- 信任级别升级请求
+- 设备迁移支持
+- 本地凭证存储
+
+---
+
 ## [2.7.0] - 2026-04-07 💾 Data Persistence Enhancement
 
 ### 核心理念
