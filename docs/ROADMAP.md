@@ -18,7 +18,7 @@
 |------|------|------|
 | **v5.0.0** | ✅ 外在形象系统 | Avatar模型、相貌特征、体型姿态、形象管理 |
 | **v5.1.0** | ✅ 语音合成系统 | VoiceSynthesizer、声音特征、情绪语音联动、TTS集成 |
-| **v5.2.0** | 表达内容系统 | SpeechContentGenerator、文化影响表达、三观影响深度 |
+| **v5.2.0** | ✅ 表达内容系统 | SpeechContentGenerator、文化影响表达、三观影响深度 |
 | **v5.3.0** | 表情动作系统 | FacialExpression面部表情、BodyGesture身体动作、情绪联动 |
 | **v5.4.0** | 形象个性化系统 | 形象偏好、形象进化、场景适应、风格管理 |
 | **v5.5.0** | 多端展示系统 | 3D渲染引擎、设备端适配、形象同步 |
@@ -40,6 +40,21 @@
 - VoiceDecisionContext 语音决策上下文
 - TTS 配置 (引擎选择、质量设置、流式输出)
 - Android SDK VoiceState/VoiceClient (轻量级状态接收)
+
+### ✅ v5.2.0 - 表达内容系统
+
+- SpeechContentProfile 内容模型 (内容风格、表达深度、文化表达、社交表达)
+- SpeechContentEngine 内容管理引擎
+- 与 v4.x 灵魂系统集成:
+  - Worldview → 内容风格 (语调、说服方式、证据类型)
+  - LifeView → 表达深度 (思考深度、自我暴露程度)
+  - ValueSystem → 内容风格 (直接度、幽默倾向)
+  - RegionalCulture → 文化表达 (间接度、面子意识、敬语使用)
+  - SocialIdentity → 社交表达 (专业语调、权威表达)
+  - Emotion → 情绪适应 (情感色彩、词语选择)
+- ContentDecisionContext 内容决策上下文
+- ContentTemplates 内容模板 (问候、道歉、感谢、结束)
+- Android SDK SpeechContentState/SpeechContentClient (轻量级状态接收)
 
 ### 内在灵魂 → 外在呈现 映射
 
