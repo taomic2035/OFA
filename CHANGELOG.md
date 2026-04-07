@@ -7,6 +7,100 @@
 
 ---
 
+## [2.5.0] - 2026-04-07 🔄 Identity Sync Enhancement
+
+### 新增 - 身份同步完善
+
+**Android SDK:**
+- 为 Personality, ValueSystem, Interest, VoiceProfile, WritingStyle 添加 fromJson 方法
+- 完成 PersonalIdentity.fromJson() 完整解析所有字段
+- 实现 IdentitySyncService.reportBehavior() HTTP 请求
+
+**Center:**
+- DataService 添加行为存储 (behaviorStore)
+- 实现性格推断触发机制 (每10条行为触发一次)
+- 集成 Inferencer 进行性格推断
+
+**单元测试:**
+- BehaviorCollectorTest - 行为收集测试
+- IdentitySyncServiceTest - 同步服务测试
+- data_service_test.go - Center 数据服务测试
+
+---
+
+## [2.4.0] - 2026-04-07 📊 Behavior Reporting
+
+### 新增 - 行为上报与性格推断
+
+**Android SDK:**
+- BehaviorCollector - 行为收集器
+- 支持 decision/interaction/preference/activity 四种行为类型
+- 便捷方法: recordPurchase(), recordSocialInteraction() 等
+- 自动推断性格特质
+
+**集成:**
+- BehaviorCollector 集成到 OFAAndroidAgent
+- 与 IdentityManager 联动
+
+---
+
+## [2.3.0] - 2026-04-07 🔧 Run Mode Simplification
+
+### 改进 - 运行模式简化
+
+- CONNECTED 模式标记 @Deprecated
+- HYBRID 模式标记 @Deprecated
+- 默认运行模式改为 SYNC
+- 所有模式都本地执行，Center 仅用于同步
+
+---
+
+## [2.2.0] - 2026-04-07 💾 Memory Cross-Device Sync
+
+### 新增 - Memory 跨设备同步
+
+**Android SDK:**
+- MemorySyncService - 记忆同步服务
+- 定期同步 (5分钟间隔)
+- 冲突解决 (时间戳优先)
+- UserMemoryManager 集成同步方法
+
+---
+
+## [2.1.0] - 2026-04-07 🏢 Center Role Transformation
+
+### 改进 - Center 角色转变
+
+**Center:**
+- 从"控制中心"转变为"数据中心"
+- 移除任务调度逻辑
+- 新增数据同步 API (SyncIdentity, SyncMemories, SyncPreferences)
+
+**Android SDK:**
+- AgentModeManager 改为主动同步模式
+- initializeSyncMode() 替代 CONNECTED/HYBRID 初始化
+
+---
+
+## [2.0.0] - 2026-04-07 🆔 Identity Sync Foundation
+
+### 新增 - 身份同步基础层
+
+**Android SDK:**
+- IdentityManager - 身份管理器
+- LocalIdentityStore - 本地身份存储
+- IdentitySyncService - 身份同步服务
+- BehaviorObservation - 行为观察模型
+- PersonalIdentity, Personality, ValueSystem, Interest 等模型
+
+**Center:**
+- identity/sync_service.go - 身份同步服务
+- sync/data_service.go - 数据服务
+
+**核心愿景:** "万物皆为我所用，万物皆是我"
+
+---
+
 ## [1.3.0] - 2026-04-06 🌐 WebView Automation
 
 ### 新增 - Android SDK v1.3.0
