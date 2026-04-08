@@ -174,7 +174,7 @@ func (s *Server) withMetrics(next http.HandlerFunc) http.HandlerFunc {
 		path := r.URL.Path
 		if mux.Vars(r) != nil {
 			// Replace path parameters with placeholders for better aggregation
-			for key, val := range mux.Vars(r) {
+			for range mux.Vars(r) {
 				path = r.URL.Path
 				break
 			}
@@ -485,7 +485,20 @@ func (s *Server) ttsSynthesize(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Synthesize
-	result, err := ttsService.Synthesize(ctx, &req)
+	synthesizeReq := &service.SynthesizeRequest{
+		IdentityID: req.IdentityID,
+		Text:       req.Text,
+		VoiceID:    req.VoiceID,
+		Format:     req.Format,
+		SampleRate: req.SampleRate,
+		Rate:       req.Rate,
+		Pitch:      req.Pitch,
+		Volume:     req.Volume,
+		Emotion:    req.Emotion,
+		Style:      req.Style,
+		Streaming:  req.Streaming,
+	}
+	result, err := ttsService.Synthesize(ctx, synthesizeReq)
 	if err != nil {
 		errorResponse(w, err)
 		return
@@ -534,7 +547,22 @@ func (s *Server) ttsCloneVoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clone voice
-	result, err := ttsService.CloneVoice(ctx, &req)
+	// Convert rest.TTSCloneRequest to service.CloneVoiceRequest
+	refAudios := make([]service.ReferenceAudio, len(req.ReferenceAudios))
+	for i, a := range req.ReferenceAudios {
+		refAudios[i] = service.ReferenceAudio{
+			AudioURL:      a.AudioURL,
+			DurationMs:    a.DurationMs,
+			Transcription: a.Transcription,
+		}
+	}
+	cloneReq := &service.CloneVoiceRequest{
+		IdentityID:      req.IdentityID,
+		VoiceName:       req.VoiceName,
+		Language:        req.Language,
+		ReferenceAudios: refAudios,
+	}
+	result, err := ttsService.CloneVoice(ctx, cloneReq)
 	if err != nil {
 		errorResponse(w, err)
 		return

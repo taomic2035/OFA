@@ -198,27 +198,7 @@ type GetDecisionResponse struct {
 	Error    string    `json:"error"`
 }
 
-// GetDecisionHistoryRequest message
-type GetDecisionHistoryRequest struct {
-	Query *DecisionQuery `json:"query"`
-}
-
-// GetDecisionHistoryResponse message
-type GetDecisionHistoryResponse struct {
-	Success   bool        `json:"success"`
-	Decisions []*Decision `json:"decisions"`
-	Total     int32       `json:"total"`
-	Error     string      `json:"error"`
-}
-
-// GetDecisionStatsRequest message
-type GetDecisionStatsRequest struct {
-	UserId string `json:"user_id"`
-}
-
-// GetDecisionStatsResponse message
-type GetDecisionStatsResponse struct {
-	Success bool            `json:"success"`
-	Stats   *DecisionStats  `json:"stats"`
-	Error   string          `json:"error"`
-}
+// GetDecisionHistoryRequest is defined in api.go
+// GetDecisionHistoryResponse is defined in api.go
+// GetDecisionStatsRequest is defined in api.go
+// GetDecisionStatsResponse is defined in api.go

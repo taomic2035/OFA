@@ -1,0 +1,53 @@
+# github.com/ofa/center/internal/memory
+internal\memory\store.go:473:6: MemoryStore redeclared in this block
+	internal\memory\service.go:22:6: other declaration of MemoryStore
+internal\memory\store.go:482:10: invalid composite literal type MemoryStore
+internal\memory\store.go:490:10: invalid receiver type MemoryStore (pointer or interface type)
+internal\memory\store.go:495:4: s.mu undefined (type *MemoryStore is pointer to interface, not interface)
+internal\memory\store.go:496:10: s.mu undefined (type *MemoryStore is pointer to interface, not interface)
+internal\memory\store.go:498:4: s.memories undefined (type *MemoryStore is pointer to interface, not interface)
+internal\memory\store.go:500:7: s.userIndex undefined (type *MemoryStore is pointer to interface, not interface)
+internal\memory\store.go:501:5: s.userIndex undefined (type *MemoryStore is pointer to interface, not interface)
+internal\memory\store.go:503:4: s.userIndex undefined (type *MemoryStore is pointer to interface, not interface)
+internal\memory\service.go:196:22: cannot convert query.Semantic != "" || query.Keywords != "" (untyped bool value) to type string
+internal\memory\store.go:503:4: too many errors
+# github.com/ofa/center/internal/voice
+internal\voice\engine.go:300:44: culture.CurrentLocation undefined (type *models.RegionalCulture has no field or method CurrentLocation)
+internal\voice\engine.go:326:17: culture.CityLevel undefined (type *models.RegionalCulture has no field or method CityLevel)
+internal\voice\engine.go:341:17: culture.CityLevel undefined (type *models.RegionalCulture has no field or method CityLevel)
+internal\voice\engine.go:360:13: culture.HofstedeDimensions undefined (type *models.RegionalCulture has no field or method HofstedeDimensions)
+internal\voice\engine.go:362:20: culture.HofstedeDimensions undefined (type *models.RegionalCulture has no field or method HofstedeDimensions)
+internal\voice\engine.go:375:13: culture.HofstedeDimensions undefined (type *models.RegionalCulture has no field or method HofstedeDimensions)
+internal\voice\engine.go:377:20: culture.HofstedeDimensions undefined (type *models.RegionalCulture has no field or method HofstedeDimensions)
+internal\voice\engine.go:539:27: req.SpeechContext.Formality undefined (type models.SpeechContext has no field or method Formality)
+internal\voice\service.go:82:7: cannot use profile (variable of type *models.IdentityVoiceProfile) as *models.VoiceProfile value in argument to opt
+internal\voice\service.go:86:42: cannot use profile (variable of type *models.IdentityVoiceProfile) as *models.VoiceProfile value in argument to s.store.SaveVoiceProfile
+internal\voice\service.go:86:42: too many errors
+# github.com/ofa/center/internal/decision
+internal\decision\engine.go:91:45: cannot use decision.GetTopOptions(3)[1:] (value of type []models.DecisionOption) as []*models.DecisionOption value in struct literal
+internal\decision\engine.go:204:23: ctx.ValueSystem.GetPriority undefined (type *models.ValueSystem has no field or method GetPriority)
+internal\decision\store.go:180:16: declared and not used: count
+# github.com/ofa/center/internal/identity
+internal\identity\evolution.go:571:2: declared and not used: n
+internal\identity\inferencer.go:145:5: unknown field Impulsiveness in struct literal of type TraitImpact
+internal\identity\postgres_store.go:146:43: identity.Metadata undefined (type *models.PersonalIdentity has no field or method Metadata)
+internal\identity\postgres_store.go:185:59: identity.AvatarURL undefined (type *models.PersonalIdentity has no field or method AvatarURL)
+internal\identity\postgres_store.go:186:48: identity.Language undefined (type *models.PersonalIdentity has no field or method Language)
+internal\identity\postgres_store.go:186:67: identity.Region undefined (type *models.PersonalIdentity has no field or method Region)
+internal\identity\postgres_store.go:188:12: identity.DecisionStyle undefined (type *models.PersonalIdentity has no field or method DecisionStyle)
+internal\identity\postgres_store.go:188:36: identity.PrivacyLevel undefined (type *models.PersonalIdentity has no field or method PrivacyLevel)
+internal\identity\postgres_store.go:188:59: identity.Version undefined (type *models.PersonalIdentity has no field or method Version)
+internal\identity\postgres_store.go:190:12: identity.StabilityScore undefined (type *models.PersonalIdentity has no field or method StabilityScore)
+internal\identity\postgres_store.go:190:12: too many errors
+# github.com/ofa/center/internal/store
+internal\store\sqlite.go:27:6: MemoryCache redeclared in this block
+	internal\store\postgres.go:26:6: other declaration of MemoryCache
+Build result:
+Write-Output : Cannot process command because of one or more missing mandatory parameters: InputObject.
+At line:1 char:118
++ ... .exe ./cmd/center; Write-Output 'Build result:'; Write-Output ; if (T ...
++                                                      ~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Write-Output], ParameterBindingException
+    + FullyQualifiedErrorId : MissingMandatoryParameter,Microsoft.PowerShell.Commands.WriteOutputCommand
+ 
+center.exe NOT found

@@ -45,8 +45,8 @@ type ImagePreferences struct {
 	// Style preferences
 	PreferredStyles    []string `json:"preferred_styles"`    // casual, formal, sporty, elegant
 	AvoidedStyles      []string `json:"avoided_styles"`      // styles to avoid
-	StyleMixingLevel   double   `json:"style_mixing_level"`  // 0-1, tendency to mix styles
-	StyleExperimentation double `json:"style_experimentation"` // 0-1, openness to new styles
+	StyleMixingLevel   float64   `json:"style_mixing_level"`  // 0-1, tendency to mix styles
+	StyleExperimentation float64 `json:"style_experimentation"` // 0-1, openness to new styles
 
 	// Comfort preferences
 	ComfortPriority    string `json:"comfort_priority"`    // low, medium, high
@@ -57,8 +57,8 @@ type ImagePreferences struct {
 	// Brand preferences
 	FavoriteBrands     []string `json:"favorite_brands"`
 	AvoidedBrands      []string `json:"avoided_brands"`
-	BrandLoyalty       double `json:"brand_loyalty"`       // 0-1, loyalty to brands
-	LocalBrandSupport  double `json:"local_brand_support"` // 0-1, preference for local brands
+	BrandLoyalty       float64 `json:"brand_loyalty"`       // 0-1, loyalty to brands
+	LocalBrandSupport  float64 `json:"local_brand_support"` // 0-1, preference for local brands
 
 	// Accessory preferences
 	AccessoryFrequency string   `json:"accessory_frequency"` // rare, occasional, frequent, always
@@ -74,8 +74,8 @@ type ImagePreferences struct {
 
 	// Presentation preferences
 	PresentationEffort string `json:"presentation_effort"` // low, medium, high
-	AttentionToDetail  double `json:"attention_to_detail"` // 0-1, detail consciousness
-	OccasionAwareness  double `json:"occasion_awareness"`  // 0-1, awareness of appropriate dress
+	AttentionToDetail  float64 `json:"attention_to_detail"` // 0-1, detail consciousness
+	OccasionAwareness  float64 `json:"occasion_awareness"`  // 0-1, awareness of appropriate dress
 }
 
 // ImageEvolution defines how the image evolves over time.
@@ -108,7 +108,7 @@ type ImageEvolution struct {
 	LifeStageStyleRules map[string]StageStyleRule `json:"life_stage_style_rules"`
 
 	// Fashion trend awareness
-	TrendFollowingLevel double `json:"trend_following_level"` // 0-1
+	TrendFollowingLevel float64 `json:"trend_following_level"` // 0-1
 	TrendAdoptionSpeed  string `json:"trend_adoption_speed"`  // early, mainstream, late, never
 	TrendFilter         string `json:"trend_filter"`          // all, curated, selective, conservative
 }
@@ -128,7 +128,7 @@ type StyleRecord struct {
 	StyleName     string    `json:"style_name"`
 	Description   string    `json:"description"`
 	Context       string    `json:"context"`       // why this style was adopted
-	Satisfaction  double    `json:"satisfaction"`  // 0-1, satisfaction score
+	Satisfaction  float64    `json:"satisfaction"`  // 0-1, satisfaction score
 }
 
 // StyleMilestone represents a significant style milestone.
@@ -138,7 +138,7 @@ type StyleMilestone struct {
 	Description   string    `json:"description"`
 	BeforeStyle   string    `json:"before_style"`
 	AfterStyle    string    `json:"after_style"`
-	Significance  double    `json:"significance"` // 0-1
+	Significance  float64    `json:"significance"` // 0-1
 }
 
 // StageStyleRule defines style rules for a life stage.
@@ -179,7 +179,7 @@ type SceneAdaptationSettings struct {
 
 	// Privacy settings
 	PrivacyMode         string `json:"privacy_mode"`         // public, semi_private, private
-	StylePrivacyLevel   double `json:"style_privacy_level"`  // 0-1, how much to reveal
+	StylePrivacyLevel   float64 `json:"style_privacy_level"`  // 0-1, how much to reveal
 }
 
 // SceneRule defines style adaptation for a specific scene.
@@ -244,7 +244,7 @@ type OutfitRecord struct {
 	StyleCategory string    `json:"style_category"`
 	Occasion      string    `json:"occasion"`
 	Season        string    `json:"season"`
-	Rating        double    `json:"rating"`        // 0-1, user rating
+	Rating        float64    `json:"rating"`        // 0-1, user rating
 	WearCount     int       `json:"wear_count"`
 	LastWorn      time.Time `json:"last_worn"`
 	IsFavorite    bool      `json:"is_favorite"`
@@ -284,7 +284,7 @@ type ColorRule struct {
 	Matches      []string `json:"matches"`      // matching colors
 	Contrasts    []string `json:"contrasts"`    // contrasting colors
 	Avoids       []string `json:"avoids"`       // colors to avoid
-	RuleStrength double   `json:"rule_strength"` // 0-1, how strongly to follow
+	RuleStrength float64   `json:"rule_strength"` // 0-1, how strongly to follow
 }
 
 // PatternRule defines pattern combination rules.
@@ -312,7 +312,7 @@ type WardrobeItem struct {
 	Season          string    `json:"season"`
 	Occasions       []string  `json:"occasions"`
 	PurchaseDate    time.Time `json:"purchase_date"`
-	Price           double    `json:"price"`
+	Price           float64    `json:"price"`
 	WearCount       int       `json:"wear_count"`
 	LastWorn        time.Time `json:"last_worn"`
 	Condition       string    `json:"condition"`       // new, good, fair, poor
@@ -328,10 +328,10 @@ type WardrobeStats struct {
 	ByColor          map[string]int `json:"by_color"`
 	BySeason         map[string]int `json:"by_season"`
 	ByStyle          map[string]int `json:"by_style"`
-	AverageWearCount double         `json:"average_wear_count"`
+	AverageWearCount float64         `json:"average_wear_count"`
 	UnusedItems      int            `json:"unused_items"`
 	FavoriteCount    int            `json:"favorite_count"`
-	TotalValue       double         `json:"total_value"`
+	TotalValue       float64         `json:"total_value"`
 }
 
 // PersonalizationContext provides personalization decision context.
@@ -345,19 +345,19 @@ type PersonalizationContext struct {
 
 	// Scene adaptation
 	CurrentScene          string `json:"current_scene"`
-	SceneStyleMatch       double `json:"scene_style_match"` // 0-1
+	SceneStyleMatch       float64 `json:"scene_style_match"` // 0-1
 	SceneAdaptationNeeded bool   `json:"scene_adaptation_needed"`
 
 	// Style analysis
-	StyleScore            double `json:"style_score"`            // 0-1, current style score
-	ConsistencyScore      double `json:"consistency_score"`      // 0-1
-	VersatilityScore      double `json:"versatility_score"`      // 0-1
-	AuthenticityScore     double `json:"authenticity_score"`     // 0-1
+	StyleScore            float64 `json:"style_score"`            // 0-1, current style score
+	ConsistencyScore      float64 `json:"consistency_score"`      // 0-1
+	VersatilityScore      float64 `json:"versatility_score"`      // 0-1
+	AuthenticityScore     float64 `json:"authenticity_score"`     // 0-1
 
 	// Evolution status
 	EvolutionStage        string `json:"evolution_stage"`
 	NextEvolutionPreview  string `json:"next_evolution_preview"`
-	EvolutionReadiness    double `json:"evolution_readiness"` // 0-1
+	EvolutionReadiness    float64 `json:"evolution_readiness"` // 0-1
 
 	// Suggestions
 	StyleSuggestions      []StyleSuggestion `json:"style_suggestions"`
@@ -371,14 +371,14 @@ type PersonalizationContext struct {
 // StyleRecommendation represents a style recommendation.
 type StyleRecommendation struct {
 	StyleName        string   `json:"style_name"`
-	Confidence       double   `json:"confidence"`       // 0-1
+	Confidence       float64   `json:"confidence"`       // 0-1
 	Reason           string   `json:"reason"`
 	ColorPalette     []string `json:"color_palette"`
 	KeyPieces        []string `json:"key_pieces"`
 	Occasion         string   `json:"occasion"`
 	Season           string   `json:"season"`
 	Weather          string   `json:"weather"`
-	VibeMatch        double   `json:"vibe_match"`       // 0-1, matches user's vibe
+	VibeMatch        float64   `json:"vibe_match"`       // 0-1, matches user's vibe
 }
 
 // OutfitRecommendation represents an outfit recommendation.
@@ -389,7 +389,7 @@ type OutfitRecommendation struct {
 	StyleCategory    string   `json:"style_category"`
 	Occasion         string   `json:"occasion"`
 	Weather          string   `json:"weather"`
-	Confidence       double   `json:"confidence"`
+	Confidence       float64   `json:"confidence"`
 	Reason           string   `json:"reason"`
 	Alternatives     []string `json:"alternatives"` // alternative outfit IDs
 }
@@ -401,14 +401,14 @@ type StyleSuggestion struct {
 	Suggestion       string `json:"suggestion"`
 	Priority         int    `json:"priority"`
 	Effort           string `json:"effort"`           // easy, moderate, challenging
-	Impact           double `json:"impact"`           // 0-1, expected impact
+	Impact           float64 `json:"impact"`           // 0-1, expected impact
 }
 
 // TrendAlert represents a fashion trend alert.
 type TrendAlert struct {
 	TrendName        string   `json:"trend_name"`
 	Description      string   `json:"description"`
-	Relevance        double   `json:"relevance"`        // 0-1, relevance to user
+	Relevance        float64   `json:"relevance"`        // 0-1, relevance to user
 	AdoptionLevel    string   `json:"adoption_level"`   // emerging, trending, mainstream, fading
 	Category         string   `json:"category"`         // color, style, pattern, item
 	SuggestedItems   []string `json:"suggested_items"`

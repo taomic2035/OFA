@@ -25,10 +25,11 @@ type PersonalIdentity struct {
 	Interests    []Interest    `json:"interests" bson:"interests"`
 
 	// 数字资产
-	VoiceProfile  *VoiceProfile  `json:"voice_profile" bson:"voice_profile"`
+	VoiceProfile  *IdentityVoiceProfile  `json:"voice_profile" bson:"voice_profile"`
 	WritingStyle  *WritingStyle  `json:"writing_style" bson:"writing_style"`
 
 	// 元数据
+	Version   int64     `json:"version" bson:"version"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
@@ -200,8 +201,8 @@ const (
 	CategoryOther    InterestCategory = "other"
 )
 
-// VoiceProfile - 语音音色配置
-type VoiceProfile struct {
+// IdentityVoiceProfile - 语音音色配置 (identity package version)
+type IdentityVoiceProfile struct {
 	ID               string    `json:"id" bson:"id"`
 	VoiceType        string    `json:"voice_type" bson:"voice_type"`                     // clone/synthetic/preset
 	PresetVoiceID    string    `json:"preset_voice_id" bson:"preset_voice_id"`           // 预设音色ID
@@ -358,9 +359,9 @@ func NewPersonalIdentity(id string) *PersonalIdentity {
 }
 
 // NewDefaultVoiceProfile 创建默认语音配置
-func NewDefaultVoiceProfile() *VoiceProfile {
+func NewDefaultVoiceProfile() *IdentityVoiceProfile {
 	now := time.Now()
-	return &VoiceProfile{
+	return &IdentityVoiceProfile{
 		VoiceType:     string(VoiceTypePreset),
 		Pitch:         1.0,
 		Speed:         1.0,
@@ -585,17 +586,67 @@ func (p *PersonalIdentity) GetValuePriority() []string {
 		return []string{}
 	}
 
+	return p.ValueSystem.GetPriorityList()
+}
+
+// GetPriority 获取特定价值观的优先级值
+func (v *ValueSystem) GetPriority(valueName string) float64 {
+	if v == nil {
+		return 0
+	}
+
+	switch valueName {
+	case "privacy":
+		return v.Privacy
+	case "efficiency":
+		return v.Efficiency
+	case "health":
+		return v.Health
+	case "family":
+		return v.Family
+	case "career":
+		return v.Career
+	case "entertainment":
+		return v.Entertainment
+	case "learning":
+		return v.Learning
+	case "social":
+		return v.Social
+	case "finance":
+		return v.Finance
+	case "environment":
+		return v.Environment
+	case "risk_tolerance":
+		return v.RiskTolerance
+	case "impulsiveness":
+		return v.Impulsiveness
+	case "patience":
+		return v.Patience
+	default:
+		if v.CustomValues != nil {
+			return v.CustomValues[valueName]
+		}
+		return 0
+	}
+}
+
+// GetPriorityList 获取价值观优先级列表（按权重降序）
+func (v *ValueSystem) GetPriorityList() []string {
+	if v == nil {
+		return []string{}
+	}
+
 	values := map[string]float64{
-		"privacy":       p.ValueSystem.Privacy,
-		"efficiency":    p.ValueSystem.Efficiency,
-		"health":        p.ValueSystem.Health,
-		"family":        p.ValueSystem.Family,
-		"career":        p.ValueSystem.Career,
-		"entertainment": p.ValueSystem.Entertainment,
-		"learning":      p.ValueSystem.Learning,
-		"social":        p.ValueSystem.Social,
-		"finance":       p.ValueSystem.Finance,
-		"environment":   p.ValueSystem.Environment,
+		"privacy":       v.Privacy,
+		"efficiency":    v.Efficiency,
+		"health":        v.Health,
+		"family":        v.Family,
+		"career":        v.Career,
+		"entertainment": v.Entertainment,
+		"learning":      v.Learning,
+		"social":        v.Social,
+		"finance":       v.Finance,
+		"environment":   v.Environment,
 	}
 
 	// 简单排序
@@ -605,8 +656,8 @@ func (p *PersonalIdentity) GetValuePriority() []string {
 	}
 
 	var pairs []kv
-	for k, v := range values {
-		pairs = append(pairs, kv{k, v})
+	for k, val := range values {
+		pairs = append(pairs, kv{k, val})
 	}
 
 	// 冒泡排序

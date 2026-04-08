@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/ofa/center/internal/models"
 )
@@ -469,17 +468,17 @@ func (s *FileStore) GetAssociations(ctx context.Context, memoryID string) ([]*mo
 	return s.associations[memoryID], nil
 }
 
-// MemoryStore - 内存存储实现（用于测试）
-type MemoryStore struct {
+// InMemoryStore - 内存存储实现（用于测试）
+type InMemoryStore struct {
 	mu          sync.RWMutex
 	memories    map[string]*models.Memory
 	userIndex   map[string]map[string]*models.Memory
 	associations map[string][]*models.MemoryAssociation
 }
 
-// NewMemoryStore 创建内存存储
-func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{
+// NewInMemoryStore 创建内存存储
+func NewInMemoryStore() *InMemoryStore {
+	return &InMemoryStore{
 		memories:    make(map[string]*models.Memory),
 		userIndex:   make(map[string]map[string]*models.Memory),
 		associations: make(map[string][]*models.MemoryAssociation),
@@ -487,7 +486,7 @@ func NewMemoryStore() *MemoryStore {
 }
 
 // SaveMemory 保存记忆
-func (s *MemoryStore) SaveMemory(ctx context.Context, memory *models.Memory) error {
+func (s *InMemoryStore) SaveMemory(ctx context.Context, memory *models.Memory) error {
 	if memory == nil || memory.ID == "" {
 		return fmt.Errorf("invalid memory")
 	}
@@ -506,7 +505,7 @@ func (s *MemoryStore) SaveMemory(ctx context.Context, memory *models.Memory) err
 }
 
 // GetMemory 获取记忆
-func (s *MemoryStore) GetMemory(ctx context.Context, id string) (*models.Memory, error) {
+func (s *InMemoryStore) GetMemory(ctx context.Context, id string) (*models.Memory, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -519,7 +518,7 @@ func (s *MemoryStore) GetMemory(ctx context.Context, id string) (*models.Memory,
 }
 
 // DeleteMemory 删除记忆
-func (s *MemoryStore) DeleteMemory(ctx context.Context, id string) error {
+func (s *InMemoryStore) DeleteMemory(ctx context.Context, id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -535,7 +534,7 @@ func (s *MemoryStore) DeleteMemory(ctx context.Context, id string) error {
 }
 
 // ListMemories 列出记忆
-func (s *MemoryStore) ListMemories(ctx context.Context, query *models.MemoryQuery) ([]*models.Memory, int, error) {
+func (s *InMemoryStore) ListMemories(ctx context.Context, query *models.MemoryQuery) ([]*models.Memory, int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -593,12 +592,12 @@ func (s *MemoryStore) ListMemories(ctx context.Context, query *models.MemoryQuer
 }
 
 // UpdateMemory 更新记忆
-func (s *MemoryStore) UpdateMemory(ctx context.Context, memory *models.Memory) error {
+func (s *InMemoryStore) UpdateMemory(ctx context.Context, memory *models.Memory) error {
 	return s.SaveMemory(ctx, memory)
 }
 
 // SaveMemories 批量保存
-func (s *MemoryStore) SaveMemories(ctx context.Context, memories []*models.Memory) error {
+func (s *InMemoryStore) SaveMemories(ctx context.Context, memories []*models.Memory) error {
 	for _, m := range memories {
 		if err := s.SaveMemory(ctx, m); err != nil {
 			return err
@@ -608,7 +607,7 @@ func (s *MemoryStore) SaveMemories(ctx context.Context, memories []*models.Memor
 }
 
 // DeleteMemories 批量删除
-func (s *MemoryStore) DeleteMemories(ctx context.Context, ids []string) error {
+func (s *InMemoryStore) DeleteMemories(ctx context.Context, ids []string) error {
 	for _, id := range ids {
 		s.DeleteMemory(ctx, id)
 	}
@@ -616,7 +615,7 @@ func (s *MemoryStore) DeleteMemories(ctx context.Context, ids []string) error {
 }
 
 // GetMemoryStats 获取统计
-func (s *MemoryStore) GetMemoryStats(ctx context.Context, userID string) (*models.MemoryStats, error) {
+func (s *InMemoryStore) GetMemoryStats(ctx context.Context, userID string) (*models.MemoryStats, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -641,7 +640,7 @@ func (s *MemoryStore) GetMemoryStats(ctx context.Context, userID string) (*model
 }
 
 // SaveAssociation 保存关联
-func (s *MemoryStore) SaveAssociation(ctx context.Context, assoc *models.MemoryAssociation) error {
+func (s *InMemoryStore) SaveAssociation(ctx context.Context, assoc *models.MemoryAssociation) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -650,7 +649,7 @@ func (s *MemoryStore) SaveAssociation(ctx context.Context, assoc *models.MemoryA
 }
 
 // GetAssociations 获取关联
-func (s *MemoryStore) GetAssociations(ctx context.Context, memoryID string) ([]*models.MemoryAssociation, error) {
+func (s *InMemoryStore) GetAssociations(ctx context.Context, memoryID string) ([]*models.MemoryAssociation, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

@@ -11,23 +11,7 @@ const (
 	VoiceTypePreset    VoiceType = "preset"
 )
 
-// VoiceProfile message
-type VoiceProfile struct {
-	Id               string  `json:"id"`
-	VoiceType        string  `json:"voice_type"`
-	PresetVoiceId    string  `json:"preset_voice_id"`
-	CloneReferenceId string  `json:"clone_reference_id"`
-	Pitch            float64 `json:"pitch"`
-	Speed            float64 `json:"speed"`
-	Volume           float64 `json:"volume"`
-	Tone             string  `json:"tone"`
-	Accent           string  `json:"accent"`
-	EmotionLevel     float64 `json:"emotion_level"`
-	PausePattern     string  `json:"pause_pattern"`
-	EmphasisStyle    string  `json:"emphasis_style"`
-	CreatedAt        int64   `json:"created_at"`
-	UpdatedAt        int64   `json:"updated_at"`
-}
+// VoiceProfile is defined in identity.go
 
 // VoiceInfo message
 type VoiceInfo struct {
@@ -80,30 +64,10 @@ type CreateVoiceProfileResponse struct {
 	Error   string       `json:"error"`
 }
 
-// GetVoiceProfileRequest message
-type GetVoiceProfileRequest struct {
-	Id string `json:"id"`
-}
-
-// GetVoiceProfileResponse message
-type GetVoiceProfileResponse struct {
-	Success bool         `json:"success"`
-	Profile *VoiceProfile `json:"profile"`
-	Error   string       `json:"error"`
-}
-
-// UpdateVoiceProfileRequest message
-type UpdateVoiceProfileRequest struct {
-	Id      string                 `json:"id"`
-	Updates map[string]interface{} `json:"updates"`
-}
-
-// UpdateVoiceProfileResponse message
-type UpdateVoiceProfileResponse struct {
-	Success bool         `json:"success"`
-	Profile *VoiceProfile `json:"profile"`
-	Error   string       `json:"error"`
-}
+// GetVoiceProfileRequest is defined in api.go
+// GetVoiceProfileResponse is defined in api.go
+// UpdateVoiceProfileRequest is defined in api.go
+// UpdateVoiceProfileResponse is defined in api.go
 
 // DeleteVoiceProfileRequest message
 type DeleteVoiceProfileRequest struct {
@@ -128,18 +92,8 @@ type ListVoiceProfilesResponse struct {
 	Error    string         `json:"error"`
 }
 
-// CloneVoiceRequest message
-type CloneVoiceRequest struct {
-	Name    string   `json:"name"`
-	Samples [][]byte `json:"samples"`
-}
-
-// CloneVoiceResponse message
-type CloneVoiceResponse struct {
-	Success bool   `json:"success"`
-	CloneId string `json:"clone_id"`
-	Error   string `json:"error"`
-}
+// CloneVoiceRequest is defined in api.go
+// CloneVoiceResponse is defined in api.go
 
 // GetCloneStatusRequest message
 type GetCloneStatusRequest struct {

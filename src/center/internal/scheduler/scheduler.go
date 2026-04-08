@@ -34,7 +34,7 @@ type AgentInfo struct {
 
 // Scheduler manages task scheduling
 type Scheduler struct {
-	store   *store.Store
+	store   store.StoreInterface
 	policy  Policy
 	agents  sync.Map // map[string]*AgentInfo
 	queue   chan *models.Task
@@ -42,7 +42,7 @@ type Scheduler struct {
 }
 
 // NewScheduler creates a new scheduler
-func NewScheduler(store *store.Store, defaultStrategy string) *Scheduler {
+func NewScheduler(store store.StoreInterface, defaultStrategy string) *Scheduler {
 	policy := getPolicy(defaultStrategy)
 	return &Scheduler{
 		store:  store,

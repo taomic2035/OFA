@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"sync"
@@ -302,7 +303,7 @@ func (h *NotificationHub) determineTargets(notification *Notification) []string 
 	if h.sceneRouter != nil && len(notification.TargetScenes) > 0 {
 		ctx := &RoutingContext{
 			IdentityID:  notification.IdentityID,
-			MessageType: MessageType(string(notification.Type)),
+			MessageType: SceneMessageType(string(notification.Type)),
 			Priority:    int(notification.Priority),
 		}
 
@@ -412,7 +413,7 @@ func (h *NotificationHub) deliverToAgent(notification *Notification, agentID str
 		CreatedAt:  time.Now(),
 	}
 
-	h.messageBus.Send(msg)
+	h.messageBus.SendMessage(context.Background(), msg)
 
 	// 更新送达状态
 	h.mu.Lock()

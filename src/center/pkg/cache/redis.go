@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -135,7 +136,7 @@ func (rc *RedisCache) Connect(ctx context.Context) error {
 		ReadTimeout:  rc.config.ReadTimeout,
 		WriteTimeout: rc.config.WriteTimeout,
 		PoolTimeout:  rc.config.PoolTimeout,
-		IdleTimeout:  rc.config.IdleTimeout,
+		ConnMaxIdleTime: rc.config.IdleTimeout,
 	})
 
 	// 测试连接
@@ -615,9 +616,15 @@ func (rc *RedisCache) GetStatistics(ctx context.Context) map[string]interface{} 
 // parseRedisInfo 解析Redis INFO
 func parseRedisInfo(info string) map[string]interface{} {
 	result := make(map[string]interface{})
-	lines := []string{}
+	lines := strings.Split(info, "\r\n")
 	for _, line := range lines {
-		// 解析统计信息
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) == 2 {
+			result[parts[0]] = parts[1]
+		}
 	}
 	return result
 }

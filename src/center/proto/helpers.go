@@ -11,16 +11,16 @@ func PreferencesToMap(prefs []*Preference) map[string]interface{} {
 	return result
 }
 
-// IdentityToDecisionContext creates DecisionContext from Identity
-func IdentityToDecisionContext(identity *Identity, prefs []*Preference, decisions []*Decision) *DecisionContext {
+// IdentityToDecisionContext creates DecisionContext from PersonalIdentity
+func IdentityToDecisionContext(identity *PersonalIdentity, prefs []*Preference, decisions []*Decision) *DecisionContext {
 	return &DecisionContext{
-		UserId:            identity.UserId,
+		UserId:            identity.Id,
 		Personality:       identity.Personality,
 		ValueSystem:       identity.ValueSystem,
 		Interests:         identity.Interests,
-		SpeakingTone:      identity.SpeakingTone,
-		ResponseLength:    identity.ResponseLength,
-		ValuePriority:     identity.ValuePriority,
+		SpeakingTone:      "",
+		ResponseLength:    "",
+		ValuePriority:     []string{},
 		RecentDecisions:   decisions,
 		ActivePreferences: PreferencesToMap(prefs),
 	}
@@ -65,10 +65,10 @@ func NewMemory(userID string, memType MemoryType, content string, importance flo
 		Type:        memType,
 		Content:     content,
 		Importance:  importance,
-		Layer:       MemoryLayer_L1_WORKING,
+		Layer:       MemoryLayerL1,
 		DecayFactor: 1.0,
-		CreatedAt:   Now(),
-		UpdatedAt:   Now(),
+		Timestamp:   Now(),
+		LastAccessed: Now(),
 		AccessCount: 0,
 		Tags:        []string{},
 	}
@@ -131,12 +131,12 @@ func (vs *ValueSystem) GetPriority(key string) float64 {
 // NewPersonality creates default personality
 func NewPersonality() *Personality {
 	return &Personality{
-		MBTIType:         "INFP", // Default type
-		MBTI_EI:          0.0,    // Balanced
-		MBTI_SN:          0.0,
-		MBTI_TF:          0.0,
-		MBTI_JP:          0.0,
-		MBTIConfidence:   0.0,
+		MbtiType:         "INFP", // Default type
+		MbtiEi:          0.0,    // Balanced
+		MbtiSn:          0.0,
+		MbtiTf:          0.0,
+		MbtiJp:          0.0,
+		MbtiConfidence:   0.0,
 		Openness:          0.5,
 		Conscientiousness: 0.5,
 		Extraversion:      0.5,
@@ -187,8 +187,8 @@ func NewInterest(category, name string, keywords []string, level float64) *Inter
 		Name:     name,
 		Keywords: keywords,
 		Level:    level,
-		CreatedAt: Now(),
-		UpdatedAt: Now(),
+		Since:    Now(),
+		LastActive: Now(),
 	}
 }
 
@@ -206,7 +206,6 @@ func NewPreference(userID, key string, value interface{}, confidence float64, so
 		CreatedAt:  Now(),
 		UpdatedAt:  Now(),
 		AccessCount: 0,
-		ExpiresAt:  0, // No expiration
 	}
 }
 
@@ -215,15 +214,14 @@ func NewPreference(userID, key string, value interface{}, confidence float64, so
 // NewVoiceProfile creates default voice profile
 func NewVoiceProfile(userID string) *VoiceProfile {
 	return &VoiceProfile{
-		UserId:            userID,
-		DefaultTtsVoice:   "default",
-		SpeechRate:        1.0,
-		SpeechPitch:       1.0,
-		Volume:            1.0,
-		PreferredLanguage: "zh-CN",
-		CustomVoices:      []*CustomVoice{},
-		CreatedAt:         Now(),
-		UpdatedAt:         Now(),
+		Id:            GenerateID(),
+		VoiceType:     "preset",
+		PresetVoiceId: "default",
+		Pitch:         1.0,
+		Speed:         1.0,
+		Volume:        1.0,
+		CreatedAt:     Now(),
+		UpdatedAt:     Now(),
 	}
 }
 

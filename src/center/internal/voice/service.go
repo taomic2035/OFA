@@ -73,9 +73,9 @@ func NewService(store VoiceStore, tts TTSProvider, cloner VoiceCloner) *Service 
 
 // CreateVoiceProfile 创建语音配置
 func (s *Service) CreateVoiceProfile(ctx context.Context, userID string, opts ...VoiceProfileOption) (*models.VoiceProfile, error) {
-	profile := models.NewDefaultVoiceProfile()
-	profile.ID = generateVoiceID()
-	profile.VoiceType = string(models.VoiceTypePreset)
+	profile := models.NewVoiceProfile()
+	profile.IdentityID = userID
+	profile.VoiceCharacteristics.VoiceType = string(models.VoiceTypePreset)
 
 	// 应用选项
 	for _, opt := range opts {
@@ -96,50 +96,50 @@ type VoiceProfileOption func(*models.VoiceProfile)
 // WithVoiceType 设置音色类型
 func WithVoiceType(voiceType string) VoiceProfileOption {
 	return func(p *models.VoiceProfile) {
-		p.VoiceType = voiceType
+		p.VoiceCharacteristics.VoiceType = voiceType
 	}
 }
 
 // WithPresetVoice 设置预设音色
 func WithPresetVoice(voiceID string) VoiceProfileOption {
 	return func(p *models.VoiceProfile) {
-		p.VoiceType = string(models.VoiceTypePreset)
-		p.PresetVoiceID = voiceID
+		p.VoiceCharacteristics.VoiceType = string(models.VoiceTypePreset)
+		p.TTSConfig.VoiceModelID = voiceID
 	}
 }
 
 // WithPitch 设置音高
 func WithPitch(pitch float64) VoiceProfileOption {
 	return func(p *models.VoiceProfile) {
-		p.Pitch = clamp(pitch, 0, 2)
+		p.VoiceCharacteristics.BasePitch = clamp(pitch*200, 50, 500)
 	}
 }
 
 // WithSpeed 设置语速
 func WithSpeed(speed float64) VoiceProfileOption {
 	return func(p *models.VoiceProfile) {
-		p.Speed = clamp(speed, 0, 2)
+		p.VoiceCharacteristics.SpeakingRate = clamp(speed*150, 50, 300)
 	}
 }
 
 // WithVolume 设置音量
 func WithVolume(volume float64) VoiceProfileOption {
 	return func(p *models.VoiceProfile) {
-		p.Volume = clamp(volume, 0, 1)
+		p.VoiceCharacteristics.BaseVolume = clamp(volume, 0, 1)
 	}
 }
 
 // WithTone 设置语调
 func WithTone(tone string) VoiceProfileOption {
 	return func(p *models.VoiceProfile) {
-		p.Tone = tone
+		p.VoiceCharacteristics.TimbreType = tone
 	}
 }
 
 // WithEmotionLevel 设置情感级别
 func WithEmotionLevel(level float64) VoiceProfileOption {
 	return func(p *models.VoiceProfile) {
-		p.EmotionLevel = clamp(level, 0, 1)
+		p.EmotionalVoice.EmotionalExpressiveness = clamp(level, 0, 1)
 	}
 }
 
@@ -163,47 +163,39 @@ func (s *Service) UpdateVoiceProfile(ctx context.Context, id string, updates map
 		switch key {
 		case "voice_type":
 			if v, ok := value.(string); ok {
-				profile.VoiceType = v
+				profile.VoiceCharacteristics.VoiceType = v
 			}
 		case "preset_voice_id":
 			if v, ok := value.(string); ok {
-				profile.PresetVoiceID = v
-			}
-		case "clone_reference_id":
-			if v, ok := value.(string); ok {
-				profile.CloneReferenceID = v
+				profile.TTSConfig.VoiceModelID = v
 			}
 		case "pitch":
 			if v, ok := value.(float64); ok {
-				profile.Pitch = clamp(v, 0, 2)
+				profile.VoiceCharacteristics.BasePitch = clamp(v*200, 50, 500)
 			}
 		case "speed":
 			if v, ok := value.(float64); ok {
-				profile.Speed = clamp(v, 0, 2)
+				profile.VoiceCharacteristics.SpeakingRate = clamp(v*150, 50, 300)
 			}
 		case "volume":
 			if v, ok := value.(float64); ok {
-				profile.Volume = clamp(v, 0, 1)
+				profile.VoiceCharacteristics.BaseVolume = clamp(v, 0, 1)
 			}
 		case "tone":
 			if v, ok := value.(string); ok {
-				profile.Tone = v
+				profile.VoiceCharacteristics.TimbreType = v
 			}
 		case "accent":
 			if v, ok := value.(string); ok {
-				profile.Accent = v
+				profile.VoiceStyle.RegionalAccent = v
 			}
 		case "emotion_level":
 			if v, ok := value.(float64); ok {
-				profile.EmotionLevel = clamp(v, 0, 1)
+				profile.EmotionalVoice.EmotionalExpressiveness = clamp(v, 0, 1)
 			}
-		case "pause_pattern":
+		case "formality":
 			if v, ok := value.(string); ok {
-				profile.PausePattern = v
-			}
-		case "emphasis_style":
-			if v, ok := value.(string); ok {
-				profile.EmphasisStyle = v
+				profile.VoiceStyle.FormalityLevel = v
 			}
 		}
 	}
@@ -273,10 +265,11 @@ func (s *Service) CreateClonedProfile(ctx context.Context, cloneID string, opts 
 		return nil, fmt.Errorf("clone not ready: %s", status.Status)
 	}
 
-	profile := models.NewDefaultVoiceProfile()
-	profile.ID = generateVoiceID()
-	profile.VoiceType = string(models.VoiceTypeClone)
-	profile.CloneReferenceID = cloneID
+	profile := models.NewVoiceProfile()
+	profile.IdentityID = cloneID
+	profile.VoiceCharacteristics.VoiceType = string(models.VoiceTypeClone)
+	profile.TTSConfig.VoiceModelID = cloneID
+	profile.TTSConfig.CustomVoice = true
 
 	for _, opt := range opts {
 		opt(profile)
@@ -332,19 +325,19 @@ func (s *Service) AdjustTone(ctx context.Context, profileID string, adjustments 
 
 	// 应用调整
 	if adjustments.PitchDelta != 0 {
-		profile.Pitch = clamp(profile.Pitch+adjustments.PitchDelta, 0, 2)
+		profile.VoiceCharacteristics.BasePitch = clamp(profile.VoiceCharacteristics.BasePitch+adjustments.PitchDelta*100, 50, 500)
 	}
 	if adjustments.SpeedDelta != 0 {
-		profile.Speed = clamp(profile.Speed+adjustments.SpeedDelta, 0, 2)
+		profile.VoiceCharacteristics.SpeakingRate = clamp(profile.VoiceCharacteristics.SpeakingRate+adjustments.SpeedDelta*50, 50, 300)
 	}
 	if adjustments.VolumeDelta != 0 {
-		profile.Volume = clamp(profile.Volume+adjustments.VolumeDelta, 0, 1)
+		profile.VoiceCharacteristics.BaseVolume = clamp(profile.VoiceCharacteristics.BaseVolume+adjustments.VolumeDelta, 0, 1)
 	}
 	if adjustments.EmotionDelta != 0 {
-		profile.EmotionLevel = clamp(profile.EmotionLevel+adjustments.EmotionDelta, 0, 1)
+		profile.EmotionalVoice.EmotionalExpressiveness = clamp(profile.EmotionalVoice.EmotionalExpressiveness+adjustments.EmotionDelta, 0, 1)
 	}
 	if adjustments.Tone != "" {
-		profile.Tone = adjustments.Tone
+		profile.VoiceCharacteristics.TimbreType = adjustments.Tone
 	}
 
 	profile.UpdatedAt = time.Now()

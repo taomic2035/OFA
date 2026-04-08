@@ -71,49 +71,49 @@ type FacialFeatures struct {
 	Scars       []ScarPosition `json:"scars"`
 
 	// Expressiveness (linked to EmotionBehavior v4.5.0)
-	Expressiveness double `json:"expressiveness"` // 0-1, how expressive the face is
+	Expressiveness float64 `json:"expressiveness"` // 0-1, how expressive the face is
 }
 
 // MolePosition represents a mole on the face.
 type MolePosition struct {
-	X      double `json:"x"`       // position relative to face center
-	Y      double `json:"y"`
+	X      float64 `json:"x"`       // position relative to face center
+	Y      float64 `json:"y"`
 	Size   string `json:"size"`    // small, medium, large
 	Visible bool  `json:"visible"`
 }
 
 // ScarPosition represents a scar on the face.
 type ScarPosition struct {
-	X      double `json:"x"`
-	Y      double `json:"y"`
-	Length double `json:"length"`
-	Angle  double `json:"angle"`
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+	Length float64 `json:"length"`
+	Angle  float64 `json:"angle"`
 	Type   string `json:"type"`    // linear, curved, patch
 }
 
 // BodyFeatures defines the body characteristics.
 type BodyFeatures struct {
 	// Basic measurements
-	Height      double `json:"height"`      // in cm
-	Weight      double `json:"weight"`      // in kg
+	Height      float64 `json:"height"`      // in cm
+	Weight      float64 `json:"weight"`      // in kg
 	BodyType    string `json:"body_type"`   // slim, average, athletic, curvy, heavy
 
 	// Proportions
-	ShoulderWidth double `json:"shoulder_width"` // relative proportion 0-1
-	HipWidth      double `json:"hip_width"`      // relative proportion 0-1
-	WaistRatio    double `json:"waist_ratio"`    // waist-to-height ratio
+	ShoulderWidth float64 `json:"shoulder_width"` // relative proportion 0-1
+	HipWidth      float64 `json:"hip_width"`      // relative proportion 0-1
+	WaistRatio    float64 `json:"waist_ratio"`    // waist-to-height ratio
 
 	// Posture (linked to RelationshipProfile v4.6.0)
 	Posture      string `json:"posture"`      // confident, modest, casual, formal, slouched
-	PostureScore double `json:"posture_score"` // 0-1, posture quality
+	PostureScore float64 `json:"posture_score"` // 0-1, posture quality
 
 	// Movement style (linked to EmotionBehavior v4.5.0)
 	MovementStyle string `json:"movement_style"` // graceful, energetic, calm, playful, reserved
 	MovementSpeed string `json:"movement_speed"` // slow, moderate, fast
 
 	// Body language tendency
-	GestureFrequency double `json:"gesture_frequency"` // 0-1, how often uses gestures
-	TouchTendency    double `json:"touch_tendency"`    // 0-1, tendency to touch others
+	GestureFrequency float64 `json:"gesture_frequency"` // 0-1, how often uses gestures
+	TouchTendency    float64 `json:"touch_tendency"`    // 0-1, tendency to touch others
 
 	// Fitness level
 	FitnessLevel  string `json:"fitness_level"`  // low, moderate, high, athletic
@@ -132,17 +132,17 @@ type AgeAppearance struct {
 	AgingStage     string `json:"aging_stage"`     // youthful, prime, mature, senior, elderly
 
 	// Facial maturity indicators
-	FacialMaturity double `json:"facial_maturity"` // 0-1, facial maturity level
+	FacialMaturity float64 `json:"facial_maturity"` // 0-1, facial maturity level
 	WrinkleLevel   string `json:"wrinkle_level"`   // none, minimal, moderate, significant
 	SkinElasticity string `json:"skin_elasticity"` // high, moderate, low
 
 	// Body maturity indicators
-	BodyMaturity   double `json:"body_maturity"`   // 0-1, body maturity level
+	BodyMaturity   float64 `json:"body_maturity"`   // 0-1, body maturity level
 	MetabolismType string `json:"metabolism_type"` // fast, moderate, slow
 
 	// Age-defying factors
-	SelfCareLevel  double `json:"self_care_level"`  // 0-1, anti-aging effort
-	GeneticFactor  double `json:"genetic_factor"`   // 0-1, genetic aging tendency
+	SelfCareLevel  float64 `json:"self_care_level"`  // 0-1, anti-aging effort
+	GeneticFactor  float64 `json:"genetic_factor"`   // 0-1, genetic aging tendency
 }
 
 // StylePreferences defines the styling and fashion preferences.
@@ -173,15 +173,15 @@ type StylePreferences struct {
 
 	// Cultural influence (linked to RegionalCulture v4.3.0)
 	CulturalStyle    string `json:"cultural_style"`    // traditional, modern, fusion, western
-	RegionalInfluence double `json:"regional_influence"` // 0-1, how much region affects style
+	RegionalInfluence float64 `json:"regional_influence"` // 0-1, how much region affects style
 
 	// Social class influence (linked to SocialClassProfile v4.2.0)
 	ClassStyle       string `json:"class_style"`       // working, middle, upper-middle, upper
-	StatusDisplay    double `json:"status_display"`    // 0-1, tendency to display status
+	StatusDisplay    float64 `json:"status_display"`    // 0-1, tendency to display status
 
 	// Brand preferences
 	BrandPreferences []string `json:"brand_preferences"` // preferred brands
-	BrandAwareness   double `json:"brand_awareness"`   // 0-1, brand consciousness
+	BrandAwareness   float64 `json:"brand_awareness"`   // 0-1, brand consciousness
 }
 
 // StylePhase represents a style phase in life.
@@ -219,7 +219,7 @@ type Model3DReference struct {
 
 	// Optimization
 	OptimizedFor    string `json:"optimized_for"`    // mobile, desktop, vr, ar
-	FileSize        double `json:"file_size"`        // MB
+	FileSize        float64 `json:"file_size"`        // MB
 	PolygonCount    int    `json:"polygon_count"`    // number of polygons
 }
 
@@ -258,22 +258,22 @@ type SceneAdaptation struct {
 type SocialAdaptation struct {
 	SocialContext    string `json:"social_context"`    // formal, casual, intimate, professional
 	DistanceLevel    string `json:"distance_level"`    // close, moderate, far (avatar distance)
-	EyeContactLevel  double `json:"eye_contact_level"` // 0-1, how much eye contact
-	GestureLevel     double `json:"gesture_level"`     // 0-1, how animated
+	EyeContactLevel  float64 `json:"eye_contact_level"` // 0-1, how much eye contact
+	GestureLevel     float64 `json:"gesture_level"`     // 0-1, how animated
 	TouchPermission  string `json:"touch_permission"`  // none, handshake, hug, kiss
 
 	// Linked to AttachmentStyle
-	IntimacyDisplay  double `json:"intimacy_display"`  // 0-1, how much to show intimacy
-	TrustDisplay     double `json:"trust_display"`     // 0-1, how much to show trust
+	IntimacyDisplay  float64 `json:"intimacy_display"`  // 0-1, how much to show intimacy
+	TrustDisplay     float64 `json:"trust_display"`     // 0-1, how much to show trust
 }
 
-// CulturalAdaptation defines how avatar adapts to cultural context.
+// AvatarCulturalAdaptation defines how avatar adapts to cultural context.
 // Linked to RegionalCulture v4.3.0.
-type CulturalAdaptation struct {
+type AvatarCulturalAdaptation struct {
 	CulturalContext  string `json:"cultural_context"`  // local, international, multicultural
-	FormalityLevel   double `json:"formality_level"`   // 0-1, formality degree
-	ModestyLevel     double `json:"modesty_level"`     // 0-1, modesty degree
-	ExpressivenessLevel double `json:"expressiveness_level"` // 0-1, cultural expressiveness
+	FormalityLevel   float64 `json:"formality_level"`   // 0-1, formality degree
+	ModestyLevel     float64 `json:"modesty_level"`     // 0-1, modesty degree
+	ExpressivenessLevel float64 `json:"expressiveness_level"` // 0-1, cultural expressiveness
 	GreetingStyle    string `json:"greeting_style"`    // handshake, bow, wave, hug, kiss
 
 	// Communication style adaptation
@@ -298,20 +298,20 @@ type AvatarProfile struct {
 	VisualPersonality   string `json:"visual_personality"`   // approachable, professional, artistic, reserved
 	FirstImpression     string `json:"first_impression"`     // warm, cool, neutral, dynamic
 	MemorableFeature    string `json:"memorable_feature"`    // eyes, smile, hair, style, posture
-	DistinctivenessScore double `json:"distinctiveness_score"` // 0-1, how distinctive
+	DistinctivenessScore float64 `json:"distinctiveness_score"` // 0-1, how distinctive
 
 	// Social presentation
 	SocialPresence     string `json:"social_presence"`     // dominant, balanced, submissive
-	CharismaScore      double `json:"charisma_score"`      // 0-1, charisma level
-	ApproachabilityScore double `json:"approachability_score"` // 0-1, how approachable
+	CharismaScore      float64 `json:"charisma_score"`      // 0-1, charisma level
+	ApproachabilityScore float64 `json:"approachability_score"` // 0-1, how approachable
 
 	// Consistency
-	StyleConsistency   double `json:"style_consistency"`   // 0-1, style consistency over time
-	AuthenticityScore  double `json:"authenticity_score"`  // 0-1, authenticity in appearance
+	StyleConsistency   float64 `json:"style_consistency"`   // 0-1, style consistency over time
+	AuthenticityScore  float64 `json:"authenticity_score"`  // 0-1, authenticity in appearance
 
 	// Evolution potential
 	EvolutionTendency  string `json:"evolution_tendency"`  // stable, evolving, experimental
-	FashionAwareness   double `json:"fashion awareness"`   // 0-1, fashion trend awareness
+	FashionAwareness   float64 `json:"fashion awareness"`   // 0-1, fashion trend awareness
 
 	// Metadata
 	Version   int64     `json:"version"`

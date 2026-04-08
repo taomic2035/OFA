@@ -35,11 +35,11 @@ type AvatarEngineConfig struct {
 
 	// Age progression settings
 	EnableAgeProgression bool
-	AgeProgressionRate   double // how fast avatar ages
+	AgeProgressionRate   float64 // how fast avatar ages
 
 	// Style evolution settings
 	EnableStyleEvolution bool
-	StyleChangeThreshold double // threshold for style change
+	StyleChangeThreshold float64 // threshold for style change
 }
 
 // NewAvatarEngine creates a new Avatar Engine.
@@ -504,7 +504,7 @@ func (e *AvatarEngine) determineCulturalStyle(culture *models.RegionalCulture) s
 }
 
 // calculateRegionalInfluence calculates how much region affects style.
-func (e *AvatarEngine) calculateRegionalInfluence(culture *models.RegionalCulture) double {
+func (e *AvatarEngine) calculateRegionalInfluence(culture *models.RegionalCulture) float64 {
 	if culture == nil {
 		return 0.5
 	}
@@ -548,7 +548,7 @@ func (e *AvatarEngine) applyCulturalGrooming(culture *models.RegionalCulture, cu
 // === Emotion Integration (v4.0.0, v4.5.0) ===
 
 // ApplyEmotionExpression updates avatar expression based on emotion state.
-func (e *AvatarEngine) ApplyEmotionExpression(identityID string, dominantEmotion string, intensity double) *models.Avatar {
+func (e *AvatarEngine) ApplyEmotionExpression(identityID string, dominantEmotion string, intensity float64) *models.Avatar {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -571,7 +571,7 @@ func (e *AvatarEngine) ApplyEmotionExpression(identityID string, dominantEmotion
 }
 
 // calculateExpressiveness calculates facial expressiveness from emotion.
-func (e *AvatarEngine) calculateExpressiveness(emotion string, intensity double) double {
+func (e *AvatarEngine) calculateExpressiveness(emotion string, intensity float64) float64 {
 	// Base expressiveness
 	base := 0.5
 
@@ -978,7 +978,7 @@ func (e *AvatarEngine) determineMemorableFeature(avatar *models.Avatar) string {
 	return "presence"
 }
 
-func (e *AvatarEngine) calculateDistinctiveness(avatar *models.Avatar) double {
+func (e *AvatarEngine) calculateDistinctiveness(avatar *models.Avatar) float64 {
 	score := 0.3 // base
 
 	if avatar.StylePreferences.AccessoryStyle == "bold" {
@@ -1006,7 +1006,7 @@ func (e *AvatarEngine) determineSocialPresence(avatar *models.Avatar) string {
 	return "balanced"
 }
 
-func (e *AvatarEngine) calculateCharisma(avatar *models.Avatar) double {
+func (e *AvatarEngine) calculateCharisma(avatar *models.Avatar) float64 {
 	score := 0.5
 
 	score += avatar.FacialFeatures.Expressiveness * 0.2
@@ -1022,7 +1022,7 @@ func (e *AvatarEngine) calculateCharisma(avatar *models.Avatar) double {
 	return score
 }
 
-func (e *AvatarEngine) calculateApproachability(avatar *models.Avatar) double {
+func (e *AvatarEngine) calculateApproachability(avatar *models.Avatar) float64 {
 	score := 0.5
 
 	if avatar.FacialFeatures.Expressiveness > 0.5 {

@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"sync"
@@ -72,7 +73,7 @@ type CollaborativeTask struct {
 	SubTasks      []*SubTask             `json:"subtasks"`
 
 	// 聚合策略
-	MergeStrategy MergeStrategy          `json:"merge_strategy"`
+	MergeStrategy TaskMergeStrategy       `json:"merge_strategy"`
 	Result        map[string]interface{} `json:"result,omitempty"`
 
 	// 执行约束
@@ -103,16 +104,16 @@ const (
 	SplitByDevice  SplitStrategy = "by_device" // 按设备能力拆分
 )
 
-// MergeStrategy - 聚合策略
-type MergeStrategy string
+// TaskMergeStrategy - 任务聚合策略
+type TaskMergeStrategy string
 
 const (
-	MergeNone       MergeStrategy = "none"       // 不聚合
-	MergeAll        MergeStrategy = "all"        // 收集所有结果
-	MergeFirst      MergeStrategy = "first"      // 取第一个成功结果
-	MergeConsensus  MergeStrategy = "consensus"  // 共识结果
-	MergeAggregate  MergeStrategy = "aggregate"  // 聚合统计
-	MergeBest       MergeStrategy = "best"       // 取最佳结果
+	TaskMergeNone       TaskMergeStrategy = "none"       // 不聚合
+	TaskMergeAll        TaskMergeStrategy = "all"        // 收集所有结果
+	TaskMergeFirst      TaskMergeStrategy = "first"      // 取第一个成功结果
+	TaskMergeConsensus  TaskMergeStrategy = "consensus"  // 共识结果
+	TaskMergeAggregate  TaskMergeStrategy = "aggregate"  // 聚合统计
+	TaskMergeBest       TaskMergeStrategy = "best"       // 取最佳结果
 )
 
 // TaskSplitter - 任务拆分器
@@ -137,7 +138,7 @@ type TaskCoordinator struct {
 	splitters  map[SplitStrategy]TaskSplitter
 
 	// 合并器
-	mergers    map[MergeStrategy]ResultMerger
+	mergers    map[TaskMergeStrategy]ResultMerger
 
 	// 设备管理器
 	deviceManager *DeviceManager
@@ -192,7 +193,7 @@ func NewTaskCoordinator(config TaskCoordinatorConfig) *TaskCoordinator {
 		tasks:     make(map[string]*CollaborativeTask),
 		subTasks:  make(map[string]*SubTask),
 		splitters: make(map[SplitStrategy]TaskSplitter),
-		mergers:   make(map[MergeStrategy]ResultMerger),
+		mergers:   make(map[TaskMergeStrategy]ResultMerger),
 		config:    config,
 		listeners: make([]TaskListener, 0),
 	}
@@ -477,7 +478,7 @@ func (tc *TaskCoordinator) checkTaskCompletion(task *CollaborativeTask) {
 			go tc.notifyTaskFailed(task, ErrAllSubTasksFailed)
 		} else {
 			// 部分失败，检查是否可接受
-			if task.MergeStrategy == MergeAll || task.MergeStrategy == MergeAggregate {
+			if task.MergeStrategy == TaskMergeAll || task.MergeStrategy == TaskMergeAggregate {
 				tc.mergeResults(task)
 
 				task.Status = TaskStatusCompleted
@@ -546,7 +547,7 @@ func (tc *TaskCoordinator) sendSubTaskToDevice(st *SubTask) {
 		CreatedAt:  time.Now(),
 	}
 
-	tc.messageBus.Send(msg)
+	tc.messageBus.SendMessage(context.Background(), msg)
 }
 
 // === 默认拆分器与合并器 ===
@@ -561,13 +562,13 @@ func (tc *TaskCoordinator) registerDefaultSplitters() {
 
 func (tc *TaskCoordinator) registerDefaultMergers() {
 	// 收集所有
-	tc.mergers[MergeAll] = &AllResultMerger{}
+	tc.mergers[TaskMergeAll] = &AllResultMerger{}
 
 	// 取第一个
-	tc.mergers[MergeFirst] = &FirstResultMerger{}
+	tc.mergers[TaskMergeFirst] = &FirstResultMerger{}
 
 	// 聚合统计
-	tc.mergers[MergeAggregate] = &AggregateMerger{}
+	tc.mergers[TaskMergeAggregate] = &AggregateMerger{}
 }
 
 // === 监听器管理 ===

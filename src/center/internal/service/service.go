@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
-	"sync"
+	stdsync "sync"
 	"time"
 
 	"github.com/ofa/center/internal/config"
@@ -32,7 +32,7 @@ const (
 // CenterService is the main service orchestrating all components
 type CenterService struct {
 	cfg      *config.Config
-	store    *store.Store
+	store    store.StoreInterface
 	mode     CenterMode // v2.1.0: 运行模式
 
 	// 旧版调度器（控制中心模式）
@@ -48,7 +48,7 @@ type CenterService struct {
 	ttsService *TTSService
 
 	// Active agent connections
-	connections sync.Map // map[string]*models.AgentConnection
+	connections stdsync.Map // map[string]*models.AgentConnection
 
 	// Channels for internal communication
 	taskQueue   chan *models.Task
@@ -128,7 +128,7 @@ func (s *CenterService) GetMode() CenterMode {
 // ===== Accessor Methods =====
 
 // GetStore returns the store instance
-func (s *CenterService) GetStore() *store.Store {
+func (s *CenterService) GetStore() store.StoreInterface {
 	return s.store
 }
 
@@ -137,8 +137,8 @@ func (s *CenterService) GetScheduler() *scheduler.Scheduler {
 	return s.scheduler
 }
 
-// GetIdentity returns the identity service instance (v1.2.0)
-func (s *CenterService) GetIdentity() *identity.Service {
+// GetIdentityService returns the identity service instance (v1.2.0)
+func (s *CenterService) GetIdentityService() *identity.Service {
 	return s.identity
 }
 
@@ -163,7 +163,7 @@ func (s *CenterService) GetTaskQueue() chan *models.Task {
 }
 
 // GetConnections returns the connections map
-func (s *CenterService) GetConnections() *sync.Map {
+func (s *CenterService) GetConnections() *stdsync.Map {
 	return &s.connections
 }
 
@@ -941,7 +941,7 @@ func (s *CenterService) CreateIdentity(ctx context.Context, req *pb.CreateIdenti
 
 // GetIdentity retrieves a personal identity
 func (s *CenterService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest) (*pb.GetIdentityResponse, error) {
-	ident, err := s.identity.GetIdentity(ctx, req.Id)
+	ident, err := s.identity.GetIdentity(ctx, req.UserId)
 	if err != nil {
 		return &pb.GetIdentityResponse{
 			Success: false,
@@ -1014,7 +1014,14 @@ func (s *CenterService) ListIdentities(ctx context.Context, req *pb.ListIdentiti
 
 // UpdatePersonality updates personality traits
 func (s *CenterService) UpdatePersonality(ctx context.Context, req *pb.UpdatePersonalityRequest) (*pb.UpdatePersonalityResponse, error) {
-	personality, err := s.identity.UpdatePersonality(ctx, req.Id, req.Updates)
+	// Convert map[string]interface{} to map[string]float64
+	updates := make(map[string]float64)
+	for k, v := range req.Updates {
+		if f, ok := v.(float64); ok {
+			updates[k] = f
+		}
+	}
+	personality, err := s.identity.UpdatePersonality(ctx, req.UserId, updates)
 	if err != nil {
 		return &pb.UpdatePersonalityResponse{
 			Success: false,
@@ -1059,8 +1066,14 @@ func (s *CenterService) UpdateValueSystem(ctx context.Context, req *pb.UpdateVal
 
 // AddInterest adds an interest
 func (s *CenterService) AddInterest(ctx context.Context, req *pb.AddInterestRequest) (*pb.AddInterestResponse, error) {
-	interest := convertProtoToInterest(req.Interest)
-	err := s.identity.AddInterest(ctx, req.Id, interest)
+	interest := models.Interest{
+		ID:        generateID(),
+		Category:  req.Category,
+		Name:      req.Name,
+		Keywords:  req.Keywords,
+		Level:     req.Level,
+	}
+	err := s.identity.AddInterest(ctx, req.UserId, interest)
 	if err != nil {
 		return &pb.AddInterestResponse{
 			Success: false,
@@ -1086,14 +1099,7 @@ func (s *CenterService) RemoveInterest(ctx context.Context, req *pb.RemoveIntere
 
 // GetInterests retrieves interests
 func (s *CenterService) GetInterests(ctx context.Context, req *pb.GetInterestsRequest) (*pb.GetInterestsResponse, error) {
-	var interests []models.Interest
-	var err error
-
-	if req.Category != "" {
-		interests, err = s.identity.GetInterestsByCategory(ctx, req.Id, req.Category)
-	} else {
-		interests, err = s.identity.GetInterests(ctx, req.Id)
-	}
+	interests, err := s.identity.GetInterests(ctx, req.UserId)
 
 	if err != nil {
 		return &pb.GetInterestsResponse{
@@ -1110,7 +1116,7 @@ func (s *CenterService) GetInterests(ctx context.Context, req *pb.GetInterestsRe
 
 // GetVoiceProfile retrieves voice profile
 func (s *CenterService) GetVoiceProfile(ctx context.Context, req *pb.GetVoiceProfileRequest) (*pb.GetVoiceProfileResponse, error) {
-	profile, err := s.identity.GetVoiceProfile(ctx, req.Id)
+	profile, err := s.identity.GetIdentityVoiceProfile(ctx, req.UserId)
 	if err != nil {
 		return &pb.GetVoiceProfileResponse{
 			Success: false,
@@ -1126,8 +1132,13 @@ func (s *CenterService) GetVoiceProfile(ctx context.Context, req *pb.GetVoicePro
 
 // UpdateVoiceProfile updates voice profile
 func (s *CenterService) UpdateVoiceProfile(ctx context.Context, req *pb.UpdateVoiceProfileRequest) (*pb.UpdateVoiceProfileResponse, error) {
-	profile := convertProtoToVoiceProfile(req.Profile)
-	err := s.identity.UpdateVoiceProfile(ctx, req.Id, profile)
+	profile := &models.IdentityVoiceProfile{
+		PresetVoiceID: req.DefaultTtsVoice,
+		Speed:         req.SpeechRate,
+		Pitch:         req.SpeechPitch,
+		Volume:        req.Volume,
+	}
+	err := s.identity.UpdateIdentityVoiceProfile(ctx, req.UserId, profile)
 	if err != nil {
 		return &pb.UpdateVoiceProfileResponse{
 			Success: false,
@@ -1291,7 +1302,7 @@ func convertInterestsToProto(interests []models.Interest) []*pb.Interest {
 	return result
 }
 
-func convertVoiceProfileToProto(v *models.VoiceProfile) *pb.VoiceProfile {
+func convertVoiceProfileToProto(v *models.IdentityVoiceProfile) *pb.VoiceProfile {
 	if v == nil {
 		return nil
 	}
@@ -1306,10 +1317,6 @@ func convertVoiceProfileToProto(v *models.VoiceProfile) *pb.VoiceProfile {
 		Tone:             v.Tone,
 		Accent:           v.Accent,
 		EmotionLevel:     v.EmotionLevel,
-		PausePattern:     v.PausePattern,
-		EmphasisStyle:    v.EmphasisStyle,
-		CreatedAt:        v.CreatedAt.Unix(),
-		UpdatedAt:        v.UpdatedAt.Unix(),
 	}
 }
 
@@ -1381,11 +1388,11 @@ func convertProtoToInterest(i *pb.Interest) models.Interest {
 	}
 }
 
-func convertProtoToVoiceProfile(v *pb.VoiceProfile) *models.VoiceProfile {
+func convertProtoToVoiceProfile(v *pb.VoiceProfile) *models.IdentityVoiceProfile {
 	if v == nil {
 		return nil
 	}
-	return &models.VoiceProfile{
+	return &models.IdentityVoiceProfile{
 		ID:               v.Id,
 		VoiceType:        v.VoiceType,
 		PresetVoiceID:    v.PresetVoiceId,
@@ -1396,10 +1403,6 @@ func convertProtoToVoiceProfile(v *pb.VoiceProfile) *models.VoiceProfile {
 		Tone:             v.Tone,
 		Accent:           v.Accent,
 		EmotionLevel:     v.EmotionLevel,
-		PausePattern:     v.PausePattern,
-		EmphasisStyle:    v.EmphasisStyle,
-		CreatedAt:        time.Unix(v.CreatedAt, 0),
-		UpdatedAt:        time.Unix(v.UpdatedAt, 0),
 	}
 }
 

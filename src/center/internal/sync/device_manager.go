@@ -6,8 +6,6 @@ import (
 	"sort"
 	"sync"
 	"time"
-
-	"github.com/ofa/center/internal/models"
 )
 
 // === 设备管理器 ===

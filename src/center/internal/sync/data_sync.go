@@ -28,16 +28,16 @@ const (
 	SyncStatusConflict  SyncStatus = "conflict"
 )
 
-// ConflictStrategy 冲突解决策略
-type ConflictStrategy string
+// DataConflictStrategy 数据冲突解决策略
+type DataConflictStrategy string
 
 const (
-	ConflictStrategyLastWrite  ConflictStrategy = "last_write"   // 最后写入胜
-	ConflictStrategyFirstWrite ConflictStrategy = "first_write"  // 最先写入胜
-	ConflictStrategyMerge      ConflictStrategy = "merge"        // 合并
-	ConflictStrategyManual     ConflictStrategy = "manual"       // 手动解决
-	ConflictStrategyServer     ConflictStrategy = "server"       // 服务端优先
-	ConflictStrategyClient     ConflictStrategy = "client"       // 客户端优先
+	DataConflictStrategyLastWrite  DataConflictStrategy = "last_write"   // 最后写入胜
+	DataConflictStrategyFirstWrite DataConflictStrategy = "first_write"  // 最先写入胜
+	DataConflictStrategyMerge      DataConflictStrategy = "merge"        // 合并
+	DataConflictStrategyManual     DataConflictStrategy = "manual"       // 手动解决
+	DataConflictStrategyServer     DataConflictStrategy = "server"       // 服务端优先
+	DataConflictStrategyClient     DataConflictStrategy = "client"       // 客户端优先
 )
 
 // SyncRecord 同步记录
@@ -95,7 +95,7 @@ type ConflictRecord struct {
 	DataKey       string                 `json:"data_key"`
 	ServerVersion *DataVersion           `json:"server_version"`
 	ClientRecords []*SyncRecord          `json:"client_records"`
-	Strategy      ConflictStrategy       `json:"strategy"`
+	Strategy      DataConflictStrategy   `json:"strategy"`
 	Status        SyncStatus             `json:"status"`
 	CreatedAt     time.Time              `json:"created_at"`
 	ResolvedAt    *time.Time             `json:"resolved_at,omitempty"`
@@ -118,12 +118,12 @@ type DataSyncService struct {
 
 // DataSyncConfig 同步配置
 type DataSyncConfig struct {
-	MaxBatchSize        int               `json:"max_batch_size"`
-	MaxRetryCount       int               `json:"max_retry_count"`
-	SyncInterval        time.Duration     `json:"sync_interval"`
-	ConflictStrategy    ConflictStrategy  `json:"conflict_strategy"`
-	EnableAutoMerge     bool              `json:"enable_auto_merge"`
-	VersionGapThreshold int64             `json:"version_gap_threshold"`
+	MaxBatchSize        int                  `json:"max_batch_size"`
+	MaxRetryCount       int                  `json:"max_retry_count"`
+	SyncInterval        time.Duration        `json:"sync_interval"`
+	ConflictStrategy    DataConflictStrategy `json:"conflict_strategy"`
+	EnableAutoMerge     bool                 `json:"enable_auto_merge"`
+	VersionGapThreshold int64                `json:"version_gap_threshold"`
 }
 
 // DefaultDataSyncConfig 默认配置
@@ -132,7 +132,7 @@ func DefaultDataSyncConfig() DataSyncConfig {
 		MaxBatchSize:        100,
 		MaxRetryCount:       3,
 		SyncInterval:        30 * time.Second,
-		ConflictStrategy:    ConflictStrategyLastWrite,
+		ConflictStrategy:    DataConflictStrategyLastWrite,
 		EnableAutoMerge:     true,
 		VersionGapThreshold: 10,
 	}
@@ -394,7 +394,7 @@ func (s *DataSyncService) applyRecord(record *SyncRecord) error {
 // === 冲突解决 ===
 
 // ResolveConflict 解决冲突
-func (s *DataSyncService) ResolveConflict(conflictID string, strategy ConflictStrategy,
+func (s *DataSyncService) ResolveConflict(conflictID string, strategy DataConflictStrategy,
 	resolvedValue map[string]interface{}) error {
 
 	s.mu.Lock()
@@ -460,7 +460,7 @@ func (s *DataSyncService) autoMerge(conflict *ConflictRecord) map[string]interfa
 	}
 
 	switch strategy {
-	case ConflictStrategyServer:
+	case DataConflictStrategyServer:
 		// 服务端优先
 		if conflict.ServerVersion != nil {
 			return map[string]interface{}{
@@ -469,13 +469,13 @@ func (s *DataSyncService) autoMerge(conflict *ConflictRecord) map[string]interfa
 			}
 		}
 
-	case ConflictStrategyClient:
+	case DataConflictStrategyClient:
 		// 客户端优先
 		if len(conflict.ClientRecords) > 0 {
 			return conflict.ClientRecords[0].NewValue
 		}
 
-	case ConflictStrategyLastWrite:
+	case DataConflictStrategyLastWrite:
 		// 最后写入胜
 		if conflict.ServerVersion != nil && len(conflict.ClientRecords) > 0 {
 			if conflict.ClientRecords[0].Timestamp.After(conflict.ServerVersion.UpdatedAt) {
@@ -483,7 +483,7 @@ func (s *DataSyncService) autoMerge(conflict *ConflictRecord) map[string]interfa
 			}
 		}
 
-	case ConflictStrategyFirstWrite:
+	case DataConflictStrategyFirstWrite:
 		// 最先写入胜
 		if conflict.ServerVersion != nil {
 			return map[string]interface{}{
@@ -491,7 +491,7 @@ func (s *DataSyncService) autoMerge(conflict *ConflictRecord) map[string]interfa
 			}
 		}
 
-	case ConflictStrategyMerge:
+	case DataConflictStrategyMerge:
 		// 深度合并
 		return s.deepMerge(conflict)
 	}

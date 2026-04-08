@@ -86,9 +86,16 @@ func (e *Engine) Decide(ctx context.Context, decisionCtx *models.DecisionContext
 		return nil, fmt.Errorf("failed to save decision: %w", err)
 	}
 
+	// 获取备选方案（排除第一名）
+	topOptions := decision.GetTopOptions(3)
+	var alternatives []*models.DecisionOption
+	for i := 1; i < len(topOptions); i++ {
+		alternatives = append(alternatives, &topOptions[i])
+	}
+
 	return &models.DecisionResult{
 		Decision:        decision,
-		Alternatives:    decision.GetTopOptions(3)[1:], // 排除第一名的备选
+		Alternatives:    alternatives,
 		Explanation:     explanation,
 		Confidence:      decision.Confidence,
 		NeedsUserInput:  needsInput,

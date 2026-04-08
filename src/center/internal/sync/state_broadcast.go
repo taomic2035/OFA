@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"sync"
@@ -392,25 +393,25 @@ func (s *StateBroadcastService) broadcastToSubscribers(change *StateChange) {
 			CreatedAt:  time.Now(),
 		}
 
-		s.messageBus.Send(msg)
+		s.messageBus.SendMessage(context.Background(), msg)
 	}
 }
 
 // getChangePriority 获取变更优先级
-func (s *StateBroadcastService) getChangePriority(changeType StateChangeType) int {
+func (s *StateBroadcastService) getChangePriority(changeType StateChangeType) MessagePriority {
 	switch changeType {
 	case StateChangeOnline, StateChangeOffline:
-		return MessagePriorityHigh
+		return PriorityHigh
 	case StateChangeBattery:
-		return MessagePriorityNormal
+		return PriorityNormal
 	case StateChangeNetwork:
-		return MessagePriorityNormal
+		return PriorityNormal
 	case StateChangeScene:
-		return MessagePriorityNormal
+		return PriorityNormal
 	case StateChangeLocation:
-		return MessagePriorityLow
+		return PriorityLow
 	default:
-		return MessagePriorityNormal
+		return PriorityNormal
 	}
 }
 
@@ -464,13 +465,13 @@ func (s *StateBroadcastService) DeliverCachedBroadcasts(agentID string) int {
 				ToAgent:    agentID,
 				IdentityID: cached.Change.IdentityID,
 				Type:       MessageTypeNotification,
-				Priority:   MessagePriorityNormal,
+				Priority:   PriorityNormal,
 				Payload:    cached.Change.ToMap(),
 				CreatedAt:  time.Now(),
 				Metadata:   map[string]string{"cached": "true", "original_time": cached.BroadcastAt.Format(time.RFC3339)},
 			}
 
-			s.messageBus.Send(msg)
+			s.messageBus.SendMessage(context.Background(), msg)
 			cached.Delivered = true
 			count++
 		}
@@ -573,12 +574,12 @@ func (s *StateBroadcastService) BroadcastAllStates(identityID string) {
 			ToAgent:    sub.SubscriberID,
 			IdentityID: identityID,
 			Type:       MessageTypeSync,
-			Priority:   MessagePriorityHigh,
+			Priority:   PriorityHigh,
 			Payload:    payload,
 			CreatedAt:  time.Now(),
 		}
 
-		s.messageBus.Send(msg)
+		s.messageBus.SendMessage(context.Background(), msg)
 	}
 }
 
@@ -618,7 +619,7 @@ func (s *StateBroadcastService) GetStats() *BroadcastStats {
 
 	stats.PendingBroadcasts = len(s.pendingBroadcasts)
 
-	for agentID, cache := range s.broadcastCache {
+	for _, cache := range s.broadcastCache {
 		stats.CachedBroadcasts += len(cache)
 		if len(cache) > 0 {
 			stats.OfflineDevicesCache++

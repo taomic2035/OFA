@@ -568,7 +568,6 @@ func (e *EvolutionEngine) updateTrendAnalysis(history *PersonalityHistory) {
 
 	// 计算趋势（使用线性回归简化版）
 	snapshots := history.Snapshots
-	n := float64(len(snapshots))
 
 	// 计算各维度趋势
 	analysis.OpennessTrend = e.calculateTrend(snapshots, func(s PersonalitySnapshot) float64 { return s.Personality.Openness })

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/taomic2035/OFA/src/center/internal/models"
+	"github.com/ofa/center/internal/models"
 )
 
 // SocialIdentityEngine 社会身份管理引擎 (v4.2.0)

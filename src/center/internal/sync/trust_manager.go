@@ -171,8 +171,8 @@ func NewTrustManager(config TrustManagerConfig) *TrustManager {
 
 // === 设备注册与认证 ===
 
-// RegisterDeviceRequest 设备注册请求
-type RegisterDeviceRequest struct {
+// TrustRegisterDeviceRequest 设备注册请求（信任管理器）
+type TrustRegisterDeviceRequest struct {
 	AgentID      string   `json:"agent_id"`
 	IdentityID   string   `json:"identity_id"`
 	DeviceType   string   `json:"device_type"`

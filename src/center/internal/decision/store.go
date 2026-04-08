@@ -177,7 +177,7 @@ func (s *MemoryStore) GetDecisionStats(ctx context.Context, userID string) (*mod
 	}
 
 	// Top scenarios
-	for scenario, count := range stats.CountByScenario {
+	for scenario := range stats.CountByScenario {
 		if len(stats.TopScenarios) < 5 {
 			stats.TopScenarios = append(stats.TopScenarios, scenario)
 		}

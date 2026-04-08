@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taomic2035/OFA/src/center/internal/models"
+	"github.com/ofa/center/internal/models"
 )
 
 // TestEmotionEngineCreation 测试情绪引擎创建

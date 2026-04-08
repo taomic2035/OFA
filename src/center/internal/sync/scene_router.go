@@ -33,18 +33,18 @@ const (
 	SceneCooking  SceneType = "cooking"
 )
 
-// MessageType - 消息类型（用于路由匹配）
-type MessageType string
+// SceneMessageType - 场景路由消息类型
+type SceneMessageType string
 
 const (
-	MessageTypeCommand       MessageType = "command"
-	MessageTypeNotification  MessageType = "notification"
-	MessageTypeData          MessageType = "data"
-	MessageTypeSync          MessageType = "sync"
-	MessageTypeAlert         MessageType = "alert"
-	MessageTypeHealth        MessageType = "health"
-	MessageTypeSocial        MessageType = "social"
-	MessageTypeSystem        MessageType = "system"
+	SceneMessageTypeCommand       SceneMessageType = "command"
+	SceneMessageTypeNotification  SceneMessageType = "notification"
+	SceneMessageTypeData          SceneMessageType = "data"
+	SceneMessageTypeSync          SceneMessageType = "sync"
+	SceneMessageTypeAlert         SceneMessageType = "alert"
+	SceneMessageTypeHealth        SceneMessageType = "health"
+	SceneMessageTypeSocial        SceneMessageType = "social"
+	SceneMessageTypeSystem        SceneMessageType = "system"
 )
 
 // RoutingRule - 路由规则
@@ -56,7 +56,7 @@ type RoutingRule struct {
 
 	// 匹配条件
 	Scenes       []SceneType       `json:"scenes"`        // 匹配的场景（空表示全部）
-	MessageTypes []MessageType     `json:"message_types"` // 匹配的消息类型（空表示全部）
+	MessageTypes []SceneMessageType `json:"message_types"` // 匹配的消息类型（空表示全部）
 	DeviceTypes  []string          `json:"device_types"`  // 目标设备类型
 	Conditions   []RuleCondition   `json:"conditions"`    // 附加条件
 
@@ -95,7 +95,7 @@ const (
 type RoutingContext struct {
 	IdentityID    string                 `json:"identity_id"`
 	FromAgent     string                 `json:"from_agent"`
-	MessageType   MessageType            `json:"message_type"`
+	MessageType   SceneMessageType       `json:"message_type"`
 	Scene         SceneType              `json:"scene"`
 	Priority      int                    `json:"priority"`
 	Payload       map[string]interface{} `json:"payload"`
@@ -162,14 +162,14 @@ func DefaultSceneRouterConfig() SceneRouterConfig {
 
 // RoutingRecord - 路由记录
 type RoutingRecord struct {
-	Timestamp   time.Time      `json:"timestamp"`
-	IdentityID  string         `json:"identity_id"`
-	FromAgent   string         `json:"from_agent"`
-	ToAgents    []string       `json:"to_agents"`
-	MessageType MessageType    `json:"message_type"`
-	Scene       SceneType      `json:"scene"`
-	Action      RoutingAction  `json:"action"`
-	RuleID      string         `json:"rule_id"`
+	Timestamp   time.Time        `json:"timestamp"`
+	IdentityID  string           `json:"identity_id"`
+	FromAgent   string           `json:"from_agent"`
+	ToAgents    []string         `json:"to_agents"`
+	MessageType SceneMessageType `json:"message_type"`
+	Scene       SceneType        `json:"scene"`
+	Action      RoutingAction    `json:"action"`
+	RuleID      string           `json:"rule_id"`
 }
 
 // NewSceneRouter 创建场景路由器
@@ -720,7 +720,7 @@ func (r *SceneRouter) initDefaultRules() {
 		Name:         "Running Scene - Route to Watch",
 		Priority:     100,
 		Scenes:       []SceneType{SceneRunning, SceneWalking},
-		MessageTypes: []MessageType{MessageTypeNotification, MessageTypeHealth, MessageTypeSocial},
+		MessageTypes: []SceneMessageType{SceneMessageTypeNotification, SceneMessageTypeHealth, SceneMessageTypeSocial},
 		DeviceTypes:  []string{"watch"},
 		Action:       ActionRoute,
 		Enabled:      true,
@@ -732,7 +732,7 @@ func (r *SceneRouter) initDefaultRules() {
 		Name:         "Driving Scene - Safe Routing",
 		Priority:     100,
 		Scenes:       []SceneType{SceneDriving},
-		MessageTypes: []MessageType{MessageTypeNotification, MessageTypeSocial},
+		MessageTypes: []SceneMessageType{SceneMessageTypeNotification, SceneMessageTypeSocial},
 		Action:       ActionDelay,
 		Enabled:      true,
 	})
@@ -743,7 +743,7 @@ func (r *SceneRouter) initDefaultRules() {
 		Name:         "Meeting Scene - Filter Social",
 		Priority:     90,
 		Scenes:       []SceneType{SceneMeeting},
-		MessageTypes: []MessageType{MessageTypeSocial},
+		MessageTypes: []SceneMessageType{SceneMessageTypeSocial},
 		Conditions:   []RuleCondition{{Field: "priority", Operator: "lt", Value: 2}},
 		Action:       ActionFilter,
 		Enabled:      true,
@@ -754,7 +754,7 @@ func (r *SceneRouter) initDefaultRules() {
 		RuleID:       "rule-health-alert",
 		Name:         "Health Alert - Route to All",
 		Priority:     200,
-		MessageTypes: []MessageType{MessageTypeHealth, MessageTypeAlert},
+		MessageTypes: []SceneMessageType{SceneMessageTypeHealth, SceneMessageTypeAlert},
 		Action:       ActionBroadcast,
 		Enabled:      true,
 	})
@@ -765,7 +765,7 @@ func (r *SceneRouter) initDefaultRules() {
 		Name:         "Sleeping Scene - Quiet Mode",
 		Priority:     95,
 		Scenes:       []SceneType{SceneSleeping},
-		MessageTypes: []MessageType{MessageTypeNotification, MessageTypeSocial},
+		MessageTypes: []SceneMessageType{SceneMessageTypeNotification, SceneMessageTypeSocial},
 		Conditions:   []RuleCondition{{Field: "priority", Operator: "lt", Value: 3}},
 		Action:       ActionFilter,
 		Enabled:      true,

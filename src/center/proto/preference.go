@@ -84,37 +84,10 @@ type Recommendation struct {
 
 // === API Requests/Responses ===
 
-// SetPreferenceRequest message
-type SetPreferenceRequest struct {
-	UserId    string      `json:"user_id"`
-	Category  string      `json:"category"`
-	Key       string      `json:"key"`
-	Value     interface{} `json:"value"`
-	Conditions []Condition `json:"conditions"`
-	Tags      []string    `json:"tags"`
-	Notes     string      `json:"notes"`
-}
-
-// SetPreferenceResponse message
-type SetPreferenceResponse struct {
-	Success    bool        `json:"success"`
-	Preference *Preference `json:"preference"`
-	Error      string      `json:"error"`
-}
-
-// GetPreferenceRequest message
-type GetPreferenceRequest struct {
-	UserId   string `json:"user_id"`
-	Category string `json:"category"`
-	Key      string `json:"key"`
-}
-
-// GetPreferenceResponse message
-type GetPreferenceResponse struct {
-	Success    bool        `json:"success"`
-	Preference *Preference `json:"preference"`
-	Error      string      `json:"error"`
-}
+// SetPreferenceRequest is defined in api.go
+// SetPreferenceResponse is defined in api.go
+// GetPreferenceRequest is defined in api.go
+// GetPreferenceResponse is defined in api.go
 
 // GetPreferencesRequest message
 type GetPreferencesRequest struct {
@@ -129,16 +102,8 @@ type GetPreferencesResponse struct {
 	Error       string        `json:"error"`
 }
 
-// DeletePreferenceRequest message
-type DeletePreferenceRequest struct {
-	Id string `json:"id"`
-}
-
-// DeletePreferenceResponse message
-type DeletePreferenceResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
-}
+// DeletePreferenceRequest is defined in api.go
+// DeletePreferenceResponse is defined in api.go
 
 // ConfirmPreferenceRequest message
 type ConfirmPreferenceRequest struct {

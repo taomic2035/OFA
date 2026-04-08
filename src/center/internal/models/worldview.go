@@ -352,8 +352,8 @@ type ValuePriority struct {
 	Importance float64 `json:"importance"`
 }
 
-// LifeMilestone 人生里程碑
-type LifeMilestone struct {
+// WorldviewLifeMilestone 人生里程碑 (worldview package version)
+type WorldviewLifeMilestone struct {
 	MilestoneID   string    `json:"milestone_id"`
 	Title         string    `json:"title"`
 	Description   string    `json:"description"`

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"sync"
 	"time"
 
@@ -116,7 +117,7 @@ func (c *RedisDeviceCache) GetDeviceLastSeen(ctx context.Context, agentID string
 		return time.Time{}, err
 	}
 
-	unix, err := time.ParseInt(val, 10, 64)
+	unix, err := strconv.ParseInt(val, 10, 64)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -172,7 +173,7 @@ func (c *RedisDeviceCache) GetCachedSyncVersion(ctx context.Context, agentID str
 		return 0, err
 	}
 
-	version, err := time.ParseInt(val, 10, 64)
+	version, err := strconv.ParseInt(val, 10, 64)
 	if err != nil {
 		return 0, err
 	}
@@ -275,7 +276,7 @@ func (c *RedisDeviceCache) GetCachedDeviceCount(ctx context.Context, identityID 
 	if err != nil {
 		return 0, err
 	}
-	return time.ParseInt(val, 10, 64)
+	return strconv.ParseInt(val, 10, 64)
 }
 
 // === 清理 ===

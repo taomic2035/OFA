@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/taomic2035/OFA/src/center/internal/models"
+	"github.com/ofa/center/internal/models"
 )
 
 // EmotionBehaviorEngine 情绪行为联动引擎 (v4.5.0)

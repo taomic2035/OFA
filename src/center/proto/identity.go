@@ -131,16 +131,7 @@ type BehaviorObservation struct {
 	Timestamp  int64                  `json:"timestamp"`
 }
 
-// DecisionContext message placeholder
-type DecisionContext struct {
-	UserId         string        `json:"user_id"`
-	Personality    *Personality  `json:"personality"`
-	ValueSystem    *ValueSystem  `json:"value_system"`
-	Interests      []*Interest   `json:"interests"`
-	SpeakingTone   string        `json:"speaking_tone"`
-	ResponseLength string        `json:"response_length"`
-	ValuePriority  []string      `json:"value_priority"`
-}
+// DecisionContext is defined in decision.go
 
 // === API 请求/响应 ===
 
@@ -165,17 +156,8 @@ type CreateIdentityResponse struct {
 	Error    string            `json:"error"`
 }
 
-// GetIdentityRequest message placeholder
-type GetIdentityRequest struct {
-	Id string `json:"id"`
-}
-
-// GetIdentityResponse message placeholder
-type GetIdentityResponse struct {
-	Success  bool              `json:"success"`
-	Identity *PersonalIdentity `json:"identity"`
-	Error    string            `json:"error"`
-}
+// GetIdentityRequest is defined in api.go
+// GetIdentityResponse is defined in api.go
 
 // UpdateIdentityRequest message placeholder
 type UpdateIdentityRequest struct {
@@ -217,18 +199,8 @@ type ListIdentitiesResponse struct {
 	Error     string            `json:"error"`
 }
 
-// UpdatePersonalityRequest message placeholder
-type UpdatePersonalityRequest struct {
-	Id      string                 `json:"id"`
-	Updates map[string]float64     `json:"updates"`
-}
-
-// UpdatePersonalityResponse message placeholder
-type UpdatePersonalityResponse struct {
-	Success    bool        `json:"success"`
-	Personality *Personality `json:"personality"`
-	Error      string      `json:"error"`
-}
+// UpdatePersonalityRequest is defined in api.go
+// UpdatePersonalityResponse is defined in api.go
 
 // SetSpeakingToneRequest message placeholder
 type SetSpeakingToneRequest struct {
@@ -257,17 +229,8 @@ type UpdateValueSystemResponse struct {
 	Error       string       `json:"error"`
 }
 
-// AddInterestRequest message placeholder
-type AddInterestRequest struct {
-	Id       string   `json:"id"`
-	Interest *Interest `json:"interest"`
-}
-
-// AddInterestResponse message placeholder
-type AddInterestResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
-}
+// AddInterestRequest is defined in api.go
+// AddInterestResponse is defined in api.go
 
 // RemoveInterestRequest message placeholder
 type RemoveInterestRequest struct {
@@ -281,18 +244,8 @@ type RemoveInterestResponse struct {
 	Error   string `json:"error"`
 }
 
-// GetInterestsRequest message placeholder
-type GetInterestsRequest struct {
-	Id       string `json:"id"`
-	Category string `json:"category"` // optional filter
-}
-
-// GetInterestsResponse message placeholder
-type GetInterestsResponse struct {
-	Success   bool        `json:"success"`
-	Interests []*Interest `json:"interests"`
-	Error     string      `json:"error"`
-}
+// GetInterestsRequest is defined in api.go
+// GetInterestsResponse is defined in api.go
 
 // UpdateInterestLevelRequest message placeholder
 type UpdateInterestLevelRequest struct {
@@ -307,29 +260,10 @@ type UpdateInterestLevelResponse struct {
 	Error   string `json:"error"`
 }
 
-// GetVoiceProfileRequest message placeholder
-type GetVoiceProfileRequest struct {
-	Id string `json:"id"`
-}
-
-// GetVoiceProfileResponse message placeholder
-type GetVoiceProfileResponse struct {
-	Success     bool         `json:"success"`
-	VoiceProfile *VoiceProfile `json:"voice_profile"`
-	Error       string       `json:"error"`
-}
-
-// UpdateVoiceProfileRequest message placeholder
-type UpdateVoiceProfileRequest struct {
-	Id      string        `json:"id"`
-	Profile *VoiceProfile `json:"profile"`
-}
-
-// UpdateVoiceProfileResponse message placeholder
-type UpdateVoiceProfileResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
-}
+// GetVoiceProfileRequest is defined in api.go
+// GetVoiceProfileResponse is defined in api.go
+// UpdateVoiceProfileRequest is defined in api.go
+// UpdateVoiceProfileResponse is defined in api.go
 
 // GetWritingStyleRequest message placeholder
 type GetWritingStyleRequest struct {
@@ -355,18 +289,8 @@ type UpdateWritingStyleResponse struct {
 	Error   string `json:"error"`
 }
 
-// InferPersonalityRequest message placeholder
-type InferPersonalityRequest struct {
-	Id           string               `json:"id"`
-	Observations []*BehaviorObservation `json:"observations"`
-}
-
-// InferPersonalityResponse message placeholder
-type InferPersonalityResponse struct {
-	Success    bool        `json:"success"`
-	Personality *Personality `json:"personality"`
-	Error      string      `json:"error"`
-}
+// InferPersonalityRequest is defined in api.go
+// InferPersonalityResponse is defined in api.go
 
 // GetDecisionContextRequest message placeholder
 type GetDecisionContextRequest struct {

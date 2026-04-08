@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/taomic2035/OFA/src/center/internal/models"
+	"github.com/ofa/center/internal/models"
 )
 
 // EmotionEngine 情绪引擎 (v4.0.0)

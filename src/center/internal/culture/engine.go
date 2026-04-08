@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/taomic2035/OFA/src/center/internal/models"
+	"github.com/ofa/center/internal/models"
 )
 
 // RegionalCultureEngine 地域文化管理引擎 (v4.3.0)

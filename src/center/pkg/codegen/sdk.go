@@ -332,7 +332,7 @@ func goTypeToProto(goType string) string {
 	case "float32":
 		return "float"
 	case "float64":
-		return "double"
+		return "float64"
 	case "bool":
 		return "bool"
 	case "[]byte":

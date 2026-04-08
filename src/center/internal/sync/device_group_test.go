@@ -486,7 +486,7 @@ func TestDeviceGroupManagerBroadcast(t *testing.T) {
 	// 广播消息
 	msg := &Message{
 		Type:     MessageTypeData,
-		Priority: MessagePriorityNormal,
+		Priority: PriorityNormal,
 		Payload:  map[string]interface{}{"content": "测试广播"},
 	}
 

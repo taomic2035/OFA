@@ -25,14 +25,14 @@ func NewMemoryStore() *MemoryStore {
 
 // SaveVoiceProfile 保存语音配置
 func (s *MemoryStore) SaveVoiceProfile(ctx context.Context, profile *models.VoiceProfile) error {
-	if profile == nil || profile.ID == "" {
+	if profile == nil || profile.IdentityID == "" {
 		return fmt.Errorf("invalid profile")
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.profiles[profile.ID] = profile
+	s.profiles[profile.IdentityID] = profile
 
 	return nil
 }

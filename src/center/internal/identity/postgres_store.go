@@ -99,24 +99,21 @@ func (s *PostgresStore) initSchema(ctx context.Context) error {
 		id VARCHAR(64) PRIMARY KEY,
 		name VARCHAR(255) NOT NULL,
 		nickname VARCHAR(255),
-		avatar_url TEXT,
+		avatar TEXT,
 		birthday DATE,
 		gender VARCHAR(32),
-		language VARCHAR(32),
-		region VARCHAR(64),
+		location VARCHAR(255),
+		occupation VARCHAR(255),
 		timezone VARCHAR(64),
 		personality JSONB,
 		value_system JSONB,
 		interests JSONB,
 		voice_profile JSONB,
 		writing_style JSONB,
-		decision_style VARCHAR(32),
-		privacy_level VARCHAR(32),
+		languages JSONB,
 		version BIGINT DEFAULT 1,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		stability_score FLOAT DEFAULT 0.0,
-		metadata JSONB
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);
 
 	CREATE INDEX IF NOT EXISTS idx_identities_name ON identities(name);
@@ -143,51 +140,48 @@ func (s *PostgresStore) SaveIdentity(ctx context.Context, identity *models.Perso
 	interestsJSON, _ := json.Marshal(identity.Interests)
 	voiceProfileJSON, _ := json.Marshal(identity.VoiceProfile)
 	writingStyleJSON, _ := json.Marshal(identity.WritingStyle)
-	metadataJSON, _ := json.Marshal(identity.Metadata)
+	languagesJSON, _ := json.Marshal(identity.Languages)
 
 	// 更新时间
 	identity.UpdatedAt = time.Now()
 	if identity.CreatedAt.IsZero() {
 		identity.CreatedAt = time.Now()
 	}
+	if identity.Version == 0 {
+		identity.Version = 1
+	}
 
 	// 使用 UPSERT (INSERT ... ON CONFLICT)
 	query := `
 		INSERT INTO identities (
-			id, name, nickname, avatar_url, birthday, gender, language, region, timezone,
-			personality, value_system, interests, voice_profile, writing_style,
-			decision_style, privacy_level, version, created_at, updated_at,
-			stability_score, metadata
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+			id, name, nickname, avatar, birthday, gender, location, occupation, timezone,
+			personality, value_system, interests, voice_profile, writing_style, languages,
+			version, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 		ON CONFLICT (id) DO UPDATE SET
 			name = EXCLUDED.name,
 			nickname = EXCLUDED.nickname,
-			avatar_url = EXCLUDED.avatar_url,
+			avatar = EXCLUDED.avatar,
 			birthday = EXCLUDED.birthday,
 			gender = EXCLUDED.gender,
-			language = EXCLUDED.language,
-			region = EXCLUDED.region,
+			location = EXCLUDED.location,
+			occupation = EXCLUDED.occupation,
 			timezone = EXCLUDED.timezone,
 			personality = EXCLUDED.personality,
 			value_system = EXCLUDED.value_system,
 			interests = EXCLUDED.interests,
 			voice_profile = EXCLUDED.voice_profile,
 			writing_style = EXCLUDED.writing_style,
-			decision_style = EXCLUDED.decision_style,
-			privacy_level = EXCLUDED.privacy_level,
-			version = EXCLUDED.version,
-			updated_at = EXCLUDED.updated_at,
-			stability_score = EXCLUDED.stability_score,
-			metadata = EXCLUDED.metadata
+			languages = EXCLUDED.languages,
+			version = identities.version + 1,
+			updated_at = EXCLUDED.updated_at
 	`
 
 	_, err := s.db.ExecContext(ctx, query,
-		identity.ID, identity.Name, identity.Nickname, identity.AvatarURL,
-		identity.Birthday, identity.Gender, identity.Language, identity.Region, identity.Timezone,
-		personalityJSON, valueSystemJSON, interestsJSON, voiceProfileJSON, writingStyleJSON,
-		identity.DecisionStyle, identity.PrivacyLevel, identity.Version,
-		identity.CreatedAt, identity.UpdatedAt,
-		identity.StabilityScore, metadataJSON,
+		identity.ID, identity.Name, identity.Nickname, identity.Avatar,
+		identity.Birthday, identity.Gender, identity.Location, identity.Occupation, identity.Timezone,
+		personalityJSON, valueSystemJSON, interestsJSON, voiceProfileJSON, writingStyleJSON, languagesJSON,
+		identity.Version, identity.CreatedAt, identity.UpdatedAt,
 	)
 
 	if err != nil {
@@ -216,25 +210,22 @@ func (s *PostgresStore) GetIdentity(ctx context.Context, id string) (*models.Per
 
 	// 从数据库查询
 	query := `
-		SELECT id, name, nickname, avatar_url, birthday, gender, language, region, timezone,
-		       personality, value_system, interests, voice_profile, writing_style,
-		       decision_style, privacy_level, version, created_at, updated_at,
-		       stability_score, metadata
+		SELECT id, name, nickname, avatar, birthday, gender, location, occupation, timezone,
+		       personality, value_system, interests, voice_profile, writing_style, languages,
+		       version, created_at, updated_at
 		FROM identities WHERE id = $1
 	`
 
 	row := s.db.QueryRowContext(ctx, query, id)
 
 	identity := &models.PersonalIdentity{}
-	var personalityJSON, valueSystemJSON, interestsJSON, voiceProfileJSON, writingStyleJSON, metadataJSON []byte
+	var personalityJSON, valueSystemJSON, interestsJSON, voiceProfileJSON, writingStyleJSON, languagesJSON []byte
 
 	err := row.Scan(
-		&identity.ID, &identity.Name, &identity.Nickname, &identity.AvatarURL,
-		&identity.Birthday, &identity.Gender, &identity.Language, &identity.Region, &identity.Timezone,
-		&personalityJSON, &valueSystemJSON, &interestsJSON, &voiceProfileJSON, &writingStyleJSON,
-		&identity.DecisionStyle, &identity.PrivacyLevel, &identity.Version,
-		&identity.CreatedAt, &identity.UpdatedAt,
-		&identity.StabilityScore, &metadataJSON,
+		&identity.ID, &identity.Name, &identity.Nickname, &identity.Avatar,
+		&identity.Birthday, &identity.Gender, &identity.Location, &identity.Occupation, &identity.Timezone,
+		&personalityJSON, &valueSystemJSON, &interestsJSON, &voiceProfileJSON, &writingStyleJSON, &languagesJSON,
+		&identity.Version, &identity.CreatedAt, &identity.UpdatedAt,
 	)
 
 	if err != nil {
@@ -260,8 +251,8 @@ func (s *PostgresStore) GetIdentity(ctx context.Context, id string) (*models.Per
 	if len(writingStyleJSON) > 0 {
 		json.Unmarshal(writingStyleJSON, &identity.WritingStyle)
 	}
-	if len(metadataJSON) > 0 {
-		json.Unmarshal(metadataJSON, &identity.Metadata)
+	if len(languagesJSON) > 0 {
+		json.Unmarshal(languagesJSON, &identity.Languages)
 	}
 
 	// 缓存
@@ -315,10 +306,9 @@ func (s *PostgresStore) ListIdentities(ctx context.Context, page, pageSize int) 
 	// 分页查询
 	offset := (page - 1) * pageSize
 	query := `
-		SELECT id, name, nickname, avatar_url, birthday, gender, language, region, timezone,
-		       personality, value_system, interests, voice_profile, writing_style,
-		       decision_style, privacy_level, version, created_at, updated_at,
-		       stability_score, metadata
+		SELECT id, name, nickname, avatar, birthday, gender, location, occupation, timezone,
+		       personality, value_system, interests, voice_profile, writing_style, languages,
+		       version, created_at, updated_at
 		FROM identities
 		ORDER BY updated_at DESC
 		LIMIT $1 OFFSET $2
@@ -333,15 +323,13 @@ func (s *PostgresStore) ListIdentities(ctx context.Context, page, pageSize int) 
 	identities := make([]*models.PersonalIdentity, 0, pageSize)
 	for rows.Next() {
 		identity := &models.PersonalIdentity{}
-		var personalityJSON, valueSystemJSON, interestsJSON, voiceProfileJSON, writingStyleJSON, metadataJSON []byte
+		var personalityJSON, valueSystemJSON, interestsJSON, voiceProfileJSON, writingStyleJSON, languagesJSON []byte
 
 		err := rows.Scan(
-			&identity.ID, &identity.Name, &identity.Nickname, &identity.AvatarURL,
-			&identity.Birthday, &identity.Gender, &identity.Language, &identity.Region, &identity.Timezone,
-			&personalityJSON, &valueSystemJSON, &interestsJSON, &voiceProfileJSON, &writingStyleJSON,
-			&identity.DecisionStyle, &identity.PrivacyLevel, &identity.Version,
-			&identity.CreatedAt, &identity.UpdatedAt,
-			&identity.StabilityScore, &metadataJSON,
+			&identity.ID, &identity.Name, &identity.Nickname, &identity.Avatar,
+			&identity.Birthday, &identity.Gender, &identity.Location, &identity.Occupation, &identity.Timezone,
+			&personalityJSON, &valueSystemJSON, &interestsJSON, &voiceProfileJSON, &writingStyleJSON, &languagesJSON,
+			&identity.Version, &identity.CreatedAt, &identity.UpdatedAt,
 		)
 		if err != nil {
 			continue
@@ -363,8 +351,8 @@ func (s *PostgresStore) ListIdentities(ctx context.Context, page, pageSize int) 
 		if len(writingStyleJSON) > 0 {
 			json.Unmarshal(writingStyleJSON, &identity.WritingStyle)
 		}
-		if len(metadataJSON) > 0 {
-			json.Unmarshal(metadataJSON, &identity.Metadata)
+		if len(languagesJSON) > 0 {
+			json.Unmarshal(languagesJSON, &identity.Languages)
 		}
 
 		identities = append(identities, identity)
@@ -380,46 +368,62 @@ func (s *PostgresStore) Close() error {
 
 // === 纠偏查询 ===
 
-// GetIdentitiesByVersion 获取指定版本的身份
-func (s *PostgresStore) GetIdentitiesByVersion(ctx context.Context, minVersion int64) ([]*models.PersonalIdentity, error) {
+// GetIdentitiesByUpdateTime 获取指定更新时间之后的身份
+func (s *PostgresStore) GetIdentitiesByUpdateTime(ctx context.Context, since time.Time) ([]*models.PersonalIdentity, error) {
 	query := `
-		SELECT id, name, version, updated_at
+		SELECT id, name, nickname, avatar, birthday, gender, location, occupation, timezone,
+		       personality, value_system, interests, voice_profile, writing_style, languages,
+		       created_at, updated_at
 		FROM identities
-		WHERE version >= $1
-		ORDER BY version DESC
+		WHERE updated_at >= $1
+		ORDER BY updated_at DESC
 	`
 
-	rows, err := s.db.QueryContext(ctx, query, minVersion)
+	rows, err := s.db.QueryContext(ctx, query, since)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query by version: %w", err)
+		return nil, fmt.Errorf("failed to query by update time: %w", err)
 	}
 	defer rows.Close()
 
 	identities := make([]*models.PersonalIdentity, 0)
 	for rows.Next() {
 		identity := &models.PersonalIdentity{}
-		err := rows.Scan(&identity.ID, &identity.Name, &identity.Version, &identity.UpdatedAt)
+		var personalityJSON, valueSystemJSON, interestsJSON, voiceProfileJSON, writingStyleJSON, languagesJSON []byte
+
+		err := rows.Scan(
+			&identity.ID, &identity.Name, &identity.Nickname, &identity.Avatar,
+			&identity.Birthday, &identity.Gender, &identity.Location, &identity.Occupation, &identity.Timezone,
+			&personalityJSON, &valueSystemJSON, &interestsJSON, &voiceProfileJSON, &writingStyleJSON, &languagesJSON,
+			&identity.CreatedAt, &identity.UpdatedAt,
+		)
 		if err != nil {
 			continue
 		}
+
+		// 解析复杂字段
+		if len(personalityJSON) > 0 {
+			json.Unmarshal(personalityJSON, &identity.Personality)
+		}
+		if len(valueSystemJSON) > 0 {
+			json.Unmarshal(valueSystemJSON, &identity.ValueSystem)
+		}
+		if len(interestsJSON) > 0 {
+			json.Unmarshal(interestsJSON, &identity.Interests)
+		}
+		if len(voiceProfileJSON) > 0 {
+			json.Unmarshal(voiceProfileJSON, &identity.VoiceProfile)
+		}
+		if len(writingStyleJSON) > 0 {
+			json.Unmarshal(writingStyleJSON, &identity.WritingStyle)
+		}
+		if len(languagesJSON) > 0 {
+			json.Unmarshal(languagesJSON, &identity.Languages)
+		}
+
 		identities = append(identities, identity)
 	}
 
 	return identities, nil
-}
-
-// GetLatestVersion 获取最新版本号
-func (s *PostgresStore) GetLatestVersion(ctx context.Context, id string) (int64, error) {
-	query := `SELECT version FROM identities WHERE id = $1`
-	var version int64
-	err := s.db.QueryRowContext(ctx, query, id).Scan(&version)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, nil
-		}
-		return 0, err
-	}
-	return version, nil
 }
 
 // === 备份相关 ===

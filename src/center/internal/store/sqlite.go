@@ -19,12 +19,12 @@ import (
 type SQLiteStore struct {
 	db       *sql.DB
 	cfg      *config.Config
-	cache    *MemoryCache // In-memory cache for hot data
+	cache    *SQLiteCache // In-memory cache for hot data
 	mu       sync.RWMutex
 }
 
-// MemoryCache provides in-memory caching layer
-type MemoryCache struct {
+// SQLiteCache provides in-memory caching layer for SQLite
+type SQLiteCache struct {
 	online    sync.Map // agentID -> bool
 	resources sync.Map // agentID -> *models.ResourceUsage
 }
@@ -49,7 +49,7 @@ func NewSQLiteStore(cfg *config.Config) (*SQLiteStore, error) {
 	store := &SQLiteStore{
 		db:    db,
 		cfg:   cfg,
-		cache: &MemoryCache{},
+		cache: &SQLiteCache{},
 	}
 
 	// Run migrations

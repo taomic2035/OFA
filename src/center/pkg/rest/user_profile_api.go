@@ -294,10 +294,6 @@ func (s *UserProfileServer) addInterest(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *UserProfileServer) removeInterest(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	id := mux.Vars(r)["id"]
-	interestId := mux.Vars(r)["interestId"]
-
 	// Use identity service directly
 	// For now, return success placeholder
 	jsonResponse(w, http.StatusOK, map[string]bool{"success": true})

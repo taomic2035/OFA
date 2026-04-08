@@ -81,9 +81,9 @@ type GetIdentityRequest struct {
 
 // GetIdentityResponse message
 type GetIdentityResponse struct {
-	Success    bool        `json:"success"`
-	Identity   *Identity   `json:"identity"`
-	Error      string      `json:"error"`
+	Success    bool            `json:"success"`
+	Identity   *PersonalIdentity `json:"identity"`
+	Error      string          `json:"error"`
 }
 
 // UpdatePersonalityRequest message
@@ -510,9 +510,9 @@ type CloneVoiceRequest struct {
 
 // CloneVoiceResponse message
 type CloneVoiceResponse struct {
-	Success  bool        `json:"success"`
-	Voice    *CustomVoice `json:"voice"`
-	Error    string      `json:"error"`
+	Success  bool         `json:"success"`
+	Voice    *VoiceProfile `json:"voice"`
+	Error    string       `json:"error"`
 }
 
 // RecognizeSpeechRequest message

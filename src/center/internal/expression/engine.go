@@ -27,11 +27,11 @@ type ExpressionGestureEngineConfig struct {
 	// Default settings
 	DefaultExpression     string
 	DefaultGesture        string
-	DefaultExpressionRange double
-	DefaultGestureRange    double
+	DefaultExpressionRange float64
+	DefaultGestureRange    float64
 
 	// Emotion integration
-	EmotionInfluenceStrength double // 0-1
+	EmotionInfluenceStrength float64 // 0-1
 
 	// Animation settings
 	DefaultAnimationFPS int
@@ -129,7 +129,7 @@ func (e *ExpressionGestureEngine) UpdateBodyGestureSettings(identityID string, s
 // === Emotion Integration (v4.0.0, v4.5.0) ===
 
 // ApplyEmotionExpression applies emotion to expression/gesture.
-func (e *ExpressionGestureEngine) ApplyEmotionExpression(identityID string, emotion string, intensity double) *models.ExpressionGestureProfile {
+func (e *ExpressionGestureEngine) ApplyEmotionExpression(identityID string, emotion string, intensity float64) *models.ExpressionGestureProfile {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -166,13 +166,13 @@ func (e *ExpressionGestureEngine) ApplyEmotionExpression(identityID string, emot
 }
 
 // applyEmotionToFacialSettings applies emotion to facial settings.
-func (e *ExpressionGestureEngine) applyEmotionToFacialSettings(settings models.FacialExpressionSettings, mapping models.ExpressionMapping, intensity double) models.ExpressionGestureProfile {
+func (e *ExpressionGestureEngine) applyEmotionToFacialSettings(settings models.FacialExpressionSettings, mapping models.ExpressionMapping, intensity float64) models.ExpressionGestureProfile {
 	// This is a placeholder - in actual implementation would modify settings
 	return settings
 }
 
 // applyEmotionToGestureSettings applies emotion to gesture settings.
-func (e *ExpressionGestureEngine) applyEmotionToGestureSettings(settings models.BodyGestureSettings, mapping models.ExpressionMapping, intensity double) models.BodyGestureSettings {
+func (e *ExpressionGestureEngine) applyEmotionToGestureSettings(settings models.BodyGestureSettings, mapping models.ExpressionMapping, intensity float64) models.BodyGestureSettings {
 	// This is a placeholder - in actual implementation would modify settings
 	return settings
 }
@@ -407,7 +407,7 @@ func (e *ExpressionGestureEngine) applyLifeStageToGestures(lifeStage string, set
 // === Expression/Gesture Generation ===
 
 // GenerateExpression generates expression for context.
-func (e *ExpressionGestureEngine) GenerateExpression(identityID string, emotion string, intensity double, scene string) *models.ExpressionState {
+func (e *ExpressionGestureEngine) GenerateExpression(identityID string, emotion string, intensity float64, scene string) *models.ExpressionState {
 	profile := e.GetProfile(identityID)
 	if profile == nil {
 		return nil
@@ -441,7 +441,7 @@ func (e *ExpressionGestureEngine) GenerateExpression(identityID string, emotion 
 }
 
 // GenerateGesture generates gesture for context.
-func (e *ExpressionGestureEngine) GenerateGesture(identityID string, emotion string, intensity double, socialContext string) *models.GestureState {
+func (e *ExpressionGestureEngine) GenerateGesture(identityID string, emotion string, intensity float64, socialContext string) *models.GestureState {
 	profile := e.GetProfile(identityID)
 	if profile == nil {
 		return nil

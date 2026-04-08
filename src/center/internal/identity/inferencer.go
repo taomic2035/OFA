@@ -142,7 +142,7 @@ func DefaultInferenceRules() *InferenceRules {
 			},
 			"quickReplies": {
 				Extraversion: 0.2,
-				Impulsiveness: 0.2,
+				Neuroticism: 0.1,
 			},
 			"delayedReplies": {
 				Conscientiousness: 0.2,

@@ -193,7 +193,7 @@ func (s *Service) Recall(ctx context.Context, query *models.MemoryQuery) (*model
 		Memories:   memories,
 		Total:      total,
 		QueryTime:  time.Since(startTime).Milliseconds(),
-		RecallType: string(query.Semantic != "" || query.Keywords != ""),
+		RecallType: "semantic",
 	}, nil
 }
 

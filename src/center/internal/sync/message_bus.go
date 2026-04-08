@@ -462,7 +462,7 @@ func (bus *MessageBus) cleanup() {
 	}
 
 	// 清理超时的待确认消息
-	for agentID, pending := range bus.pendingAcks {
+	for _, pending := range bus.pendingAcks {
 		for msgID, sentTime := range pending {
 			if now.Sub(sentTime) > bus.config.AckTimeout {
 				if msg, exists := bus.messageIndex[msgID]; exists {

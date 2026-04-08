@@ -496,22 +496,5 @@ func generateEventID() string {
 	return "event_" + time.Now().Format("20060102150405")
 }
 
-func clamp01(v float64) float64 {
-	if v < 0 {
-		return 0
-	}
-	if v > 1 {
-		return 1
-	}
-	return v
-}
-
-func clamp(v, min, max float64) float64 {
-	if v < min {
-		return min
-	}
-	if v > max {
-		return max
-	}
-	return v
-}
+// clamp01 is defined in identity.go
+// clamp is defined in social_identity.go

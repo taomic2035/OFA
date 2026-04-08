@@ -39,9 +39,9 @@ type SpeechContentEngineConfig struct {
 	MinContentLength int
 
 	// Integration strength
-	PhilosophyInfluence double // 0-1
-	CultureInfluence    double // 0-1
-	EmotionInfluence    double // 0-1
+	PhilosophyInfluence float64 // 0-1
+	CultureInfluence    float64 // 0-1
+	EmotionInfluence    float64 // 0-1
 }
 
 // NewSpeechContentEngine creates a new Speech Content Engine.
@@ -345,7 +345,7 @@ func (e *SpeechContentEngine) applyCultureToStyle(culture *models.RegionalCultur
 }
 
 // calculateIndirectness calculates indirectness level from culture.
-func (e *SpeechContentEngine) calculateIndirectness(culture *models.RegionalCulture) double {
+func (e *SpeechContentEngine) calculateIndirectness(culture *models.RegionalCulture) float64 {
 	if culture == nil {
 		return 0.5
 	}
@@ -466,7 +466,7 @@ func (e *SpeechContentEngine) applyCareerToStyle(career *models.CareerProfile, s
 // === Emotion Integration (v4.0.0) ===
 
 // ApplyEmotionInfluence applies emotion influence to content.
-func (e *SpeechContentEngine) ApplyEmotionInfluence(identityID string, emotion string, intensity double) *models.SpeechContentProfile {
+func (e *SpeechContentEngine) ApplyEmotionInfluence(identityID string, emotion string, intensity float64) *models.SpeechContentProfile {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -486,7 +486,7 @@ func (e *SpeechContentEngine) ApplyEmotionInfluence(identityID string, emotion s
 }
 
 // applyEmotionToStyle applies emotion to content style.
-func (e *SpeechContentEngine) applyEmotionToStyle(emotion string, intensity double, style models.ContentStyle) models.ContentStyle {
+func (e *SpeechContentEngine) applyEmotionToStyle(emotion string, intensity float64, style models.ContentStyle) models.ContentStyle {
 	result := style
 
 	switch emotion {
@@ -807,7 +807,7 @@ func (e *SpeechContentEngine) recommendLength(scene string) string {
 }
 
 // recommendDirectness recommends directness for context.
-func (e *SpeechContentEngine) recommendDirectness(profile *models.SpeechContentProfile, socialContext string) double {
+func (e *SpeechContentEngine) recommendDirectness(profile *models.SpeechContentProfile, socialContext string) float64 {
 	directness := profile.ContentStyle.Directness
 
 	// Cultural influence

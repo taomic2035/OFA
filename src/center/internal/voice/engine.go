@@ -29,8 +29,8 @@ type VoiceEngine struct {
 type VoiceEngineConfig struct {
 	// Default voice settings
 	DefaultVoiceType   string
-	DefaultSpeakingRate double
-	DefaultPitch       double
+	DefaultSpeakingRate float64
+	DefaultPitch       float64
 
 	// TTS settings
 	DefaultEngine      string
@@ -39,7 +39,7 @@ type VoiceEngineConfig struct {
 	CacheSize          int
 
 	// Emotion integration
-	EmotionInfluenceStrength double // 0-1, how much emotion affects voice
+	EmotionInfluenceStrength float64 // 0-1, how much emotion affects voice
 }
 
 // NewVoiceEngine creates a new Voice Engine.
@@ -134,7 +134,7 @@ func (e *VoiceEngine) UpdateVoiceStyle(identityID string, style models.VoiceStyl
 // === Emotion Integration (v4.0.0, v4.5.0) ===
 
 // ApplyEmotionInfluence applies emotion influence to voice.
-func (e *VoiceEngine) ApplyEmotionInfluence(identityID string, emotion string, intensity double) *models.VoiceProfile {
+func (e *VoiceEngine) ApplyEmotionInfluence(identityID string, emotion string, intensity float64) *models.VoiceProfile {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -165,7 +165,7 @@ func (e *VoiceEngine) ApplyEmotionInfluence(identityID string, emotion string, i
 }
 
 // applyEmotionToCharacteristics applies emotion mapping to voice characteristics.
-func (e *VoiceEngine) applyEmotionToCharacteristics(chars models.VoiceCharacteristics, mapping models.VoiceEmotionMapping, strength double) models.VoiceCharacteristics {
+func (e *VoiceEngine) applyEmotionToCharacteristics(chars models.VoiceCharacteristics, mapping models.VoiceEmotionMapping, strength float64) models.VoiceCharacteristics {
 	result := chars
 
 	// Apply pitch shift
@@ -297,7 +297,7 @@ func (e *VoiceEngine) ApplyCulturalInfluence(identityID string, culture *models.
 
 	// Apply accent based on region
 	profile.VoiceStyle.RegionalAccent = e.determineAccent(culture)
-	profile.VoiceStyle.AccentRegion = culture.CurrentLocation.Province
+	profile.VoiceStyle.AccentRegion = culture.Province
 	profile.VoiceStyle.AccentIntensity = e.calculateAccentIntensity(culture)
 
 	// Apply formality based on culture
@@ -322,9 +322,9 @@ func (e *VoiceEngine) determineAccent(culture *models.RegionalCulture) string {
 		return "mixed"
 	}
 
-	// Based on city level
-	switch culture.CityLevel {
-	case "first_tier", "new_first_tier":
+	// Based on city tier
+	switch culture.CityTier {
+	case "tier1", "new_tier1":
 		return "standard"
 	default:
 		return "regional"
@@ -332,18 +332,18 @@ func (e *VoiceEngine) determineAccent(culture *models.RegionalCulture) string {
 }
 
 // calculateAccentIntensity calculates accent intensity.
-func (e *VoiceEngine) calculateAccentIntensity(culture *models.RegionalCulture) double {
+func (e *VoiceEngine) calculateAccentIntensity(culture *models.RegionalCulture) float64 {
 	if culture == nil {
 		return 0.0
 	}
 
 	// Higher intensity for smaller cities
-	switch culture.CityLevel {
-	case "first_tier", "new_first_tier":
+	switch culture.CityTier {
+	case "tier1", "new_tier1":
 		return 0.2
-	case "second_tier":
+	case "tier2":
 		return 0.4
-	case "third_tier":
+	case "tier3":
 		return 0.6
 	default:
 		return 0.8
@@ -357,9 +357,9 @@ func (e *VoiceEngine) determineFormality(culture *models.RegionalCulture) string
 	}
 
 	// Based on Hofstede dimensions
-	if culture.HofstedeDimensions.PowerDistance > 0.7 {
+	if culture.PowerDistance > 0.7 {
 		return "formal"
-	} else if culture.HofstedeDimensions.PowerDistance < 0.4 {
+	} else if culture.PowerDistance < 0.4 {
 		return "casual"
 	}
 	return "neutral"
@@ -372,9 +372,9 @@ func (e *VoiceEngine) determineCommunicationStyle(culture *models.RegionalCultur
 	}
 
 	// Based on Hofstede collectivism
-	if culture.HofstedeDimensions.Collectivism > 0.6 {
+	if culture.Collectivism > 0.6 {
 		return "indirect"
-	} else if culture.HofstedeDimensions.Collectivism < 0.4 {
+	} else if culture.Collectivism < 0.4 {
 		return "direct"
 	}
 	return "context_dependent"
@@ -505,7 +505,7 @@ func (e *VoiceEngine) Synthesize(req *models.VoiceSynthesisRequest) *models.Voic
 }
 
 // calculateFinalPitch calculates final pitch for synthesis.
-func (e *VoiceEngine) calculateFinalPitch(profile *models.VoiceProfile, req *models.VoiceSynthesisRequest) double {
+func (e *VoiceEngine) calculateFinalPitch(profile *models.VoiceProfile, req *models.VoiceSynthesisRequest) float64 {
 	pitch := profile.VoiceCharacteristics.BasePitch
 
 	// Apply emotion influence
@@ -526,7 +526,7 @@ func (e *VoiceEngine) calculateFinalPitch(profile *models.VoiceProfile, req *mod
 }
 
 // calculateFinalRate calculates final speaking rate.
-func (e *VoiceEngine) calculateFinalRate(profile *models.VoiceProfile, req *models.VoiceSynthesisRequest) double {
+func (e *VoiceEngine) calculateFinalRate(profile *models.VoiceProfile, req *models.VoiceSynthesisRequest) float64 {
 	rate := profile.VoiceCharacteristics.SpeakingRate
 
 	// Apply emotion influence
@@ -535,9 +535,9 @@ func (e *VoiceEngine) calculateFinalRate(profile *models.VoiceProfile, req *mode
 		rate *= mapping.RateMultiplier
 	}
 
-	// Apply formality
-	switch req.SpeechContext.Formality {
-	case "formal":
+	// Apply formality based on scene
+	switch req.SpeechContext.Scene {
+	case "meeting", "presentation":
 		rate *= 0.9 // slower for clarity
 	case "casual":
 		rate *= 1.05 // slightly faster
@@ -547,7 +547,7 @@ func (e *VoiceEngine) calculateFinalRate(profile *models.VoiceProfile, req *mode
 }
 
 // calculateFinalVolume calculates final volume for synthesis.
-func (e *VoiceEngine) calculateFinalVolume(profile *models.VoiceProfile, req *models.VoiceSynthesisRequest) double {
+func (e *VoiceEngine) calculateFinalVolume(profile *models.VoiceProfile, req *models.VoiceSynthesisRequest) float64 {
 	volume := profile.VoiceCharacteristics.BaseVolume
 
 	// Apply emotion influence
@@ -568,7 +568,7 @@ func (e *VoiceEngine) calculateFinalVolume(profile *models.VoiceProfile, req *mo
 }
 
 // estimateDuration estimates audio duration in ms.
-func (e *VoiceEngine) estimateDuration(text string, rate double) int {
+func (e *VoiceEngine) estimateDuration(text string, rate float64) int {
 	// Simple estimation: characters / rate * 60000
 	// Assuming average word is 5 characters
 	wordCount := len(text) / 5
@@ -612,7 +612,7 @@ func (e *VoiceEngine) GetDecisionContext(identityID string, emotion string, scen
 }
 
 // recommendPitch recommends pitch for context.
-func (e *VoiceEngine) recommendPitch(profile *models.VoiceProfile, emotion string, scene string) double {
+func (e *VoiceEngine) recommendPitch(profile *models.VoiceProfile, emotion string, scene string) float64 {
 	pitch := profile.VoiceCharacteristics.BasePitch
 
 	// Emotion influence
@@ -633,7 +633,7 @@ func (e *VoiceEngine) recommendPitch(profile *models.VoiceProfile, emotion strin
 }
 
 // recommendRate recommends speaking rate for context.
-func (e *VoiceEngine) recommendRate(profile *models.VoiceProfile, scene string, socialContext string) double {
+func (e *VoiceEngine) recommendRate(profile *models.VoiceProfile, scene string, socialContext string) float64 {
 	rate := profile.VoiceCharacteristics.SpeakingRate
 
 	switch scene {
@@ -656,7 +656,7 @@ func (e *VoiceEngine) recommendRate(profile *models.VoiceProfile, scene string, 
 }
 
 // recommendVolume recommends volume for context.
-func (e *VoiceEngine) recommendVolume(profile *models.VoiceProfile, scene string) double {
+func (e *VoiceEngine) recommendVolume(profile *models.VoiceProfile, scene string) float64 {
 	volume := profile.VoiceCharacteristics.BaseVolume
 
 	switch scene {

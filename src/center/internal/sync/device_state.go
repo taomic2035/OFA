@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"context"
 	"encoding/json"
 	"sync"
 	"time"
@@ -652,12 +653,12 @@ func (m *StateSyncManager) broadcastStateChange(change *StateChange) {
 		ToAgent:     "*", // 广播到身份所有设备
 		IdentityID:  change.IdentityID,
 		Type:        MessageTypeNotification,
-		Priority:    MessagePriorityNormal,
+		Priority:    PriorityNormal,
 		Payload:     change.ToMap(),
 		CreatedAt:   time.Now(),
 	}
 
-	m.messageBus.Broadcast(msg)
+	m.messageBus.BroadcastMessage(context.Background(), "center", change.IdentityID, msg)
 }
 
 func equalStringArrays(a, b []string) bool {

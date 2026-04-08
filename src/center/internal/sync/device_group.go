@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -520,7 +521,7 @@ func (m *DeviceGroupManager) BroadcastToGroup(groupID string, message *Message) 
 	// 检查勿扰时段
 	if m.isQuietHours(group) {
 		// 只发送给高优先级成员
-		message.Priority = MessagePriorityLow
+		message.Priority = PriorityLow
 	}
 
 	// 获取目标成员
@@ -547,7 +548,6 @@ func (m *DeviceGroupManager) BroadcastToGroup(groupID string, message *Message) 
 				Type:       message.Type,
 				Priority:   message.Priority,
 				Payload:    message.Payload,
-				TTL:        message.TTL,
 				CreatedAt:  time.Now(),
 				Metadata: map[string]string{
 					"group_id":    groupID,
@@ -556,7 +556,7 @@ func (m *DeviceGroupManager) BroadcastToGroup(groupID string, message *Message) 
 				},
 			}
 
-			if err := m.messageBus.Send(msg); err == nil {
+			if err := m.messageBus.SendMessage(context.Background(), msg); err == nil {
 				delivered = append(delivered, agentID)
 			}
 		}

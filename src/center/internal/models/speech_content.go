@@ -39,23 +39,23 @@ type SpeechContentProfile struct {
 type ContentStyle struct {
 	// Tone
 	ToneStyle       string `json:"tone_style"`       // formal, casual, professional, friendly, serious, humorous
-	ToneConsistency double `json:"tone_consistency"` // 0-1
+	ToneConsistency float64 `json:"tone_consistency"` // 0-1
 
 	// Language level
 	LanguageLevel    string `json:"language_level"`    // simple, moderate, sophisticated, academic
 	TechnicalLevel   string `json:"technical_level"`   // layman, intermediate, expert
-	JargonTolerance  double `json:"jargon_tolerance"`  // 0-1, willingness to use jargon
+	JargonTolerance  float64 `json:"jargon_tolerance"`  // 0-1, willingness to use jargon
 
 	// Expression style
-	Directness       double `json:"directness"`       // 0-1, direct vs indirect
-	EuphemismUsage   double `json:"euphemism_usage"`  // 0-1, tendency to use euphemisms
-	MetaphorUsage    double `json:"metaphor_usage"`   // 0-1
-	AnalogyUsage     double `json:"analogy_usage"`    // 0-1
-	HumorTendency    double `json:"humor_tendency"`   // 0-1
+	Directness       float64 `json:"directness"`       // 0-1, direct vs indirect
+	EuphemismUsage   float64 `json:"euphemism_usage"`  // 0-1, tendency to use euphemisms
+	MetaphorUsage    float64 `json:"metaphor_usage"`   // 0-1
+	AnalogyUsage     float64 `json:"analogy_usage"`    // 0-1
+	HumorTendency    float64 `json:"humor_tendency"`   // 0-1
 
 	// Emotional coloring
 	EmotionalColoring string `json:"emotional_coloring"` // neutral, warm, cool, passionate
-	EnthusiasmLevel   double `json:"enthusiasm_level"`   // 0-1
+	EnthusiasmLevel   float64 `json:"enthusiasm_level"`   // 0-1
 
 	// Persuasion style
 	PersuasionStyle string `json:"persuasion_style"` // logical, emotional, balanced
@@ -74,13 +74,13 @@ type ExpressionDepth struct {
 	ComplexityLevel   string `json:"complexity_level"`   // simple, moderate, complex
 
 	// Self-disclosure
-	SelfDisclosureLevel double `json:"self_disclosure_level"` // 0-1, how much to share about self
-	IntimacyThreshold   double `json:"intimacy_threshold"`    // 0-1, threshold for sharing personal info
-	VulnerabilityLevel  double `json:"vulnerability_level"`   // 0-1, willingness to show vulnerability
+	SelfDisclosureLevel float64 `json:"self_disclosure_level"` // 0-1, how much to share about self
+	IntimacyThreshold   float64 `json:"intimacy_threshold"`    // 0-1, threshold for sharing personal info
+	VulnerabilityLevel  float64 `json:"vulnerability_level"`   // 0-1, willingness to show vulnerability
 
 	// Reflection
-	ReflectionTendency double `json:"reflection_tendency"` // 0-1
-	SelfAwarenessLevel double `json:"self_awareness_level"` // 0-1
+	ReflectionTendency float64 `json:"reflection_tendency"` // 0-1
+	SelfAwarenessLevel float64 `json:"self_awareness_level"` // 0-1
 
 	// Depth by context
 	ProfessionalDepth  string `json:"professional_depth"`  // task_focused, analytical, strategic
@@ -93,27 +93,27 @@ type ExpressionDepth struct {
 type CulturalExpression struct {
 	// Communication culture
 	HighContextCommunication bool `json:"high_context_communication"` // implicit vs explicit
-	IndirectExpression       double `json:"indirect_expression"`       // 0-1
-	FaceSaving               double `json:"face_saving"`               // 0-1, concern for face
+	IndirectExpression       float64 `json:"indirect_expression"`       // 0-1
+	FaceSaving               float64 `json:"face_saving"`               // 0-1, concern for face
 
 	// Cultural references
-	CulturalReferenceUsage double `json:"cultural_reference_usage"` // 0-1
-	LocalIdiomUsage        double `json:"local_idiom_usage"`        // 0-1
-	HistoricalReference    double `json:"historical_reference"`     // 0-1
+	CulturalReferenceUsage float64 `json:"cultural_reference_usage"` // 0-1
+	LocalIdiomUsage        float64 `json:"local_idiom_usage"`        // 0-1
+	HistoricalReference    float64 `json:"historical_reference"`     // 0-1
 
 	// Respect patterns
-	RespectLevel       double `json:"respect_level"`       // 0-1
-	HierarchyAwareness double `json:"hierarchy_awareness"` // 0-1
+	RespectLevel       float64 `json:"respect_level"`       // 0-1
+	HierarchyAwareness float64 `json:"hierarchy_awareness"` // 0-1
 	HonorificUsage     string `json:"honorific_usage"`     // none, light, moderate, heavy
 
 	// Cultural taboos
-	TabooAwareness     double   `json:"taboo_awareness"`     // 0-1
+	TabooAwareness     float64   `json:"taboo_awareness"`     // 0-1
 	SensitiveTopics    []string `json:"sensitive_topics"`    // topics to avoid or handle carefully
 	CulturalNuances    []string `json:"cultural_nuances"`    // cultural nuances to observe
 
 	// Collectivism vs individualism
-	CollectivistExpression double `json:"collectivist_expression"` // 0-1
-	GroupReferenceUsage    double `json:"group_reference_usage"`   // 0-1, "we" vs "I"
+	CollectivistExpression float64 `json:"collectivist_expression"` // 0-1
+	GroupReferenceUsage    float64 `json:"group_reference_usage"`   // 0-1, "we" vs "I"
 }
 
 // SocialExpression defines how social identity affects expression.
@@ -121,22 +121,22 @@ type CulturalExpression struct {
 type SocialExpression struct {
 	// Professional expression
 	ProfessionalTone    string `json:"professional_tone"`    // authoritative, collaborative, supportive
-	ExpertiseDisplay    double `json:"expertise_display"`    // 0-1, how much to show expertise
-	HumilityExpression  double `json:"humility_expression"`  // 0-1
+	ExpertiseDisplay    float64 `json:"expertise_display"`    // 0-1, how much to show expertise
+	HumilityExpression  float64 `json:"humility_expression"`  // 0-1
 
 	// Social class expression
 	ClassExpression     string `json:"class_expression"`     // understated, moderate, aspirational
-	StatusAwareness     double `json:"status_awareness"`     // 0-1
+	StatusAwareness     float64 `json:"status_awareness"`     // 0-1
 	NetworkingStyle     string `json:"networking_style"`     // reserved, balanced, proactive
 
 	// Role expression
-	RoleConsistency     double `json:"role_consistency"`     // 0-1
-	RoleAdaptability    double `json:"role_adaptability"`    // 0-1
+	RoleConsistency     float64 `json:"role_consistency"`     // 0-1
+	RoleAdaptability    float64 `json:"role_adaptability"`    // 0-1
 	AuthorityExpression string `json:"authority_expression"` // formal, earned, collaborative
 
 	// Identity confidence
-	IdentityConfidence  double `json:"identity_confidence"`  // 0-1
-	AuthenticExpression double `json:"authentic_expression"` // 0-1
+	IdentityConfidence  float64 `json:"identity_confidence"`  // 0-1
+	AuthenticExpression float64 `json:"authentic_expression"` // 0-1
 }
 
 // ContentTemplates defines reusable content templates.
@@ -200,7 +200,7 @@ type SpeechContext struct {
 // EmotionContext provides emotion context for content.
 type EmotionContext struct {
 	CurrentEmotion   string  `json:"current_emotion"`
-	EmotionIntensity double  `json:"emotion_intensity"`
+	EmotionIntensity float64  `json:"emotion_intensity"`
 	EmotionValence   string  `json:"emotion_valence"`   // positive, negative, neutral
 	AffectTone       string  `json:"affect_tone"`       // warm, cool, neutral
 }
@@ -240,9 +240,9 @@ type SpeechContentResult struct {
 	CulturalAdaptations []string `json:"cultural_adaptations"`
 
 	// Quality metrics
-	ClarityScore     double `json:"clarity_score"`
-	Appropriateness  double `json:"appropriateness"`
-	AuthenticityScore double `json:"authenticity_score"`
+	ClarityScore     float64 `json:"clarity_score"`
+	Appropriateness  float64 `json:"appropriateness"`
+	AuthenticityScore float64 `json:"authenticity_score"`
 
 	// Generation info
 	GenerationTime int    `json:"generation_time"` // ms
@@ -259,7 +259,7 @@ type ContentDecisionContext struct {
 	RecommendedFormality  string `json:"recommended_formality"`
 	RecommendedDepth      string `json:"recommended_depth"`
 	RecommendedLength     string `json:"recommended_length"`
-	RecommendedDirectness double `json:"recommended_directness"`
+	RecommendedDirectness float64 `json:"recommended_directness"`
 
 	// Context adaptations
 	SceneAdaptation     ContentSceneAdaptation `json:"scene_adaptation"`
@@ -291,7 +291,7 @@ type ContentSceneAdaptation struct {
 type ContentEmotionAdaptation struct {
 	CurrentEmotion     string `json:"current_emotion"`
 	EmotionalColoring  string `json:"emotional_coloring"`
-	ExpressionIntensity double `json:"expression_intensity"`
+	ExpressionIntensity float64 `json:"expression_intensity"`
 	WordChoice         string `json:"word_choice"`      // positive, negative, neutral
 	SentenceStyle      string `json:"sentence_style"`   // flowing, choppy, measured
 }
@@ -299,7 +299,7 @@ type ContentEmotionAdaptation struct {
 // ContentSocialAdaptation defines content adaptation for social context.
 type ContentSocialAdaptation struct {
 	SocialContext     string `json:"social_context"`
-	RespectLevel      double `json:"respect_level"`
+	RespectLevel      float64 `json:"respect_level"`
 	HonorificUsage    string `json:"honorific_usage"`
 	SelfReferenceStyle string `json:"self_reference_style"` // humble, neutral, confident
 	OtherReferenceStyle string `json:"other_reference_style"`
@@ -308,9 +308,9 @@ type ContentSocialAdaptation struct {
 // ContentCulturalAdaptation defines content adaptation for cultural context.
 type ContentCulturalAdaptation struct {
 	CulturalContext      string `json:"cultural_context"`
-	IndirectnessLevel    double `json:"indirectness_level"`
-	FaceSavingLevel      double `json:"face_saving_level"`
-	CollectivistEmphasis double `json:"collectivist_emphasis"`
+	IndirectnessLevel    float64 `json:"indirectness_level"`
+	FaceSavingLevel      float64 `json:"face_saving_level"`
+	CollectivistEmphasis float64 `json:"collectivist_emphasis"`
 	CulturalReferences   []string `json:"cultural_references"`
 }
 

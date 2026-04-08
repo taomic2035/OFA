@@ -187,6 +187,29 @@ func (s *Service) DeleteIdentity(ctx context.Context, id string) error {
 	return nil
 }
 
+// ListIdentities 列出所有身份
+func (s *Service) ListIdentities(ctx context.Context, page, pageSize int) ([]*models.PersonalIdentity, int, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	identities := make([]*models.PersonalIdentity, 0, len(s.cache))
+	for _, identity := range s.cache {
+		identities = append(identities, identity)
+	}
+
+	total := len(identities)
+	start := (page - 1) * pageSize
+	if start >= total {
+		return []*models.PersonalIdentity{}, total, nil
+	}
+	end := start + pageSize
+	if end > total {
+		end = total
+	}
+
+	return identities[start:end], total, nil
+}
+
 // === 性格管理 ===
 
 // GetPersonality 获取性格
@@ -380,8 +403,8 @@ func (s *Service) UpdateInterestLevel(ctx context.Context, id string, interestID
 
 // === 语音配置 ===
 
-// GetVoiceProfile 获取语音配置
-func (s *Service) GetVoiceProfile(ctx context.Context, id string) (*models.VoiceProfile, error) {
+// GetIdentityVoiceProfile 获取语音配置
+func (s *Service) GetIdentityVoiceProfile(ctx context.Context, id string) (*models.IdentityVoiceProfile, error) {
 	identity, err := s.GetIdentity(ctx, id)
 	if err != nil {
 		return nil, err
@@ -389,8 +412,8 @@ func (s *Service) GetVoiceProfile(ctx context.Context, id string) (*models.Voice
 	return identity.VoiceProfile, nil
 }
 
-// UpdateVoiceProfile 更新语音配置
-func (s *Service) UpdateVoiceProfile(ctx context.Context, id string, profile *models.VoiceProfile) error {
+// UpdateIdentityVoiceProfile 更新语音配置
+func (s *Service) UpdateIdentityVoiceProfile(ctx context.Context, id string, profile *models.IdentityVoiceProfile) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

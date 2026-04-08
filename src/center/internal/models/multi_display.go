@@ -75,7 +75,7 @@ type RenderingSettings struct {
 	MotionBlur           string   `json:"motion_blur"`     // none, low, medium, high
 	ColorGrading         string   `json:"color_grading"`   // none, neutral, cinematic
 	Vignette             bool     `json:"vignette"`
-	ChromaticAberration  double   `json:"chromatic_aberration"` // 0-1
+	ChromaticAberration  float64   `json:"chromatic_aberration"` // 0-1
 
 	// Performance settings
 	TargetFPS         int    `json:"target_fps"`         // 30, 60, 120
@@ -121,11 +121,11 @@ type DeviceRenderProfile struct {
 	DeviceTier        string `json:"device_tier"`        // low, medium, high, flagship
 	MaxQuality        string `json:"max_quality"`        // maximum quality allowed
 	RecommendedQuality string `json:"recommended_quality"` // recommended quality setting
-	ResolutionScale   double `json:"resolution_scale"`   // 0.5-1.5, render resolution scale
+	ResolutionScale   float64 `json:"resolution_scale"`   // 0.5-1.5, render resolution scale
 	TextureLimit      int    `json:"texture_limit"`      // max texture resolution
 	ShadowResolution  int    `json:"shadow_resolution"`  // shadow map resolution
 	ParticleLimit     int    `json:"particle_limit"`     // max particles
-	DrawDistance      double `json:"draw_distance"`      // rendering distance
+	DrawDistance      float64 `json:"draw_distance"`      // rendering distance
 
 	// Feature support
 	SupportsRayTracing   bool `json:"supports_ray_tracing"`
@@ -144,17 +144,17 @@ type MobileOptimizations struct {
 	GPUPowerMode      string `json:"gpu_power_mode"`      // low, balanced, high
 	TextureCompression string `json:"texture_compression"` // etc2, astc, pvrtc
 	VertexCompression  bool   `json:"vertex_compression"`
-	MeshSimplification double `json:"mesh_simplification"` // 0-1
+	MeshSimplification float64 `json:"mesh_simplification"` // 0-1
 
 	// Memory optimization
 	TextureStreaming   bool   `json:"texture_streaming"`
-	LODBias           double `json:"lod_bias"`           // 0-2, higher = more aggressive LOD
+	LODBias           float64 `json:"lod_bias"`           // 0-2, higher = more aggressive LOD
 	UnloadUnusedAssets bool   `json:"unload_unused_assets"`
 	MemoryBudget      int    `json:"memory_budget"`      // MB
 
 	// Thermal management
 	ThermalThrottling  bool   `json:"thermal_throttling"`
-	ThermalThreshold   double `json:"thermal_threshold"` // temperature in Celsius
+	ThermalThreshold   float64 `json:"thermal_threshold"` // temperature in Celsius
 	ReduceOnThermal    bool   `json:"reduce_on_thermal"`
 
 	// Battery management
@@ -166,7 +166,7 @@ type MobileOptimizations struct {
 	NetworkStreaming  bool   `json:"network_streaming"`
 	StreamingQuality  string `json:"streaming_quality"`  // low, medium, high, adaptive
 	CacheSize         int    `json:"cache_size"`         // MB
-	PrefetchDistance  double `json:"prefetch_distance"`
+	PrefetchDistance  float64 `json:"prefetch_distance"`
 }
 
 // DesktopSettings defines desktop-specific settings.
@@ -205,7 +205,7 @@ type VRSettings struct {
 	// Rendering
 	SinglePassRendering bool   `json:"single_pass_rendering"`
 	FoveatedRendering   bool   `json:"foveated_rendering"`
-	FoveationLevel      double `json:"foveation_level"` // 0-1
+	FoveationLevel      float64 `json:"foveation_level"` // 0-1
 
 	// Performance
 	VRTargetFPS        int    `json:"vr_target_fps"`    // 72, 90, 120
@@ -225,7 +225,7 @@ type VRSettings struct {
 
 	// Guardian
 	GuardianSystem    string `json:"guardian_system"`    // auto, stationary, roomscale
-	PlayAreaSize      double `json:"play_area_size"`     // square meters
+	PlayAreaSize      float64 `json:"play_area_size"`     // square meters
 }
 
 // ARSettings defines AR-specific settings.
@@ -262,7 +262,7 @@ type ARSettings struct {
 type PerformanceScaling struct {
 	// Scaling mode
 	ScalingMode      string `json:"scaling_mode"`      // fixed, dynamic, predictive
-	ScalingAggression double `json:"scaling_aggression"` // 0-1, how aggressively to scale
+	ScalingAggression float64 `json:"scaling_aggression"` // 0-1, how aggressively to scale
 
 	// Quality tiers
 	QualityTiers     []QualityTier `json:"quality_tiers"`
@@ -281,11 +281,11 @@ type PerformanceScaling struct {
 // QualityTier defines a quality tier.
 type QualityTier struct {
 	TierName       string `json:"tier_name"`
-	Resolution     double `json:"resolution"`     // 0.5-1.5
+	Resolution     float64 `json:"resolution"`     // 0.5-1.5
 	TextureQuality string `json:"texture_quality"`
 	ShadowQuality  string `json:"shadow_quality"`
 	EffectQuality  string `json:"effect_quality"`
-	DrawDistance   double `json:"draw_distance"`
+	DrawDistance   float64 `json:"draw_distance"`
 	ParticleCount  int    `json:"particle_count"`
 }
 
@@ -295,9 +295,9 @@ type BatteryOptimization struct {
 	OptimizationLevel string `json:"optimization_level"` // none, low, medium, high, extreme
 
 	// Thresholds
-	HighBatteryThreshold   double `json:"high_battery_threshold"`   // 0-1, above = full quality
-	MediumBatteryThreshold double `json:"medium_battery_threshold"` // 0-1, above = reduced
-	LowBatteryThreshold    double `json:"low_battery_threshold"`    // 0-1, above = minimal
+	HighBatteryThreshold   float64 `json:"high_battery_threshold"`   // 0-1, above = full quality
+	MediumBatteryThreshold float64 `json:"medium_battery_threshold"` // 0-1, above = reduced
+	LowBatteryThreshold    float64 `json:"low_battery_threshold"`    // 0-1, above = minimal
 
 	// Quality adjustments
 	HighBatteryQuality   string `json:"high_battery_quality"`
@@ -361,20 +361,20 @@ type SceneRenderProfile struct {
 
 	// Camera settings
 	CameraMode       string `json:"camera_mode"`       // orbit, first_person, third_person, fixed
-	CameraFOV        double `json:"camera_fov"`
-	CameraNearClip   double `json:"camera_near_clip"`
-	CameraFarClip    double `json:"camera_far_clip"`
+	CameraFOV        float64 `json:"camera_fov"`
+	CameraNearClip   float64 `json:"camera_near_clip"`
+	CameraFarClip    float64 `json:"camera_far_clip"`
 	CameraPosition   Position3D `json:"camera_position"`
 	CameraTarget     Position3D `json:"camera_target"`
 
 	// Lighting
 	EnvironmentLight string `json:"environment_light"` // hdri path or preset name
-	SunIntensity     double `json:"sun_intensity"`
+	SunIntensity     float64 `json:"sun_intensity"`
 	SunColor         string `json:"sun_color"`
 	AmbientColor     string `json:"ambient_color"`
 	FogEnabled       bool   `json:"fog_enabled"`
 	FogColor         string `json:"fog_color"`
-	FogDensity       double `json:"fog_density"`
+	FogDensity       float64 `json:"fog_density"`
 
 	// Background
 	BackgroundType   string `json:"background_type"`   // solid, gradient, skybox, image, video
@@ -385,14 +385,14 @@ type SceneRenderProfile struct {
 	// Avatar placement
 	AvatarPosition   Position3D `json:"avatar_position"`
 	AvatarRotation   Rotation3D `json:"avatar_rotation"`
-	AvatarScale      double `json:"avatar_scale"`
+	AvatarScale      float64 `json:"avatar_scale"`
 	AvatarVisible    bool   `json:"avatar_visible"`
 	AvatarShadow     bool   `json:"avatar_shadow"`
 
 	// Animation
 	DefaultAnimation string `json:"default_animation"`
 	IdleAnimations   []string `json:"idle_animations"`
-	TransitionTime   double `json:"transition_time"`
+	TransitionTime   float64 `json:"transition_time"`
 
 	// Quality override
 	QualityOverride string `json:"quality_override"` // override default quality
@@ -401,16 +401,16 @@ type SceneRenderProfile struct {
 
 // Position3D represents a 3D position.
 type Position3D struct {
-	X double `json:"x"`
-	Y double `json:"y"`
-	Z double `json:"z"`
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
+	Z float64 `json:"z"`
 }
 
 // Rotation3D represents a 3D rotation in Euler angles.
 type Rotation3D struct {
-	X double `json:"x"` // pitch
-	Y double `json:"y"` // yaw
-	Z double `json:"z"` // roll
+	X float64 `json:"x"` // pitch
+	Y float64 `json:"y"` // yaw
+	Z float64 `json:"z"` // roll
 }
 
 // DisplayContext provides display-related context.
@@ -425,25 +425,25 @@ type DisplayContext struct {
 
 	// Rendering state
 	CurrentQuality     string `json:"current_quality"`
-	CurrentFPS         double `json:"current_fps"`
-	FrameTime          double `json:"frame_time"`
+	CurrentFPS         float64 `json:"current_fps"`
+	FrameTime          float64 `json:"frame_time"`
 	DrawCalls          int    `json:"draw_calls"`
 	MemoryUsage        int64  `json:"memory_usage"`    // bytes
 	TextureMemory      int64  `json:"texture_memory"`
-	GPUUtilization     double `json:"gpu_utilization"`
+	GPUUtilization     float64 `json:"gpu_utilization"`
 
 	// Performance metrics
-	AverageFPS         double `json:"average_fps"`
-	MinFPS             double `json:"min_fps"`
-	MaxFPS             double `json:"max_fps"`
+	AverageFPS         float64 `json:"average_fps"`
+	MinFPS             float64 `json:"min_fps"`
+	MaxFPS             float64 `json:"max_fps"`
 	DroppedFrames      int    `json:"dropped_frames"`
 	ThermalState       string `json:"thermal_state"`   // normal, warm, hot
-	BatteryLevel       double `json:"battery_level"`
+	BatteryLevel       float64 `json:"battery_level"`
 	BatteryState       string `json:"battery_state"`   // unknown, unplugged, charging, full
 
 	// Scene state
 	CurrentScene       string `json:"current_scene"`
-	SceneLoadTime      double `json:"scene_load_time"`
+	SceneLoadTime      float64 `json:"scene_load_time"`
 	AssetsLoaded       int    `json:"assets_loaded"`
 	AssetsTotal        int    `json:"assets_total"`
 
@@ -466,7 +466,7 @@ type DisplayContext struct {
 type Resolution struct {
 	Width  int `json:"width"`
 	Height int `json:"height"`
-	Scale  double `json:"scale"` // device pixel ratio
+	Scale  float64 `json:"scale"` // device pixel ratio
 }
 
 // ToJSON converts MultiDisplayProfile to JSON string.

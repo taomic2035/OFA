@@ -40,36 +40,36 @@ type FacialExpressionSettings struct {
 	DefaultExpression string `json:"default_expression"` // neutral, smile, serious, relaxed
 
 	// Expression range
-	ExpressionRange     double `json:"expression_range"`     // 0-1, how much expressions can vary
-	ExpressionIntensity double `json:"expression_intensity"` // 0-1, base intensity
+	ExpressionRange     float64 `json:"expression_range"`     // 0-1, how much expressions can vary
+	ExpressionIntensity float64 `json:"expression_intensity"` // 0-1, base intensity
 
 	// Expression frequency
-	ExpressionFrequency double `json:"expression_frequency"` // 0-1, how often expressions change
+	ExpressionFrequency float64 `json:"expression_frequency"` // 0-1, how often expressions change
 	ExpressionDuration  string `json:"expression_duration"`  // short, medium, long
 
 	// Eye expression
 	EyeExpressionEnabled bool    `json:"eye_expression_enabled"`
-	EyeContactTendency   double  `json:"eye_contact_tendency"`   // 0-1
-	BlinkRate            double  `json:"blink_rate"`             // blinks per minute
-	EyebrowExpressiveness double `json:"eyebrow_expressiveness"` // 0-1
+	EyeContactTendency   float64  `json:"eye_contact_tendency"`   // 0-1
+	BlinkRate            float64  `json:"blink_rate"`             // blinks per minute
+	EyebrowExpressiveness float64 `json:"eyebrow_expressiveness"` // 0-1
 
 	// Mouth expression
 	MouthExpressionEnabled bool    `json:"mouth_expression_enabled"`
-	SmileTendency         double  `json:"smile_tendency"`   // 0-1
+	SmileTendency         float64  `json:"smile_tendency"`   // 0-1
 	SmileType            string  `json:"smile_type"`      // subtle, moderate, broad
-	LipMovementExpressiveness double `json:"lip_movement_expressiveness"` // 0-1
+	LipMovementExpressiveness float64 `json:"lip_movement_expressiveness"` // 0-1
 
 	// Micro-expressions
 	MicroExpressionEnabled bool    `json:"micro_expression_enabled"`
-	MicroExpressionSensitivity double `json:"micro_expression_sensitivity"` // 0-1
+	MicroExpressionSensitivity float64 `json:"micro_expression_sensitivity"` // 0-1
 	MicroExpressionDuration int   `json:"micro_expression_duration"` // ms
 
 	// Expression symmetry
-	SymmetryLevel double `json:"symmetry_level"` // 0-1, 1 = perfectly symmetric
+	SymmetryLevel float64 `json:"symmetry_level"` // 0-1, 1 = perfectly symmetric
 
 	// Expression masking
-	ExpressionMasking double `json:"expression_masking"` // 0-1, how much to hide true feelings
-	PokerFaceAbility  double `json:"poker_face_ability"`  // 0-1
+	ExpressionMasking float64 `json:"expression_masking"` // 0-1, how much to hide true feelings
+	PokerFaceAbility  float64 `json:"poker_face_ability"`  // 0-1
 }
 
 // BodyGestureSettings defines body gesture configuration.
@@ -78,11 +78,11 @@ type BodyGestureSettings struct {
 	DefaultPosture string `json:"default_posture"` // neutral, confident, relaxed, formal
 
 	// Gesture range
-	GestureRange     double `json:"gesture_range"`     // 0-1, how much gestures can vary
-	GestureIntensity double `json:"gesture_intensity"` // 0-1, base intensity
+	GestureRange     float64 `json:"gesture_range"`     // 0-1, how much gestures can vary
+	GestureIntensity float64 `json:"gesture_intensity"` // 0-1, base intensity
 
 	// Gesture frequency
-	GestureFrequency double `json:"gesture_frequency"` // 0-1, how often gestures occur
+	GestureFrequency float64 `json:"gesture_frequency"` // 0-1, how often gestures occur
 	GestureSpeed     string `json:"gesture_speed"`     // slow, moderate, fast
 
 	// Hand gestures
@@ -93,27 +93,27 @@ type BodyGestureSettings struct {
 
 	// Head movements
 	HeadMovementEnabled bool    `json:"head_movement_enabled"`
-	NodFrequency       double  `json:"nod_frequency"`      // 0-1
-	HeadTiltTendency   double  `json:"head_tilt_tendency"` // 0-1
-	HeadShakeFrequency double  `json:"head_shake_frequency"` // 0-1
+	NodFrequency       float64  `json:"nod_frequency"`      // 0-1
+	HeadTiltTendency   float64  `json:"head_tilt_tendency"` // 0-1
+	HeadShakeFrequency float64  `json:"head_shake_frequency"` // 0-1
 
 	// Body lean
 	BodyLeanEnabled bool   `json:"body_lean_enabled"`
 	BodyLeanDirection string `json:"body_lean_direction"` // forward, neutral, backward
-	BodyLeanTendency double `json:"body_lean_tendency"` // 0-1
+	BodyLeanTendency float64 `json:"body_lean_tendency"` // 0-1
 
 	// Shoulder movements
-	ShrugTendency double `json:"shrug_tendency"` // 0-1
+	ShrugTendency float64 `json:"shrug_tendency"` // 0-1
 	ShoulderTension string `json:"shoulder_tension"` // relaxed, moderate, tense
 
 	// Fidgeting
-	FidgetLevel double `json:"fidget_level"` // 0-1
+	FidgetLevel float64 `json:"fidget_level"` // 0-1
 	FidgetType  string `json:"fidget_type"`  // none, subtle, noticeable
 
 	// Mirroring
 	MirroringEnabled bool    `json:"mirroring_enabled"`
 	MirroringDelay   int     `json:"mirroring_delay"`    // ms
-	MirroringIntensity double `json:"mirroring_intensity"` // 0-1
+	MirroringIntensity float64 `json:"mirroring_intensity"` // 0-1
 }
 
 // EmotionExpressionMapping defines how emotions map to expressions/gestures.
@@ -139,7 +139,7 @@ type ExpressionMapping struct {
 	EyeShape       string `json:"eye_shape"`        // wide, normal, narrowed, closed
 	MouthShape     string `json:"mouth_shape"`      // smile, frown, neutral, open
 	ExpressionType string `json:"expression_type"`  // specific expression name
-	Intensity      double `json:"intensity"`        // 0-1
+	Intensity      float64 `json:"intensity"`        // 0-1
 
 	// Body gesture
 	Posture        string `json:"posture"`         // confident, slumped, open, closed
@@ -155,20 +155,20 @@ type ExpressionMapping struct {
 type SocialGestureSettings struct {
 	// Greeting gestures
 	GreetingGesture string `json:"greeting_gesture"` // wave, nod, bow, handshake
-	GreetingIntensity double `json:"greeting_intensity"` // 0-1
+	GreetingIntensity float64 `json:"greeting_intensity"` // 0-1
 
 	// Parting gestures
 	PartingGesture string `json:"parting_gesture"` // wave, nod, bow
-	PartingIntensity double `json:"parting_intensity"` // 0-1
+	PartingIntensity float64 `json:"parting_intensity"` // 0-1
 
 	// Listening gestures
 	ListeningGestureEnabled bool    `json:"listening_gesture_enabled"`
-	NodWhileListening      double  `json:"nod_while_listening"` // 0-1
-	EyeContactWhileListening double `json:"eye_contact_while_listening"` // 0-1
+	NodWhileListening      float64  `json:"nod_while_listening"` // 0-1
+	EyeContactWhileListening float64 `json:"eye_contact_while_listening"` // 0-1
 
 	// Speaking gestures
 	SpeakingGestureEnabled bool    `json:"speaking_gesture_enabled"`
-	GestureWhileSpeaking   double  `json:"gesture_while_speaking"` // 0-1
+	GestureWhileSpeaking   float64  `json:"gesture_while_speaking"` // 0-1
 	PauseGesture          string  `json:"pause_gesture"`          // gesture during pauses
 
 	// Agreement/disagreement
@@ -177,12 +177,12 @@ type SocialGestureSettings struct {
 	UncertaintyGesture string `json:"uncertainty_gesture"` // shrug, tilt
 
 	// Touch gestures
-	TouchComfortLevel double `json:"touch_comfort_level"` // 0-1
+	TouchComfortLevel float64 `json:"touch_comfort_level"` // 0-1
 	TouchTypes        []string `json:"touch_types"`       // handshake, pat, hug
 
 	// Distance management
 	PreferredDistance string `json:"preferred_distance"` // close, medium, far
-	DistanceAdjustment double `json:"distance_adjustment"` // 0-1, tendency to adjust
+	DistanceAdjustment float64 `json:"distance_adjustment"` // 0-1, tendency to adjust
 
 	// Mirroring by relationship
 	MirrorCloseFriends bool `json:"mirror_close_friends"`
@@ -198,7 +198,7 @@ type AnimationSettings struct {
 	// Idle animation
 	IdleAnimationEnabled bool    `json:"idle_animation_enabled"`
 	IdleAnimationSet     []string `json:"idle_animation_set"`
-	IdleVariationFrequency double `json:"idle_variation_frequency"` // 0-1
+	IdleVariationFrequency float64 `json:"idle_variation_frequency"` // 0-1
 
 	// Transition animations
 	TransitionAnimationsEnabled bool `json:"transition_animations_enabled"`
@@ -223,13 +223,13 @@ type AnimationSettings struct {
 
 	// Breathing animation
 	BreathingAnimationEnabled bool `json:"breathing_animation_enabled"`
-	BreathingRate            double `json:"breathing_rate"` // breaths per minute
-	BreathingDepth           double `json:"breathing_depth"` // 0-1
+	BreathingRate            float64 `json:"breathing_rate"` // breaths per minute
+	BreathingDepth           float64 `json:"breathing_depth"` // 0-1
 
 	// Eye movement
 	EyeMovementEnabled bool `json:"eye_movement_enabled"`
-	SaccadeFrequency   double `json:"saccade_frequency"` // eye movements per minute
-	SaccadeRange       double `json:"saccade_range"`     // 0-1
+	SaccadeFrequency   float64 `json:"saccade_frequency"` // eye movements per minute
+	SaccadeRange       float64 `json:"saccade_range"`     // 0-1
 }
 
 // ExpressionGestureContext provides expression/gesture context.
@@ -261,7 +261,7 @@ type ExpressionGestureContext struct {
 // ExpressionState represents current expression state.
 type ExpressionState struct {
 	ExpressionName string `json:"expression_name"`
-	Intensity      double `json:"intensity"`      // 0-1
+	Intensity      float64 `json:"intensity"`      // 0-1
 	Duration       int    `json:"duration"`       // ms
 	Transition     string `json:"transition"`     // transition type
 
@@ -272,13 +272,13 @@ type ExpressionState struct {
 
 	// Blending
 	BlendWithPrevious bool `json:"blend_with_previous"`
-	BlendProgress     double `json:"blend_progress"` // 0-1
+	BlendProgress     float64 `json:"blend_progress"` // 0-1
 }
 
 // GestureState represents current gesture state.
 type GestureState struct {
 	GestureName string `json:"gesture_name"`
-	Intensity   double `json:"intensity"`   // 0-1
+	Intensity   float64 `json:"intensity"`   // 0-1
 	Duration    int    `json:"duration"`    // ms
 	Transition  string `json:"transition"`  // transition type
 
@@ -296,10 +296,10 @@ type GestureState struct {
 // ExpressionSceneAdaptation defines expression adaptation for scenes.
 type ExpressionSceneAdaptation struct {
 	Scene               string `json:"scene"`
-	ExpressionRange     double `json:"expression_range"`     // 0-1
-	GestureRange        double `json:"gesture_range"`        // 0-1
-	FormalityLevel      double `json:"formality_level"`      // 0-1
-	EyeContactLevel     double `json:"eye_contact_level"`    // 0-1
+	ExpressionRange     float64 `json:"expression_range"`     // 0-1
+	GestureRange        float64 `json:"gesture_range"`        // 0-1
+	FormalityLevel      float64 `json:"formality_level"`      // 0-1
+	EyeContactLevel     float64 `json:"eye_contact_level"`    // 0-1
 	IdleAnimationStyle  string `json:"idle_animation_style"` // subtle, moderate, expressive
 }
 
@@ -309,7 +309,7 @@ type ExpressionEmotionAdaptation struct {
 	TargetExpression    string `json:"target_expression"`
 	TargetGesture       string `json:"target_gesture"`
 	TransitionSpeed     string `json:"transition_speed"`
-	IntensityMultiplier double `json:"intensity_multiplier"`
+	IntensityMultiplier float64 `json:"intensity_multiplier"`
 }
 
 // ExpressionSocialAdaptation defines expression adaptation for social context.
@@ -317,7 +317,7 @@ type ExpressionSocialAdaptation struct {
 	SocialContext       string `json:"social_context"`
 	GreetingGesture     string `json:"greeting_gesture"`
 	FarewellGesture     string `json:"farewell_gesture"`
-	EyeContactTendency  double `json:"eye_contact_tendency"`
+	EyeContactTendency  float64 `json:"eye_contact_tendency"`
 	MirroringEnabled    bool   `json:"mirroring_enabled"`
 	TouchPermission     string `json:"touch_permission"` // none, light, moderate
 }
@@ -325,11 +325,11 @@ type ExpressionSocialAdaptation struct {
 // AnimationState represents current animation state.
 type AnimationState struct {
 	CurrentAnimation string `json:"current_animation"`
-	AnimationProgress double `json:"animation_progress"` // 0-1
+	AnimationProgress float64 `json:"animation_progress"` // 0-1
 	AnimationFPS     int    `json:"animation_fps"`
 	IsLooping        bool   `json:"is_looping"`
 	IsBlending       bool   `json:"is_blending"`
-	BlendProgress    double `json:"blend_progress"` // 0-1
+	BlendProgress    float64 `json:"blend_progress"` // 0-1
 }
 
 // ToJSON converts ExpressionGestureProfile to JSON string.
