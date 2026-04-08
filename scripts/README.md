@@ -1,84 +1,51 @@
-# OFA API 测试脚本使用说明
+# OFA 脚本目录
+
+本目录包含项目的构建、测试和部署脚本。
 
 ## 脚本列表
 
-### test_api.ps1 - API功能测试
-```
-D:\vibecoding\OFA\scripts\test_api.ps1
-```
+### 测试脚本
 
-### test_metrics.ps1 - Prometheus指标测试
-```
-D:\vibecoding\OFA\scripts\test_metrics.ps1
-```
+| 脚本 | 说明 |
+|------|------|
+| `test_api.ps1` | API 功能测试 (健康检查、Agent列表、技能列表、任务测试) |
+| `test_metrics.ps1` | Prometheus 指标测试 |
+| `test_tts_api.ps1` | TTS REST API 测试 (语音合成、声音列表、身份声音映射) |
+| `test_tts_api.bat` | TTS REST API 测试 (Windows批处理版本) |
+
+### 构建脚本
+
+| 脚本 | 说明 |
+|------|------|
+| `build_android.ps1` | Android SDK 构建 (需要 JAVA_HOME, ANDROID_HOME) |
+| `gen_proto.sh` | Protocol Buffers 代码生成 |
+| `start.bat` | 启动脚本 (Windows) |
+| `start.sh` | 启动脚本 (Linux/macOS) |
+| `ofa.bat` | OFA 命令行工具 (Windows) |
 
 ## 使用方法
 
 ### 前提条件
-1. Center服务已启动: `.\build\center.exe`
-2. Agent客户端已启动: `.\build\agent.exe`
+1. Center 服务已启动: `.\build\center.exe`
+2. 环境变量已配置 (Android 构建需要 JAVA_HOME, ANDROID_HOME)
 
 ### 运行测试
 
 ```powershell
-# API功能测试
-powershell -File D:\vibecoding\OFA\scripts\test_api.ps1
+# API 功能测试
+powershell -File test_api.ps1
 
-# Prometheus指标测试
-powershell -File D:\vibecoding\OFA\scripts\test_metrics.ps1
+# Prometheus 指标测试
+powershell -File test_metrics.ps1
+
+# TTS REST API 测试
+powershell -File test_tts_api.ps1
 ```
 
-### 测试内容
+### Android SDK 构建
 
-#### test_api.ps1
-1. **健康检查** - 检查Center服务状态
-2. **系统信息** - 获取在线Agent数和任务数
-3. **Agent列表** - 显示所有已注册的Agent
-4. **技能列表** - 显示所有可用技能
-5. **文本处理任务** - 测试text.process技能
-6. **计算器任务** - 测试calculator技能
-
-#### test_metrics.ps1
-1. **健康检查** - 验证服务状态
-2. **Prometheus指标** - 检查/metrics端点
-3. **Agent指标** - ofa_agents_total, ofa_agents_online等
-4. **Task指标** - ofa_tasks_total, ofa_task_duration_seconds等
-5. **系统指标** - ofa_request_duration_seconds等
-6. **Go运行时指标** - go_goroutines等
-
-### 预期输出
-
-```
-=== OFA API 测试 ===
-
-1. 健康检查
-状态: healthy
-版本: v0.9.0
-
-2. 系统信息
-在线Agent数: 1
-待处理任务: 0
-
-3. Agent列表
-总数: 1
-  - abc123: 状态=1
-
-4. 技能列表
-可用技能:
-  - text.process: Text Process (text)
-  - json.process: JSON Process (data)
-  - calculator: Calculator (math)
-  - echo: Echo (utility)
-
-5. 提交任务测试
-任务已提交: task-xxx
-任务状态: 3
-输出: {"result":"HELLO WORLD"}
-
-6. 计算器任务测试
-计算器任务已提交: task-yyy
-任务状态: 3
-输出: {"result":35,"operation":"add"}
-
-=== 测试完成 ===
+```powershell
+powershell -File build_android.ps1
+# 或指定构建任务
+powershell -File build_android.ps1 -Task "assembleDebug"
 ```
