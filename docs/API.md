@@ -16,7 +16,7 @@ OFA提供两种API接口：
 | v2.x | 去中心化架构 | `/api/v1/identity`, `/api/v1/sync` |
 | v3.x | 多设备协同 | `/api/v1/device`, `/api/v1/message` |
 | v4.x | 灵魂特征 | `/api/v1/soul/*` |
-| v5.x | 外在呈现 | `/api/v1/presentation/*` |
+| v5.x | 外在呈现 | `/api/v1/presentation/*`, `/api/v1/tts/*` |
 
 ---
 
@@ -455,7 +455,7 @@ PUT /api/v1/presentation/avatar/{identity_id}
 
 ---
 
-### 语音合成系统 (v5.1.0)
+### 语音合成系统 (v5.1.0 - v5.6.x)
 
 #### 获取语音配置
 
@@ -517,6 +517,159 @@ POST /api/v1/presentation/voice/{identity_id}/synthesize
   "duration_ms": 2500,
   "format": "mp3",
   "sample_rate": 22050
+}
+```
+
+---
+
+### TTS引擎API (v5.6.x)
+
+#### 语音合成
+
+```
+POST /api/v1/tts/synthesize
+```
+
+**请求体:**
+
+```json
+{
+  "identity_id": "user-123",
+  "text": "你好，我是OFA数字人助手！",
+  "voice_id": "zh_female_meilinvyou_uranus_bigtts",
+  "format": "mp3",
+  "sample_rate": 24000,
+  "rate": 1.0,
+  "pitch": 1.0,
+  "volume": 0.7,
+  "emotion": "joy",
+  "streaming": false
+}
+```
+
+**响应:**
+
+```json
+{
+  "session_id": "tts_abc12345",
+  "audio_data": "base64_encoded_audio...",
+  "duration_ms": 3500,
+  "format": "mp3",
+  "voice_used": "zh_female_meilinvyou_uranus_bigtts",
+  "provider": "doubao",
+  "latency_ms": 250,
+  "success": true
+}
+```
+
+#### 获取可用音色列表
+
+```
+GET /api/v1/tts/voices?provider=doubao
+```
+
+**响应:**
+
+```json
+{
+  "voices": [
+    {
+      "voice_id": "zh_male_sunwukong_uranus_bigtts",
+      "name": "猴哥",
+      "language": "zh-CN",
+      "gender": "male",
+      "age": "adult",
+      "provider": "doubao",
+      "description": "孙悟空音色"
+    },
+    {
+      "voice_id": "zh_female_meilinvyou_uranus_bigtts",
+      "name": "魅力女友",
+      "language": "zh-CN",
+      "gender": "female",
+      "age": "young",
+      "provider": "doubao"
+    }
+  ]
+}
+```
+
+**可用音色类型:**
+- 大模型音色: 猴哥、魅力女友、儒雅逸辰、爽朗少年等30+音色
+- 情绪音色: 开心女声、悲伤女声、愤怒女声
+- 方言音色: 东北方言、四川方言、广东方言
+
+#### 声音克隆
+
+```
+POST /api/v1/tts/clone
+```
+
+**请求体:**
+
+```json
+{
+  "identity_id": "user-123",
+  "voice_name": "我的声音",
+  "language": "zh-CN",
+  "reference_audios": [
+    {
+      "audio_url": "https://example.com/voice-sample.mp3",
+      "duration_ms": 10000,
+      "transcription": "这是参考音频的文本内容"
+    }
+  ]
+}
+```
+
+**响应:**
+
+```json
+{
+  "voice_id": "cloned_voice_user-123",
+  "voice_name": "我的声音",
+  "status": "ready",
+  "quality": 0.85,
+  "message": "Voice cloning completed successfully"
+}
+```
+
+#### 设置身份音色映射
+
+```
+PUT /api/v1/tts/identity/{identity_id}/voice
+```
+
+**请求体:**
+
+```json
+{
+  "voice_id": "zh_female_meilinvyou_uranus_bigtts"
+}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "voice_id": "zh_female_meilinvyou_uranus_bigtts",
+  "success": true
+}
+```
+
+#### 获取身份音色
+
+```
+GET /api/v1/tts/identity/{identity_id}/voice
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "voice_id": "zh_female_meilinvyou_uranus_bigtts"
 }
 ```
 
@@ -1201,5 +1354,5 @@ service PresentationService {
 
 ---
 
-*最后更新: 2026-04-07*
-*版本: v5.5.0*
+*最后更新: 2026-04-08*
+*版本: v5.6.5*
