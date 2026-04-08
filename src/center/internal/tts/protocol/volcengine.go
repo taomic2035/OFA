@@ -220,13 +220,13 @@ func (p *VolcengineProtocol) Marshal(msg *Message) []byte {
 	buf := new(bytes.Buffer)
 
 	// Write header (byte 0: version + header_size)
-	binary.Write(buf, binary.BigEndian, uint8((msg.Version<<4)|msg.HeaderSize))
+	binary.Write(buf, binary.BigEndian, uint8((uint8(msg.Version)<<4)|uint8(msg.HeaderSize)))
 
 	// Write header (byte 1: type + flag)
-	binary.Write(buf, binary.BigEndian, uint8((msg.Type<<4)|msg.Flag))
+	binary.Write(buf, binary.BigEndian, uint8((uint8(msg.Type)<<4)|uint8(msg.Flag)))
 
 	// Write header (byte 2: serialization + compression)
-	binary.Write(buf, binary.BigEndian, uint8((msg.Serialization<<4)|msg.Compression))
+	binary.Write(buf, binary.BigEndian, uint8((uint8(msg.Serialization)<<4)|uint8(msg.Compression)))
 
 	// Calculate header padding
 	headerBytes := 4 * int(msg.HeaderSize)

@@ -12,8 +12,18 @@ import (
 	"net/http"
 	"time"
 
-	"ofa/center/internal/tts"
+	"github.com/ofa/center/internal/tts"
 )
+
+// Register this provider on init
+func init() {
+	tts.RegisterProviderBuilder("volcengine", func(config tts.TTSEngineConfig) tts.TTSProvider {
+		if config.VolcengineAppID != "" && config.VolcengineToken != "" {
+			return NewVolcengineProvider(config.VolcengineAppID, config.VolcengineToken)
+		}
+		return nil
+	})
+}
 
 // VolcengineProvider implements TTSProvider for Volcengine.
 type VolcengineProvider struct {

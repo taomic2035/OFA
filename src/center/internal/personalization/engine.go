@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"ofa/center/internal/models"
+	"github.com/ofa/center/internal/models"
 )
 
 // PersonalizationEngine manages avatar personalization.

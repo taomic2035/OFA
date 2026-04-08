@@ -11,9 +11,19 @@ import (
 	"time"
 
 	"nhooyr.io/websocket"
-	"ofa/center/internal/tts"
-	"ofa/center/internal/tts/protocol"
+	"github.com/ofa/center/internal/tts"
+	"github.com/ofa/center/internal/tts/protocol"
 )
+
+// Register this provider on init
+func init() {
+	tts.RegisterProviderBuilder("doubao", func(config tts.TTSEngineConfig) tts.TTSProvider {
+		if config.DoubaoAppID != "" && config.DoubaoToken != "" {
+			return NewDoubaoProvider(config.DoubaoAppID, config.DoubaoToken)
+		}
+		return nil
+	})
+}
 
 // DoubaoProvider implements TTSProvider for Doubao TTS 2.0 (large model voices).
 type DoubaoProvider struct {

@@ -8,9 +8,38 @@ import (
 	"fmt"
 	"sync"
 	"time"
-
-	"ofa/center/internal/tts/providers"
 )
+
+// Global provider registry
+var (
+	globalRegistry   = make(map[string]TTSProvider)
+	registryMutex    sync.RWMutex
+	providerBuilders = make(map[string]ProviderBuilder)
+)
+
+// ProviderBuilder creates a provider from config.
+type ProviderBuilder func(config TTSEngineConfig) TTSProvider
+
+// RegisterProviderBuilder registers a provider builder function.
+func RegisterProviderBuilder(name string, builder ProviderBuilder) {
+	registryMutex.Lock()
+	defer registryMutex.Unlock()
+	providerBuilders[name] = builder
+}
+
+// RegisterProvider registers a pre-built provider.
+func RegisterProvider(name string, provider TTSProvider) {
+	registryMutex.Lock()
+	defer registryMutex.Unlock()
+	globalRegistry[name] = provider
+}
+
+// GetProvider retrieves a registered provider.
+func GetProvider(name string) TTSProvider {
+	registryMutex.RLock()
+	defer registryMutex.RUnlock()
+	return globalRegistry[name]
+}
 
 // TTSEngine manages TTS synthesis.
 type TTSEngine struct {
@@ -54,16 +83,19 @@ func NewTTSEngine(config TTSEngineConfig) *TTSEngine {
 
 // initProviders initializes TTS providers.
 func (e *TTSEngine) initProviders() {
-	// Initialize Volcengine provider
-	if e.config.VolcengineAppID != "" && e.config.VolcengineToken != "" {
-		volcengine := providers.NewVolcengineProvider(e.config.VolcengineAppID, e.config.VolcengineToken)
-		e.providers["volcengine"] = volcengine
+	registryMutex.RLock()
+	defer registryMutex.RUnlock()
+
+	// Use registered providers or build from config
+	for name, builder := range providerBuilders {
+		if provider := builder(e.config); provider != nil {
+			e.providers[name] = provider
+		}
 	}
 
-	// Initialize Doubao provider
-	if e.config.DoubaoAppID != "" && e.config.DoubaoToken != "" {
-		doubao := providers.NewDoubaoProvider(e.config.DoubaoAppID, e.config.DoubaoToken)
-		e.providers["doubao"] = doubao
+	// Also use globally registered providers
+	for name, provider := range globalRegistry {
+		e.providers[name] = provider
 	}
 
 	// Set primary provider

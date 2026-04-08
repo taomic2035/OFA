@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"ofa/center/internal/models"
+	"github.com/ofa/center/internal/models"
 )
 
 // DisplayEngine manages multi-device display.

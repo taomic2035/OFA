@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"ofa/center/internal/config"
-	tts "ofa/center/internal/tts"
+	"github.com/ofa/center/internal/config"
+	tts "github.com/ofa/center/internal/tts"
 )
 
 // TTSService manages TTS synthesis capabilities.
