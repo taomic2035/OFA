@@ -66,14 +66,15 @@
 
 **偏差原因**: 功能迭代快速，文档更新滞后
 
-### 3. 测试覆盖偏差 ⚠️
+### 3. 测试覆盖偏差 ✅ 已完善
 
 **计划**: 全面的单元测试和集成测试
 **现状**:
 - ✅ 核心组件有测试文件 (identity, memory, sync, tts, emotion 等)
-- ⚠️ 新增的 v4.x 和 v5.x 组件测试覆盖不完整
+- ✅ v4.x 组件测试完整 (philosophy, social, culture, lifestage, behavior, relationship)
+- ✅ 所有测试通过
 
-**偏差原因**: 新功能优先实现，测试补充滞后
+**更新内容**: v5.7.0 迭代补充了所有 v4.x 引擎的单元测试
 
 ### 4. 部署偏差 ⚠️
 
@@ -123,7 +124,29 @@
 
 ## 五、迭代计划
 
-### v5.7.0 - API 文档完善 (本次迭代)
+### v5.7.0 - 测试覆盖完善 ✅ 已完成
+
+**目标**: 补充 v4.x 组件单元测试，确保核心功能稳定
+
+**已完成任务**:
+1. ✅ `internal/philosophy/engine_test.go` - 三观系统测试 (16个测试)
+2. ✅ `internal/social/engine_test.go` - 社会身份测试 (15个测试)
+3. ✅ `internal/culture/engine_test.go` - 地域文化测试 (18个测试)
+4. ✅ `internal/lifestage/engine_test.go` - 人生阶段测试 (17个测试)
+5. ✅ `internal/behavior/engine_test.go` - 情绪行为测试 (20个测试)
+6. ✅ `internal/relationship/engine_test.go` - 人际关系测试 (20个测试)
+
+**测试覆盖内容**:
+- 引擎创建与初始化
+- CRUD 操作 (创建、读取、更新、删除)
+- 决策上下文生成
+- 监听器机制
+- 数据归一化
+- 业务逻辑计算
+
+---
+
+### v5.8.0 - 部署方案完善 (下一步迭代)
 
 **目标**: 完善 API 文档，让开发者能快速理解和使用
 
