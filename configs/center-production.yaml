@@ -1,0 +1,170 @@
+# OFA Center 配置 - 生产环境
+# 完整配置示例
+
+server:
+  name: "ofa-center-production"
+  environment: "production"
+
+# gRPC 服务配置
+grpc:
+  address: ":9090"
+  max_connections: 10000
+  keepalive:
+    max_connection_idle: 15m
+    max_connection_age: 30m
+    keepalive_interval: 1m
+    keepalive_timeout: 20s
+
+# REST API 配置
+rest:
+  address: ":8080"
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  max_header_bytes: 1048576  # 1MB
+  cors:
+    allowed_origins:
+      - "https://ofa.example.com"
+      - "https://api.ofa.example.com"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allowed_headers:
+      - "Authorization"
+      - "Content-Type"
+      - "X-Request-ID"
+    max_age: 3600
+
+# 数据库配置
+database:
+  type: "postgres"
+  host: "${DB_HOST}"
+  port: 5432
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  database: "ofa"
+  max_connections: 50
+  min_connections: 5
+  connection_timeout: 30s
+  idle_timeout: 10m
+  ssl_mode: "require"
+
+# Redis 配置
+redis:
+  address: "${REDIS_ADDR}"
+  password: "${REDIS_PASSWORD}"
+  db: 0
+  pool_size: 100
+  min_idle_connections: 10
+  max_retries: 3
+  dial_timeout: 5s
+  read_timeout: 3s
+  write_timeout: 3s
+
+# Etcd 配置 (分布式协调)
+etcd:
+  endpoints:
+    - "${ETCD_ENDPOINT_1}"
+    - "${ETCD_ENDPOINT_2}"
+    - "${ETCD_ENDPOINT_3}"
+  dial_timeout: 5s
+  request_timeout: 10s
+
+# 身份系统配置
+identity:
+  default_personality:
+    openness: 0.5
+    conscientiousness: 0.5
+    extraversion: 0.5
+    agreeableness: 0.5
+    neuroticism: 0.5
+  evolution:
+    threshold: 100  # 行为观察阈值
+    stability_threshold: 0.8  # 稳定性阈值
+    max_change_per_event: 0.1  # 单次最大变化
+
+# 情绪系统配置
+emotion:
+  default_decay_rate: 0.02
+  max_intensity: 1.0
+  min_intensity: 0.0
+  trigger_thresholds:
+    positive_event: 0.5
+    negative_event: 0.5
+    social_interaction: 0.3
+  memory_duration: 24h
+
+# TTS 配置
+tts:
+  provider: "volcengine"
+  default_voice: "zh_female_qingxin"
+  sample_rate: 16000
+  format: "mp3"
+  speed: 1.0
+  volume: 1.0
+  cache:
+    enabled: true
+    max_size: 1000
+    ttl: 24h
+
+# 设备管理配置
+agent:
+  heartbeat_interval: 30s
+  heartbeat_timeout: 60s
+  offline_threshold: 120s
+  max_devices_per_identity: 10
+  trust_levels:
+    new_device: 0.3
+    verified_device: 0.7
+    primary_device: 1.0
+
+# 数据同步配置
+sync:
+  batch_size: 100
+  sync_interval: 60s
+  conflict_resolution: "center_authority"  # Center 权威策略
+  retry_count: 3
+  retry_delay: 5s
+
+# 安全配置
+security:
+  jwt:
+    secret: "${JWT_SECRET}"
+    issuer: "ofa-center"
+    expiry: 24h
+    refresh_expiry: 7d
+  encryption:
+    algorithm: "AES-256-GCM"
+    key_rotation_interval: 30d
+  rate_limit:
+    enabled: true
+    requests_per_minute: 100
+    burst: 20
+
+# 日志配置
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+  fields:
+    environment: "production"
+    service: "ofa-center"
+
+# 监控配置
+monitoring:
+  enabled: true
+  metrics_port: 9091
+  metrics_path: "/metrics"
+  health_check_path: "/health"
+  prometheus:
+    enabled: true
+
+# 性能配置
+performance:
+  max_concurrent_requests: 10000
+  request_timeout: 30s
+  shutdown_timeout: 30s
+  graceful_shutdown: true

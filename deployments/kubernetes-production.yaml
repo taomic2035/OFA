@@ -1,0 +1,170 @@
+# OFA Center 生产环境配置
+# Kubernetes 部署增强版
+
+---
+# Ingress 配置 (用于外部访问)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ofa-ingress
+  namespace: ofa
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - ofa.example.com
+    secretName: ofa-tls
+  rules:
+  - host: ofa.example.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: center
+            port:
+              number: 8080
+      - path: /grpc
+        pathType: Prefix
+        backend:
+          service:
+            name: center
+            port:
+              number: 9090
+
+---
+# HorizontalPodAutoscaler (自动扩缩容)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: center-hpa
+  namespace: ofa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: center
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# PersistentVolumeClaim (持久化存储)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: ofa
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# Prometheus ServiceMonitor (监控)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: center-monitor
+  namespace: ofa
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: center
+  endpoints:
+  - port: rest
+    path: /metrics
+    interval: 30s
+
+---
+# NetworkPolicy (网络安全)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ofa-network-policy
+  namespace: ofa
+spec:
+  podSelector:
+    matchLabels:
+      app: center
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: agent
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to:
+    - podSelector:
+        matchLabels:
+          app: etcd
+    ports:
+    - protocol: TCP
+      port: 2379
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+
+---
+# PodDisruptionBudget (最小可用副本)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: center-pdb
+  namespace: ofa
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: center

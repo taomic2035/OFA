@@ -505,4 +505,130 @@ kubectl rollout undo deployment/ofa-center -n ofa
 
 ---
 
-*文档更新时间: 2026-03-30*
+*文档更新时间: 2026-04-10*
+
+---
+
+## 十、快速部署脚本
+
+### 10.1 使用部署脚本
+
+项目提供了便捷的部署脚本：
+
+**Linux/Mac:**
+```bash
+# Docker Compose 部署
+./scripts/deploy.sh compose
+
+# Kubernetes 部署
+./scripts/deploy.sh k8s
+
+# 帮助信息
+./scripts/deploy.sh --help
+```
+
+**Windows PowerShell:**
+```powershell
+# Docker Compose 部署
+.\scripts\deploy.ps1 compose
+
+# Kubernetes 部署
+.\scripts\deploy.ps1 k8s
+
+# 帮助信息
+.\scripts\deploy.ps1 --help
+```
+
+### 10.2 使用 Makefile
+
+```bash
+# 查看所有命令
+make help
+
+# 构建和测试
+make build test
+
+# Docker 构建
+make docker-build
+
+# Docker Compose 部署
+make deploy-compose
+
+# Kubernetes 部署
+make deploy-k8s
+
+# 查看 Kubernetes 状态
+make status-k8s
+```
+
+---
+
+## 十一、Helm Chart 部署
+
+### 11.1 使用 Helm 安装
+
+```bash
+# 安装
+helm install ofa-center deployments/helm -n ofa --create-namespace
+
+# 自定义配置
+helm install ofa-center deployments/helm -n ofa \
+  --set replicaCount=3 \
+  --set image.tag=v5.7.0 \
+  --set env.JWT_SECRET="your-secret"
+
+# 更新
+helm upgrade ofa-center deployments/helm -n ofa
+
+# 卸载
+helm uninstall ofa-center -n ofa
+```
+
+### 11.2 Helm Chart 配置
+
+主要配置项在 `deployments/helm/values.yaml`：
+
+```yaml
+replicaCount: 1
+
+image:
+  repository: ofa/center
+  tag: "latest"
+
+ingress:
+  enabled: true
+  hosts:
+    - host: ofa.example.com
+      paths:
+        - path: /api
+          servicePort: rest
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+```
+
+---
+
+## 十二、生产环境增强配置
+
+### 12.1 应用生产配置
+
+```bash
+# 应用包含 HPA、Ingress、NetworkPolicy 的完整配置
+kubectl apply -f deployments/kubernetes.yaml
+kubectl apply -f deployments/kubernetes-production.yaml
+```
+
+生产配置包含：
+- **Ingress**: 外部访问入口，支持 TLS
+- **HorizontalPodAutoscaler**: 自动扩缩容
+- **PersistentVolumeClaim**: 数据持久化
+- **ServiceMonitor**: Prometheus 监控集成
+- **NetworkPolicy**: 网络安全策略
+- **PodDisruptionBudget**: 最小可用副本保障
+
+### 12.2 生产配置文件
+
+参考 `configs/center-production.yaml` 完整生产配置示例。

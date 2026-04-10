@@ -1,0 +1,127 @@
+# Default values for ofa-center.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ofa/center
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  restPort: 8080
+  grpcPort: 9090
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: ofa.example.com
+      paths:
+        - path: /api
+          pathType: Prefix
+          servicePort: rest
+        - path: /grpc
+          pathType: Prefix
+          servicePort: grpc
+  tls: []
+  #  - secretName: ofa-tls
+  #    hosts:
+  #      - ofa.example.com
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Database configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "ofa123"
+    username: "ofa"
+    password: "ofa123"
+    database: "ofa"
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+
+# Etcd configuration
+etcd:
+  enabled: true
+  replicaCount: 1
+  auth:
+    rbac:
+      enabled: false
+
+# Environment variables
+env:
+  DB_HOST: postgresql
+  DB_PORT: 5432
+  DB_USER: ofa
+  DB_PASSWORD: ofa123
+  DB_NAME: ofa
+  REDIS_ADDR: redis-master:6379
+  ETCD_ENDPOINTS: etcd:2379
+  JWT_SECRET: "change-me-in-production"
+
+# Config override
+config: {}
+# server:
+#   name: "ofa-center"
+# grpc:
+#   address: ":9090"
+# rest:
+#   address: ":8080"

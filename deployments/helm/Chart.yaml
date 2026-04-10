@@ -1,0 +1,25 @@
+# OFA Center Helm Chart
+# 用于 Kubernetes 部署
+
+apiVersion: v2
+name: ofa-center
+description: OFA Center - Distributed Agent Soul Carrier
+type: application
+version: 1.0.0
+appVersion: "5.7.0"
+
+maintainers:
+  - name: OFA Team
+    email: team@ofa.example.com
+
+sources:
+  - https://github.com/ofa/ofa-center
+
+keywords:
+  - agent
+  - distributed
+  - soul
+  - ai
+  - digital-human
+
+home: https://ofa.example.com

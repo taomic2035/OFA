@@ -76,14 +76,20 @@
 
 **更新内容**: v5.7.0 迭代补充了所有 v4.x 引擎的单元测试
 
-### 4. 部署偏差 ⚠️
+### 4. 部署偏差 ✅ 已完善
 
 **计划**: Docker/Kubernetes 部署支持
 **现状**:
-- ✅ `src/center/Dockerfile` 存在
-- ⚠️ 缺少完整的部署配置和脚本
+- ✅ `src/center/Dockerfile` - 多阶段构建
+- ✅ `deployments/docker-compose.yaml` - 完整 compose 配置
+- ✅ `deployments/kubernetes.yaml` - K8s 基础部署
+- ✅ `deployments/kubernetes-production.yaml` - 生产增强 (HPA, Ingress, NetworkPolicy)
+- ✅ `deployments/helm/` - Helm Chart
+- ✅ `scripts/deploy.sh` / `deploy.ps1` - 部署脚本
+- ✅ `configs/center-production.yaml` - 生产配置示例
+- ✅ `docs/DEPLOYMENT.md` - 完整部署文档
 
-**偏差原因**: 开发优先，生产部署待完善
+**更新内容**: v5.8.0 迭代完善了全部部署配置
 
 ---
 
@@ -146,7 +152,30 @@
 
 ---
 
-### v5.8.0 - 部署方案完善 (下一步迭代)
+### v5.8.0 - 部署方案完善 ✅ 已完成
+
+**目标**: 完善部署配置，支持生产环境部署
+
+**已完成任务**:
+1. ✅ 增强 Makefile - 添加完整部署命令
+2. ✅ 部署脚本 - deploy.sh (Linux/Mac) 和 deploy.ps1 (Windows)
+3. ✅ Helm Chart - Chart.yaml 和 values.yaml
+4. ✅ Kubernetes 生产配置 - kubernetes-production.yaml (HPA, Ingress, NetworkPolicy)
+5. ✅ 生产环境配置示例 - center-production.yaml
+6. ✅ 更新部署文档 - DEPLOYMENT.md
+
+**新增文件**:
+- `Makefile` (增强)
+- `scripts/deploy.sh`
+- `scripts/deploy.ps1`
+- `deployments/helm/Chart.yaml`
+- `deployments/helm/values.yaml`
+- `deployments/kubernetes-production.yaml`
+- `configs/center-production.yaml`
+
+---
+
+### v5.9.0 - 端到端验证 (下一步迭代)
 
 **目标**: 完善 API 文档，让开发者能快速理解和使用
 
