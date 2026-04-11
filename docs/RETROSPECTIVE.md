@@ -535,6 +535,90 @@
 
 ---
 
+### v7.0.0 - Center-Agent WebSocket 通信桥接 ✅ 已完成
+
+**目标**: 实现 Center 与 Agent 的实时通信
+
+**已完成任务**:
+1. ✅ `pkg/websocket/protocol.go` - WebSocket 通信协议定义
+   - MessageType 定义 (14 种消息类型)
+   - WebSocketMessage 基础结构
+   - RegisterPayload/RegisterAckPayload - 注册协议
+   - HeartbeatPayload - 心跳协议
+   - StateUpdatePayload - 状态推送
+   - TaskAssignPayload/TaskResultPayload - 任务协议
+   - SyncRequestPayload/SyncResponsePayload - 同步协议
+   - BehaviorReportPayload - 行为上报
+   - EmotionUpdatePayload - 情绪更新
+   - ErrorPayload - 错误响应
+
+2. ✅ `pkg/websocket/manager.go` - 连接管理器
+   - ConnectionManager - 连接管理核心
+   - AgentConnection - Agent 连接抽象
+   - RegisterAgent/UnregisterAgent - 连接注册/注销
+   - HandleHeartbeat - 心跳处理
+   - SendMessage/BroadcastMessage - 消息发送
+   - IsAgentOnline - 状态检查
+   - BindIdentity/UnbindIdentity - 身份绑定
+   - healthMonitor - 健康监控
+
+3. ✅ `pkg/websocket/broadcaster.go` - 状态推送机制
+   - StateBroadcaster - 状态广播器
+   - Subscribe/Unsubscribe - 订阅管理
+   - BroadcastIdentityUpdate - 身份更新推送
+   - BroadcastEmotionUpdate - 情绪更新推送
+   - BroadcastDeviceUpdate - 设备状态推送
+   - BroadcastSyncUpdate - 同步状态推送
+   - EmotionBroadcaster - 专用情绪广播器
+   - SyncBroadcaster - 专用同步广播器
+
+4. ✅ `pkg/websocket/handler.go` - WebSocket Handler
+   - WebSocketHandler - HTTP WebSocket 处理器
+   - HandleWebSocket - WebSocket 升级处理
+   - handleConnection - 连接生命周期管理
+   - MessageHandlerFunc - 消息处理函数
+   - RegisterDefaultHandlers - 默认处理器注册
+   - GorillaWebSocketConn - Gorilla WebSocket 包装
+   - HandleConnectionsList - REST API 连接列表
+   - HandleConnectionDetail - REST API 连接详情
+
+5. ✅ `pkg/rest/server.go` - REST 集成
+   - WebSocket 路由: `/ws`
+   - 连接管理 API: `/api/v1/ws/connections`
+
+6. ✅ `pkg/websocket/websocket_test.go` - 单元测试 (15个测试)
+   - TestMessageEncodingDecoding - 编解码测试
+   - TestAllMessageTypes - 全消息类型测试
+   - TestConnectionConfig - 配置测试
+   - TestConnectionState - 状态测试
+   - TestMockWebSocketConn - Mock 连接测试
+   - TestConnectionManagerBasic - 管理器基础测试
+   - TestConnectionManagerRegister - 注册测试
+   - TestConnectionManagerHeartbeat - 心跳测试
+   - TestConnectionManagerSend - 发送测试
+   - TestConnectionManagerNotFound - 错误处理测试
+   - TestBroadcasterSubscription - 订阅测试
+   - TestBroadcasterVersion - 版本管理测试
+   - TestPayloadJSON - JSON 序列化测试
+
+**新增文件**:
+- `src/center/pkg/websocket/protocol.go`
+- `src/center/pkg/websocket/manager.go`
+- `src/center/pkg/websocket/broadcaster.go`
+- `src/center/pkg/websocket/handler.go`
+- `src/center/pkg/websocket/utils.go`
+- `src/center/pkg/websocket/websocket_test.go`
+- `src/center/pkg/rest/websocket_integration.go`
+
+**WebSocket API 端点**:
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/ws` | GET | WebSocket 连接升级 |
+| `/api/v1/ws/connections` | GET | 连接列表 |
+| `/api/v1/ws/connections/detail` | GET | 连接详情 |
+
+---
+
 ## 七、长期愿景
 
 ### 最终目标
@@ -546,7 +630,7 @@
 - **测试覆盖**: 单元测试 + E2E 测试 (v5.7.0/v5.9.0 ✅)
 - **部署方案**: Docker + Kubernetes (v5.8.0 ✅)
 
-### 项目状态: 🎉 核心功能完整 + REST API 全覆盖 + 代码库清理 + 测试覆盖完善
+### 项目状态: 🎉 核心功能完整 + REST API 全覆盖 + 代码库清理 + 测试覆盖完善 + WebSocket 通信
 
 所有关键偏差已修正:
 - ✅ API 文档完整
@@ -556,3 +640,4 @@
 - ✅ REST API 全覆盖 (v2.x-v6.x 所有模块)
 - ✅ 代码库清理 (删除冗余 v1.x 用户画像层)
 - ✅ v5.x 外在呈现引擎测试完整 (v6.3.3)
+- ✅ Center-Agent WebSocket 通信桥接 (v7.0.0)

@@ -14,6 +14,7 @@ import (
 	"github.com/ofa/center/internal/models"
 	"github.com/ofa/center/internal/service"
 	"github.com/ofa/center/pkg/metrics"
+	"github.com/ofa/center/pkg/websocket"
 	pb "github.com/ofa/center/proto"
 )
 
@@ -25,6 +26,7 @@ type Server struct {
 	server         *http.Server
 	metrics        *metrics.Metrics
 	dashboardDir   string
+	wsHandler      *websocket.WebSocketHandler
 }
 
 // NewServer creates a new REST server
@@ -36,6 +38,10 @@ func NewServer(service *service.CenterService, config *config.Config) *Server {
 		metrics:      metrics.NewMetrics(),
 		dashboardDir: "./dashboard",
 	}
+
+	// Initialize WebSocket handler
+	s.wsHandler = websocket.NewWebSocketHandler(websocket.DefaultWebSocketHandlerConfig())
+	s.wsHandler.Start()
 
 	s.setupRoutes()
 	return s
@@ -58,6 +64,9 @@ func (s *Server) Start(address string) error {
 
 // Stop stops the REST server
 func (s *Server) Stop() {
+	if s.wsHandler != nil {
+		s.wsHandler.Stop()
+	}
 	if s.server != nil {
 		s.server.Close()
 	}
@@ -186,6 +195,11 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/api/v1/speech/{identity_id}", s.withMetrics(s.getSpeechProfile)).Methods("GET")
 	s.router.HandleFunc("/api/v1/speech/{identity_id}/style", s.withMetrics(s.updateContentStyle)).Methods("PUT")
 	s.router.HandleFunc("/api/v1/speech/{identity_id}/context", s.withMetrics(s.getSpeechContext)).Methods("GET")
+
+	// === WebSocket API (v7.0.0) ===
+	s.router.HandleFunc("/ws", s.handleWebSocket).Methods("GET")
+	s.router.HandleFunc("/api/v1/ws/connections", s.withMetrics(s.listWSConnections)).Methods("GET")
+	s.router.HandleFunc("/api/v1/ws/connections/detail", s.withMetrics(s.getWSConnectionDetail)).Methods("GET")
 
 	// Dashboard static files
 	s.setupDashboardRoutes()
@@ -2181,4 +2195,26 @@ func parseRelationshipProfile(data map[string]interface{}) map[string]interface{
 		result["social_capital"] = socialCapital
 	}
 	return result
+}
+
+// === WebSocket Handlers (v7.0.0) ===
+
+// handleWebSocket handles WebSocket connection upgrade
+func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	s.wsHandler.HandleWebSocket(w, r)
+}
+
+// listWSConnections lists active WebSocket connections
+func (s *Server) listWSConnections(w http.ResponseWriter, r *http.Request) {
+	s.wsHandler.HandleConnectionsList(w, r)
+}
+
+// getWSConnectionDetail gets a specific WebSocket connection
+func (s *Server) getWSConnectionDetail(w http.ResponseWriter, r *http.Request) {
+	s.wsHandler.HandleConnectionDetail(w, r)
+}
+
+// GetWebSocketHandler returns the WebSocket handler for external use
+func (s *Server) GetWebSocketHandler() *websocket.WebSocketHandler {
+	return s.wsHandler
 }
