@@ -261,6 +261,44 @@
 
 ---
 
+### v6.1.0 - REST API 完善 ✅ 已完成
+
+**目标**: 补充缺失的 REST API 端点，统一 API 架构
+
+**已完成任务**:
+1. ✅ `pkg/rest/core_api.go` - 核心功能 REST API
+   - Identity API: `/api/v1/identities` (CRUD)
+   - Device API: `/api/v1/devices` (注册/心跳/管理)
+   - Behavior API: `/api/v1/behaviors` (上报/查询)
+   - Emotion API: `/api/v1/emotions` (触发/上下文/画像)
+   - Philosophy API: `/api/v1/philosophy` (三观管理)
+   - Sync API: `/api/v1/sync` (数据同步)
+
+**新增文件**:
+- `src/center/pkg/rest/core_api.go`
+
+**API 端点清单**:
+| 模块 | 端点 | 方法 |
+|------|------|------|
+| Identity | `/api/v1/identities` | POST/GET |
+| Identity | `/api/v1/identities/{id}` | GET/PUT/DELETE |
+| Device | `/api/v1/devices` | POST/GET |
+| Device | `/api/v1/devices/{id}` | GET/PUT/DELETE |
+| Device | `/api/v1/devices/{id}/heartbeat` | POST |
+| Behavior | `/api/v1/behaviors` | POST |
+| Behavior | `/api/v1/behaviors/{identity_id}` | GET |
+| Emotion | `/api/v1/emotions/trigger` | POST |
+| Emotion | `/api/v1/emotions/{identity_id}` | GET |
+| Emotion | `/api/v1/emotions/{identity_id}/context` | GET |
+| Emotion | `/api/v1/emotions/{identity_id}/profile` | GET/PUT |
+| Philosophy | `/api/v1/philosophy/worldview` | POST |
+| Philosophy | `/api/v1/philosophy/{identity_id}/worldview` | GET |
+| Philosophy | `/api/v1/philosophy/{identity_id}/context` | GET |
+| Sync | `/api/v1/sync` | POST |
+| Sync | `/api/v1/sync/{identity_id}/state` | GET |
+
+---
+
 ## 六、执行计划
 
 ### v5.9.0 执行完成 ✅
