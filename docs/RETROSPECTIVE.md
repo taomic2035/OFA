@@ -301,7 +301,7 @@
 
 ### v6.2.0 - 灵魂系统 REST API 完善 ✅ 已完成
 
-**目标**: 为 v4.x 灵魂系统组件补充 REST API 端点
+**目标**: 为 v4.x 灵魂系统组件补充 REST API 端点，清理冗余代码
 
 **已完成任务**:
 1. ✅ `pkg/rest/server.go` - 添加 v4.x 灵魂系统 REST API
@@ -315,6 +315,7 @@
    - Event API: `/api/v1/lifestage/{identity_id}/event` (添加事件)
    - Relationship API: `/api/v1/relationship/{identity_id}` (人际关系系统)
    - Add Relationship API: `/api/v1/relationship/{identity_id}/add` (添加关系)
+   - Emotion Profile API: `/api/v1/emotions/{identity_id}/profile` (GET/PUT)
 
 2. ✅ `internal/service/service.go` - 集成 v4.x 灵魂引擎到 CenterService
    - SocialIdentityEngine 初始化
@@ -322,6 +323,10 @@
    - LifeStageEngine 初始化
    - RelationshipEngine 初始化
    - Getter 方法提供 REST API 访问
+
+3. ✅ 清理冗余 - 删除 `pkg/rest/core_api.go`
+   - 该文件与 `server.go` 存在大量重复端点
+   - `server.go` 提供更完整的功能（metrics wrapping）
 
 **API 端点清单**:
 | 模块 | 端点 | 方法 |

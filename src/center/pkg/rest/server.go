@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/ofa/center/internal/config"
+	"github.com/ofa/center/internal/models"
 	"github.com/ofa/center/internal/service"
 	"github.com/ofa/center/pkg/metrics"
 	pb "github.com/ofa/center/proto"
@@ -96,6 +97,8 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/api/v1/emotions/trigger", s.withMetrics(s.triggerEmotion)).Methods("POST")
 	s.router.HandleFunc("/api/v1/emotions/{identity_id}", s.withMetrics(s.getEmotion)).Methods("GET")
 	s.router.HandleFunc("/api/v1/emotions/{identity_id}/context", s.withMetrics(s.getEmotionContext)).Methods("GET")
+	s.router.HandleFunc("/api/v1/emotions/{identity_id}/profile", s.withMetrics(s.getEmotionProfile)).Methods("GET")
+	s.router.HandleFunc("/api/v1/emotions/{identity_id}/profile", s.withMetrics(s.updateEmotionProfile)).Methods("PUT")
 
 	// === Philosophy API (v4.1.0/v6.1.0) ===
 	s.router.HandleFunc("/api/v1/philosophy/worldview", s.withMetrics(s.setWorldview)).Methods("POST")
@@ -1026,6 +1029,54 @@ func (s *Server) getEmotionContext(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonResponse(w, http.StatusOK, context)
+}
+
+func (s *Server) getEmotionProfile(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	emotionEngine := s.service.GetEmotionEngine()
+	profile := emotionEngine.GetEmotionProfile(identityID)
+	if profile == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no emotion profile"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, profile)
+}
+
+func (s *Server) updateEmotionProfile(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	// Build EmotionProfile from request
+	profile := &models.EmotionProfile{
+		BaseJoyLevel:      getFloatFromMap(req, "base_joy_level"),
+		BaseAngerLevel:    getFloatFromMap(req, "base_anger_level"),
+		BaseSadnessLevel:  getFloatFromMap(req, "base_sadness_level"),
+		BaseFearLevel:     getFloatFromMap(req, "base_fear_level"),
+		BaseLoveLevel:     getFloatFromMap(req, "base_love_level"),
+		BaseDisgustLevel:  getFloatFromMap(req, "base_disgust_level"),
+		BaseDesireLevel:   getFloatFromMap(req, "base_desire_level"),
+		EmotionalStability: getFloatFromMap(req, "emotional_stability"),
+	}
+
+	emotionEngine := s.service.GetEmotionEngine()
+	err := emotionEngine.UpdateEmotionProfile(identityID, profile)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"profile":     profile,
+	})
 }
 
 // === Philosophy Handlers ===
