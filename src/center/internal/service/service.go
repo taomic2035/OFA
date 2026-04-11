@@ -17,6 +17,10 @@ import (
 	"github.com/ofa/center/internal/sync"
 	"github.com/ofa/center/internal/emotion"
 	"github.com/ofa/center/internal/philosophy"
+	"github.com/ofa/center/internal/social"
+	"github.com/ofa/center/internal/culture"
+	"github.com/ofa/center/internal/lifestage"
+	"github.com/ofa/center/internal/relationship"
 
 	pb "github.com/ofa/center/proto"
 )
@@ -50,6 +54,14 @@ type CenterService struct {
 	emotionEngine *emotion.EmotionEngine
 	// v4.1.0: Philosophy Engine
 	philosophyEngine *philosophy.Engine
+	// v4.2.0: Social Identity Engine
+	socialEngine *social.SocialIdentityEngine
+	// v4.3.0: Culture Engine
+	cultureEngine *culture.RegionalCultureEngine
+	// v4.4.0: LifeStage Engine
+	lifestageEngine *lifestage.LifeStageEngine
+	// v4.6.0: Relationship Engine
+	relationshipEngine *relationship.RelationshipEngine
 	// v5.6.2: TTS Service
 	ttsService *TTSService
 
@@ -103,6 +115,18 @@ func NewCenterServiceWithMode(ctx context.Context, cfg *config.Config, mode Cent
 
 	// v4.1.0: Initialize Philosophy Engine
 	service.philosophyEngine = philosophy.NewEngine()
+
+	// v4.2.0: Initialize Social Identity Engine
+	service.socialEngine = social.NewSocialIdentityEngine()
+
+	// v4.3.0: Initialize Culture Engine
+	service.cultureEngine = culture.NewRegionalCultureEngine()
+
+	// v4.4.0: Initialize LifeStage Engine
+	service.lifestageEngine = lifestage.NewLifeStageEngine()
+
+	// v4.6.0: Initialize Relationship Engine
+	service.relationshipEngine = relationship.NewRelationshipEngine()
 
 	// v5.6.2: Initialize TTS Service
 	service.ttsService = NewTTSService(cfg)
@@ -177,6 +201,26 @@ func (s *CenterService) GetEmotionEngine() *emotion.EmotionEngine {
 // GetPhilosophyEngine returns the philosophy engine instance (v4.1.0)
 func (s *CenterService) GetPhilosophyEngine() *philosophy.Engine {
 	return s.philosophyEngine
+}
+
+// GetSocialEngine returns the social identity engine instance (v4.2.0)
+func (s *CenterService) GetSocialEngine() *social.SocialIdentityEngine {
+	return s.socialEngine
+}
+
+// GetCultureEngine returns the culture engine instance (v4.3.0)
+func (s *CenterService) GetCultureEngine() *culture.RegionalCultureEngine {
+	return s.cultureEngine
+}
+
+// GetLifestageEngine returns the lifestage engine instance (v4.4.0)
+func (s *CenterService) GetLifestageEngine() *lifestage.LifeStageEngine {
+	return s.lifestageEngine
+}
+
+// GetRelationshipEngine returns the relationship engine instance (v4.6.0)
+func (s *CenterService) GetRelationshipEngine() *relationship.RelationshipEngine {
+	return s.relationshipEngine
 }
 
 // GetTaskQueue returns the task queue channel

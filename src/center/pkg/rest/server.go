@@ -102,6 +102,34 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/api/v1/philosophy/{identity_id}/worldview", s.withMetrics(s.getWorldview)).Methods("GET")
 	s.router.HandleFunc("/api/v1/philosophy/{identity_id}/context", s.withMetrics(s.getPhilosophyContext)).Methods("GET")
 
+	// === Social Identity API (v4.2.0/v6.2.0) ===
+	s.router.HandleFunc("/api/v1/social/{identity_id}", s.withMetrics(s.getSocialIdentity)).Methods("GET")
+	s.router.HandleFunc("/api/v1/social/{identity_id}", s.withMetrics(s.updateSocialIdentity)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/social/{identity_id}/education", s.withMetrics(s.getEducation)).Methods("GET")
+	s.router.HandleFunc("/api/v1/social/{identity_id}/education", s.withMetrics(s.updateEducation)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/social/{identity_id}/career", s.withMetrics(s.getCareer)).Methods("GET")
+	s.router.HandleFunc("/api/v1/social/{identity_id}/career", s.withMetrics(s.updateCareer)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/social/{identity_id}/context", s.withMetrics(s.getSocialContext)).Methods("GET")
+
+	// === Culture API (v4.3.0/v6.2.0) ===
+	s.router.HandleFunc("/api/v1/culture/{identity_id}", s.withMetrics(s.getCulture)).Methods("GET")
+	s.router.HandleFunc("/api/v1/culture/{identity_id}", s.withMetrics(s.updateCulture)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/culture/{identity_id}/location", s.withMetrics(s.setLocation)).Methods("POST")
+	s.router.HandleFunc("/api/v1/culture/{identity_id}/context", s.withMetrics(s.getCultureContext)).Methods("GET")
+
+	// === LifeStage API (v4.4.0/v6.2.0) ===
+	s.router.HandleFunc("/api/v1/lifestage/{identity_id}", s.withMetrics(s.getLifeStage)).Methods("GET")
+	s.router.HandleFunc("/api/v1/lifestage/{identity_id}", s.withMetrics(s.updateLifeStage)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/lifestage/{identity_id}/stage", s.withMetrics(s.setCurrentStage)).Methods("POST")
+	s.router.HandleFunc("/api/v1/lifestage/{identity_id}/event", s.withMetrics(s.addLifeEvent)).Methods("POST")
+	s.router.HandleFunc("/api/v1/lifestage/{identity_id}/context", s.withMetrics(s.getLifeStageContext)).Methods("GET")
+
+	// === Relationship API (v4.6.0/v6.2.0) ===
+	s.router.HandleFunc("/api/v1/relationship/{identity_id}", s.withMetrics(s.getRelationshipSystem)).Methods("GET")
+	s.router.HandleFunc("/api/v1/relationship/{identity_id}", s.withMetrics(s.updateRelationshipSystem)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/relationship/{identity_id}/add", s.withMetrics(s.addRelationship)).Methods("POST")
+	s.router.HandleFunc("/api/v1/relationship/{identity_id}/context", s.withMetrics(s.getRelationshipContext)).Methods("GET")
+
 	// === Sync API (v2.1.0/v6.1.0) ===
 	s.router.HandleFunc("/api/v1/sync", s.withMetrics(s.syncData)).Methods("POST")
 	s.router.HandleFunc("/api/v1/sync/{identity_id}/state", s.withMetrics(s.getSyncState)).Methods("GET")
@@ -1083,6 +1111,396 @@ func (s *Server) getSyncState(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, http.StatusOK, state)
 }
 
+// === Social Identity Handlers (v4.2.0/v6.2.0) ===
+
+func (s *Server) getSocialIdentity(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	socialEngine := s.service.GetSocialEngine()
+	identity := socialEngine.GetSocialIdentity(identityID)
+	if identity == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no social identity"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, identity)
+}
+
+func (s *Server) updateSocialIdentity(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	socialEngine := s.service.GetSocialEngine()
+	identity := socialEngine.GetOrCreateSocialIdentity(identityID)
+
+	// Update fields from request
+	if education, ok := req["education"].(map[string]interface{}); ok {
+		identity.Education = parseEducation(education)
+	}
+	if career, ok := req["career"].(map[string]interface{}); ok {
+		identity.Career = parseCareer(career)
+	}
+
+	err := socialEngine.UpdateSocialIdentity(identityID, identity)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, identity)
+}
+
+func (s *Server) getEducation(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	socialEngine := s.service.GetSocialEngine()
+	education := socialEngine.GetEducation(identityID)
+	if education == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no education data"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, education)
+}
+
+func (s *Server) updateEducation(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	socialEngine := s.service.GetSocialEngine()
+	education := parseEducation(req)
+	err := socialEngine.UpdateEducation(identityID, education)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, education)
+}
+
+func (s *Server) getCareer(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	socialEngine := s.service.GetSocialEngine()
+	identity := socialEngine.GetSocialIdentity(identityID)
+	if identity == nil || identity.Career == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no career data"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, identity.Career)
+}
+
+func (s *Server) updateCareer(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	socialEngine := s.service.GetSocialEngine()
+	identity := socialEngine.GetOrCreateSocialIdentity(identityID)
+	identity.Career = parseCareer(req)
+
+	err := socialEngine.UpdateSocialIdentity(identityID, identity)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, identity.Career)
+}
+
+func (s *Server) getSocialContext(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	socialEngine := s.service.GetSocialEngine()
+	context := socialEngine.GetDecisionContext(identityID)
+	if context == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no social context"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, context)
+}
+
+// === Culture Handlers (v4.3.0/v6.2.0) ===
+
+func (s *Server) getCulture(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	cultureEngine := s.service.GetCultureEngine()
+	culture := cultureEngine.GetRegionalCulture(identityID)
+	if culture == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no culture data"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, culture)
+}
+
+func (s *Server) updateCulture(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	cultureEngine := s.service.GetCultureEngine()
+	culture := cultureEngine.GetOrCreateRegionalCulture(identityID)
+
+	// Update fields
+	if province, ok := req["province"].(string); ok {
+		culture.Province = province
+	}
+	if city, ok := req["city"].(string); ok {
+		culture.City = city
+	}
+	if cityTier, ok := req["city_tier"].(string); ok {
+		culture.CityTier = cityTier
+	}
+
+	err := cultureEngine.UpdateRegionalCulture(identityID, culture)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, culture)
+}
+
+func (s *Server) setLocation(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req LocationRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	cultureEngine := s.service.GetCultureEngine()
+	err := cultureEngine.SetLocation(identityID, req.Province, req.City, req.CityTier)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"province":    req.Province,
+		"city":        req.City,
+		"city_tier":   req.CityTier,
+	})
+}
+
+func (s *Server) getCultureContext(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	cultureEngine := s.service.GetCultureEngine()
+	context := cultureEngine.GetDecisionContext(identityID)
+	if context == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no culture context"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, context)
+}
+
+// === LifeStage Handlers (v4.4.0/v6.2.0) ===
+
+func (s *Server) getLifeStage(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	lifestageEngine := s.service.GetLifestageEngine()
+	system := lifestageEngine.GetLifeStageSystem(identityID)
+	if system == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no lifestage data"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, system)
+}
+
+func (s *Server) updateLifeStage(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	lifestageEngine := s.service.GetLifestageEngine()
+	system := lifestageEngine.GetOrCreateLifeStageSystem(identityID)
+
+	// Update development metrics if provided
+	if metrics, ok := req["development_metrics"].(map[string]interface{}); ok {
+		floatMetrics := make(map[string]float64)
+		for k, v := range metrics {
+			if f, ok := v.(float64); ok {
+				floatMetrics[k] = f
+			}
+		}
+		lifestageEngine.UpdateDevelopmentMetrics(identityID, floatMetrics)
+	}
+
+	jsonResponse(w, http.StatusOK, system)
+}
+
+func (s *Server) setCurrentStage(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req StageRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	lifestageEngine := s.service.GetLifestageEngine()
+	err := lifestageEngine.SetCurrentStage(identityID, req.StageName, req.Age)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"stage_name":  req.StageName,
+		"age":         req.Age,
+	})
+}
+
+func (s *Server) addLifeEvent(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	lifestageEngine := s.service.GetLifestageEngine()
+	event := parseLifeEvent(req)
+	err := lifestageEngine.AddLifeEvent(identityID, event)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"event":       event,
+	})
+}
+
+func (s *Server) getLifeStageContext(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	lifestageEngine := s.service.GetLifestageEngine()
+	context := lifestageEngine.GetDecisionContext(identityID)
+	if context == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no lifestage context"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, context)
+}
+
+// === Relationship Handlers (v4.6.0/v6.2.0) ===
+
+func (s *Server) getRelationshipSystem(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	relationshipEngine := s.service.GetRelationshipEngine()
+	system := relationshipEngine.GetRelationshipSystem(identityID)
+	if system == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no relationship data"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, system)
+}
+
+func (s *Server) updateRelationshipSystem(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	relationshipEngine := s.service.GetRelationshipEngine()
+	system := relationshipEngine.GetOrCreateRelationshipSystem(identityID)
+
+	// Update profile if provided
+	if profile, ok := req["profile"].(map[string]interface{}); ok {
+		system.Profile = parseRelationshipProfile(profile)
+	}
+
+	err := relationshipEngine.UpdateRelationshipSystem(identityID, system)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, system)
+}
+
+func (s *Server) addRelationship(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	relationshipEngine := s.service.GetRelationshipEngine()
+	rel := parseRelationship(req)
+	err := relationshipEngine.AddRelationship(identityID, rel)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":       true,
+		"identity_id":   identityID,
+		"relationship":  rel,
+	})
+}
+
+func (s *Server) getRelationshipContext(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	relationshipEngine := s.service.GetRelationshipEngine()
+	context := relationshipEngine.GetDecisionContext(identityID)
+	if context == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no relationship context"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, context)
+}
+
 // ===== Core API Request Types (v6.1.0) =====
 
 type CreateIdentityRequest struct {
@@ -1158,4 +1576,128 @@ func buildWorldview(req SetWorldviewRequest) map[string]interface{} {
 		"trust_in_people": req.TrustInPeople,
 		"fate_control":    req.FateControl,
 	}
+}
+
+// ===== V4.x Soul System Request Types (v6.2.0) =====
+
+type LocationRequest struct {
+	Province  string `json:"province"`
+	City      string `json:"city"`
+	CityTier  string `json:"city_tier"`
+}
+
+type StageRequest struct {
+	StageName string `json:"stage_name"`
+	Age       int    `json:"age"`
+}
+
+type RelationshipRequest struct {
+	PersonID     string  `json:"person_id"`
+	PersonName   string  `json:"person_name"`
+	RelationshipType string `json:"relationship_type"`
+	Intimacy     float64 `json:"intimacy"`
+	Trust        float64 `json:"trust"`
+	Importance   float64 `json:"importance"`
+}
+
+// ===== V4.x Parser Functions =====
+
+func parseEducation(data map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	if level, ok := data["level"].(string); ok {
+		result["level"] = level
+	}
+	if school, ok := data["school"].(string); ok {
+		result["school"] = school
+	}
+	if major, ok := data["major"].(string); ok {
+		result["major"] = major
+	}
+	if schoolTier, ok := data["school_tier"].(string); ok {
+		result["school_tier"] = schoolTier
+	}
+	return result
+}
+
+func parseCareer(data map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	if occupation, ok := data["occupation"].(string); ok {
+		result["occupation"] = occupation
+	}
+	if industry, ok := data["industry"].(string); ok {
+		result["industry"] = industry
+	}
+	if company, ok := data["company"].(string); ok {
+		result["company"] = company
+	}
+	if stage, ok := data["stage"].(string); ok {
+		result["stage"] = stage
+	}
+	if satisfaction, ok := data["satisfaction"].(float64); ok {
+		result["satisfaction"] = satisfaction
+	}
+	return result
+}
+
+func parseLifeEvent(data map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	if eventType, ok := data["event_type"].(string); ok {
+		result["event_type"] = eventType
+	}
+	if eventDesc, ok := data["event_desc"].(string); ok {
+		result["event_desc"] = eventDesc
+	}
+	if eventYear, ok := data["event_year"].(int); ok {
+		result["event_year"] = eventYear
+	}
+	if eventYearf, ok := data["event_year"].(float64); ok {
+		result["event_year"] = int(eventYearf)
+	}
+	if impact, ok := data["impact"].(float64); ok {
+		result["impact"] = impact
+	}
+	return result
+}
+
+func parseRelationship(data map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	if personID, ok := data["person_id"].(string); ok {
+		result["person_id"] = personID
+	}
+	if personName, ok := data["person_name"].(string); ok {
+		result["person_name"] = personName
+	}
+	if relType, ok := data["relationship_type"].(string); ok {
+		result["relationship_type"] = relType
+	}
+	if intimacy, ok := data["intimacy"].(float64); ok {
+		result["intimacy"] = intimacy
+	}
+	if trust, ok := data["trust"].(float64); ok {
+		result["trust"] = trust
+	}
+	if importance, ok := data["importance"].(float64); ok {
+		result["importance"] = importance
+	}
+	return result
+}
+
+func parseRelationshipProfile(data map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	if attachmentStyle, ok := data["attachment_style"].(string); ok {
+		result["attachment_style"] = attachmentStyle
+	}
+	if socialStyle, ok := data["social_style"].(string); ok {
+		result["social_style"] = socialStyle
+	}
+	if conflictStyle, ok := data["conflict_style"].(string); ok {
+		result["conflict_style"] = conflictStyle
+	}
+	if networkSize, ok := data["network_size"].(float64); ok {
+		result["network_size"] = networkSize
+	}
+	if socialCapital, ok := data["social_capital"].(float64); ok {
+		result["social_capital"] = socialCapital
+	}
+	return result
 }
