@@ -75,6 +75,37 @@ func (s *Server) setupRoutes() {
 	// Health check (with metrics)
 	s.router.HandleFunc("/health", s.withMetrics(s.healthCheck)).Methods("GET")
 
+	// === Identity API (v2.0.0/v6.1.0) ===
+	s.router.HandleFunc("/api/v1/identities", s.withMetrics(s.createIdentity)).Methods("POST")
+	s.router.HandleFunc("/api/v1/identities", s.withMetrics(s.listIdentities)).Methods("GET")
+	s.router.HandleFunc("/api/v1/identities/{id}", s.withMetrics(s.getIdentity)).Methods("GET")
+	s.router.HandleFunc("/api/v1/identities/{id}", s.withMetrics(s.updateIdentity)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/identities/{id}", s.withMetrics(s.deleteIdentity)).Methods("DELETE")
+
+	// === Device API (v2.6.0/v6.1.0) ===
+	s.router.HandleFunc("/api/v1/devices", s.withMetrics(s.registerDevice)).Methods("POST")
+	s.router.HandleFunc("/api/v1/devices", s.withMetrics(s.listDevices)).Methods("GET")
+	s.router.HandleFunc("/api/v1/devices/{id}", s.withMetrics(s.getDevice)).Methods("GET")
+	s.router.HandleFunc("/api/v1/devices/{id}/heartbeat", s.withMetrics(s.deviceHeartbeat)).Methods("POST")
+
+	// === Behavior API (v2.4.0/v6.1.0) ===
+	s.router.HandleFunc("/api/v1/behaviors", s.withMetrics(s.reportBehavior)).Methods("POST")
+	s.router.HandleFunc("/api/v1/behaviors/{identity_id}", s.withMetrics(s.listBehaviors)).Methods("GET")
+
+	// === Emotion API (v4.0.0/v6.1.0) ===
+	s.router.HandleFunc("/api/v1/emotions/trigger", s.withMetrics(s.triggerEmotion)).Methods("POST")
+	s.router.HandleFunc("/api/v1/emotions/{identity_id}", s.withMetrics(s.getEmotion)).Methods("GET")
+	s.router.HandleFunc("/api/v1/emotions/{identity_id}/context", s.withMetrics(s.getEmotionContext)).Methods("GET")
+
+	// === Philosophy API (v4.1.0/v6.1.0) ===
+	s.router.HandleFunc("/api/v1/philosophy/worldview", s.withMetrics(s.setWorldview)).Methods("POST")
+	s.router.HandleFunc("/api/v1/philosophy/{identity_id}/worldview", s.withMetrics(s.getWorldview)).Methods("GET")
+	s.router.HandleFunc("/api/v1/philosophy/{identity_id}/context", s.withMetrics(s.getPhilosophyContext)).Methods("GET")
+
+	// === Sync API (v2.1.0/v6.1.0) ===
+	s.router.HandleFunc("/api/v1/sync", s.withMetrics(s.syncData)).Methods("POST")
+	s.router.HandleFunc("/api/v1/sync/{identity_id}/state", s.withMetrics(s.getSyncState)).Methods("GET")
+
 	// Agent endpoints (with metrics)
 	s.router.HandleFunc("/api/v1/agents", s.withMetrics(s.listAgents)).Methods("GET")
 	s.router.HandleFunc("/api/v1/agents/{id}", s.withMetrics(s.getAgent)).Methods("GET")
@@ -708,4 +739,423 @@ type TTSRefAudio struct {
 	AudioURL      string `json:"audio_url"`
 	DurationMs    int    `json:"duration_ms"`
 	Transcription string `json:"transcription"`
+}
+
+// ===== Core API Handlers (v6.1.0) =====
+
+// === Identity Handlers ===
+
+func (s *Server) createIdentity(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req CreateIdentityRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	identityService := s.service.GetIdentityService()
+	identity, err := identityService.CreateIdentity(ctx, &req)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, identity)
+}
+
+func (s *Server) listIdentities(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	page := parseInt(r.URL.Query().Get("page"))
+	pageSize := parseInt(r.URL.Query().Get("page_size"))
+	if page == 0 {
+		page = 1
+	}
+	if pageSize == 0 {
+		pageSize = 20
+	}
+
+	identityService := s.service.GetIdentityService()
+	identities, total, err := identityService.ListIdentities(ctx, page, pageSize)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"identities": identities,
+		"total":      total,
+		"page":       page,
+		"page_size":  pageSize,
+	})
+}
+
+func (s *Server) getIdentity(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := mux.Vars(r)["id"]
+
+	identityService := s.service.GetIdentityService()
+	identity, err := identityService.GetIdentity(ctx, id)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, identity)
+}
+
+func (s *Server) updateIdentity(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := mux.Vars(r)["id"]
+
+	var req UpdateIdentityRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	identityService := s.service.GetIdentityService()
+	identity, err := identityService.GetIdentity(ctx, id)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	if req.Name != "" {
+		identity.Name = req.Name
+	}
+	if req.Nickname != "" {
+		identity.Nickname = req.Nickname
+	}
+
+	err = identityService.UpdateIdentity(ctx, identity)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, identity)
+}
+
+func (s *Server) deleteIdentity(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := mux.Vars(r)["id"]
+
+	identityService := s.service.GetIdentityService()
+	err := identityService.DeleteIdentity(ctx, id)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]string{"message": "deleted"})
+}
+
+// === Device Handlers ===
+
+func (s *Server) registerDevice(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req RegisterDeviceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	dataService := s.service.GetDataService()
+	device, err := dataService.RegisterDevice(ctx, req)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, device)
+}
+
+func (s *Server) listDevices(w http.ResponseWriter, r *http.Request) {
+	identityID := r.URL.Query().Get("identity_id")
+
+	dataService := s.service.GetDataService()
+	devices := dataService.GetDevicesByIdentity(identityID)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"devices": devices,
+	})
+}
+
+func (s *Server) getDevice(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+
+	dataService := s.service.GetDataService()
+	device := dataService.GetDevice(id)
+	if device == nil {
+		errorResponse(w, fmt.Errorf("device not found"))
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, device)
+}
+
+func (s *Server) deviceHeartbeat(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+
+	var req HeartbeatRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	dataService := s.service.GetDataService()
+	dataService.UpdateDeviceHeartbeat(id, time.Now().Unix())
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"agent_id": id,
+		"status":   req.Status,
+		"time":     time.Now().Format(time.RFC3339),
+	})
+}
+
+// === Behavior Handlers ===
+
+func (s *Server) reportBehavior(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req ReportBehaviorRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	dataService := s.service.GetDataService()
+	err := dataService.ReportBehavior(ctx, req)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": req.IdentityID,
+		"type":        req.Type,
+	})
+}
+
+func (s *Server) listBehaviors(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	dataService := s.service.GetDataService()
+	behaviors := dataService.GetBehaviorObservations(identityID)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"identity_id": identityID,
+		"behaviors":   behaviors,
+	})
+}
+
+// === Emotion Handlers ===
+
+func (s *Server) triggerEmotion(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req TriggerEmotionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	emotionEngine := s.service.GetEmotionEngine()
+	trigger := buildEmotionTrigger(req)
+	emotion, err := emotionEngine.TriggerEmotion(ctx, req.IdentityID, trigger)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": req.IdentityID,
+		"emotion":     emotion,
+	})
+}
+
+func (s *Server) getEmotion(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	emotionEngine := s.service.GetEmotionEngine()
+	emotion := emotionEngine.GetEmotion(identityID)
+	if emotion == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no emotion state"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, emotion)
+}
+
+func (s *Server) getEmotionContext(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	emotionEngine := s.service.GetEmotionEngine()
+	context := emotionEngine.GetEmotionContext(identityID)
+	if context == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no emotion context"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, context)
+}
+
+// === Philosophy Handlers ===
+
+func (s *Server) setWorldview(w http.ResponseWriter, r *http.Request) {
+	var req SetWorldviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	philosophyEngine := s.service.GetPhilosophyEngine()
+	worldview := buildWorldview(req)
+	err := philosophyEngine.UpdateWorldview(req.IdentityID, worldview)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": req.IdentityID,
+		"worldview":   worldview,
+	})
+}
+
+func (s *Server) getWorldview(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	philosophyEngine := s.service.GetPhilosophyEngine()
+	worldview := philosophyEngine.GetWorldview(identityID)
+	if worldview == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no worldview set"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, worldview)
+}
+
+func (s *Server) getPhilosophyContext(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	philosophyEngine := s.service.GetPhilosophyEngine()
+	context := philosophyEngine.GetDecisionContext(identityID)
+	if context == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no philosophy context"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, context)
+}
+
+// === Sync Handlers ===
+
+func (s *Server) syncData(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req SyncDataRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	dataService := s.service.GetDataService()
+	result, err := dataService.SyncIdentity(ctx, req)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, result)
+}
+
+func (s *Server) getSyncState(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	dataService := s.service.GetDataService()
+	state := dataService.GetSyncState(identityID)
+	if state == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no sync state"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, state)
+}
+
+// ===== Core API Request Types (v6.1.0) =====
+
+type CreateIdentityRequest struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Nickname   string `json:"nickname,omitempty"`
+	Personality map[string]interface{} `json:"personality,omitempty"`
+}
+
+type UpdateIdentityRequest struct {
+	Name     string `json:"name,omitempty"`
+	Nickname string `json:"nickname,omitempty"`
+}
+
+type RegisterDeviceRequest struct {
+	AgentID      string   `json:"agent_id"`
+	IdentityID   string   `json:"identity_id"`
+	DeviceType   string   `json:"device_type"`
+	DeviceName   string   `json:"device_name,omitempty"`
+	Capabilities []string `json:"capabilities,omitempty"`
+}
+
+type HeartbeatRequest struct {
+	Status  string `json:"status"`
+	Battery int    `json:"battery,omitempty"`
+	Network string `json:"network,omitempty"`
+}
+
+type ReportBehaviorRequest struct {
+	AgentID    string                 `json:"agent_id"`
+	IdentityID string                 `json:"identity_id"`
+	Type       string                 `json:"type"`
+	Context    map[string]interface{} `json:"context,omitempty"`
+}
+
+type TriggerEmotionRequest struct {
+	IdentityID  string  `json:"identity_id"`
+	TriggerType string  `json:"trigger_type,omitempty"`
+	TriggerDesc string  `json:"trigger_desc,omitempty"`
+	EmotionType string  `json:"emotion_type"`
+	Intensity   float64 `json:"intensity"`
+}
+
+type SetWorldviewRequest struct {
+	IdentityID      string  `json:"identity_id"`
+	Optimism        float64 `json:"optimism"`
+	ChangeBelief    float64 `json:"change_belief"`
+	TrustInPeople   float64 `json:"trust_in_people"`
+	FateControl     float64 `json:"fate_control,omitempty"`
+}
+
+type SyncDataRequest struct {
+	AgentID    string `json:"agent_id"`
+	IdentityID string `json:"identity_id"`
+	SyncType   string `json:"sync_type"`
+}
+
+// ===== Helper Functions =====
+
+func buildEmotionTrigger(req TriggerEmotionRequest) map[string]interface{} {
+	return map[string]interface{}{
+		"trigger_type": req.TriggerType,
+		"trigger_desc": req.TriggerDesc,
+		"emotion_type": req.EmotionType,
+		"intensity":    req.Intensity,
+	}
+}
+
+func buildWorldview(req SetWorldviewRequest) map[string]interface{} {
+	return map[string]interface{}{
+		"optimism":        req.Optimism,
+		"change_belief":   req.ChangeBelief,
+		"trust_in_people": req.TrustInPeople,
+		"fate_control":    req.FateControl,
+	}
 }

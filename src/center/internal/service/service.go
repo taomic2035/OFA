@@ -15,6 +15,8 @@ import (
 	"github.com/ofa/center/internal/scheduler"
 	"github.com/ofa/center/internal/store"
 	"github.com/ofa/center/internal/sync"
+	"github.com/ofa/center/internal/emotion"
+	"github.com/ofa/center/internal/philosophy"
 
 	pb "github.com/ofa/center/proto"
 )
@@ -44,6 +46,10 @@ type CenterService struct {
 	syncService *identity.SyncService
 	// v2.1.0: Data Service（数据中心模式）
 	dataService *sync.DataService
+	// v4.0.0: Emotion Engine
+	emotionEngine *emotion.EmotionEngine
+	// v4.1.0: Philosophy Engine
+	philosophyEngine *philosophy.Engine
 	// v5.6.2: TTS Service
 	ttsService *TTSService
 
@@ -91,6 +97,12 @@ func NewCenterServiceWithMode(ctx context.Context, cfg *config.Config, mode Cent
 
 	// v2.1.0: Initialize Data Service
 	service.dataService = sync.NewDataService()
+
+	// v4.0.0: Initialize Emotion Engine
+	service.emotionEngine = emotion.NewEmotionEngine()
+
+	// v4.1.0: Initialize Philosophy Engine
+	service.philosophyEngine = philosophy.NewEngine()
 
 	// v5.6.2: Initialize TTS Service
 	service.ttsService = NewTTSService(cfg)
@@ -155,6 +167,16 @@ func (s *CenterService) GetDataService() *sync.DataService {
 // GetTTSService returns the TTS service instance (v5.6.2)
 func (s *CenterService) GetTTSService() *TTSService {
 	return s.ttsService
+}
+
+// GetEmotionEngine returns the emotion engine instance (v4.0.0)
+func (s *CenterService) GetEmotionEngine() *emotion.EmotionEngine {
+	return s.emotionEngine
+}
+
+// GetPhilosophyEngine returns the philosophy engine instance (v4.1.0)
+func (s *CenterService) GetPhilosophyEngine() *philosophy.Engine {
+	return s.philosophyEngine
 }
 
 // GetTaskQueue returns the task queue channel
