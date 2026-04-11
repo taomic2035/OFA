@@ -2,9 +2,9 @@
 
 ## 概述
 
-OFA提供两种API接口：
-- **REST API**: HTTP接口，端口8080
-- **gRPC API**: 高性能RPC接口，端口9090
+OFA 提供两种 API 接口：
+- **REST API**: HTTP 接口，端口 8080
+- **gRPC API**: 高性能 RPC 接口，端口 9090
 - **状态推送**: Center 向设备端推送状态更新
 
 ---
@@ -13,10 +13,11 @@ OFA提供两种API接口：
 
 | 版本系列 | 特性 | API 命名空间 |
 |---------|------|-------------|
-| v2.x | 去中心化架构 | `/api/v1/identity`, `/api/v1/sync` |
-| v3.x | 多设备协同 | `/api/v1/device`, `/api/v1/message` |
-| v4.x | 灵魂特征 | `/api/v1/soul/*` |
-| v5.x | 外在呈现 | `/api/v1/presentation/*`, `/api/v1/tts/*` |
+| v2.x | 去中心化架构 | `/api/v1/identities`, `/api/v1/sync`, `/api/v1/devices` |
+| v3.x | 多设备协同 | `/api/v1/agents`, `/api/v1/tasks`, `/api/v1/messages` |
+| v4.x | 灵魂特征 | `/api/v1/emotions`, `/api/v1/philosophy`, `/api/v1/social`, `/api/v1/culture`, `/api/v1/lifestage`, `/api/v1/relationship` |
+| v5.x | 外在呈现 | `/api/v1/avatar`, `/api/v1/expression`, `/api/v1/speech`, `/api/v1/tts` |
+| v6.x | REST API 完善 | 统一入口 `pkg/rest/server.go` |
 
 ---
 
@@ -24,20 +25,331 @@ OFA提供两种API接口：
 
 ### 基础信息
 
-- 基础URL: `http://localhost:8080`
+- 基础 URL: `http://localhost:8080`
 - 内容类型: `application/json`
 - 认证: 无 (开发版本)
 
 ---
 
+## 基础 API
+
+### 健康检查
+
+```
+GET /health
+```
+
+**响应:**
+
+```json
+{
+  "status": "healthy",
+  "version": "v6.3.0"
+}
+```
+
+---
+
+## v2.x 分布式架构 API
+
+### 身份管理 (Identity)
+
+#### 创建身份
+
+```
+POST /api/v1/identities
+```
+
+**请求体:**
+
+```json
+{
+  "id": "user-123",
+  "name": "张三",
+  "nickname": "小张",
+  "avatar": "https://example.com/avatar.jpg",
+  "personality": {
+    "openness": 0.7,
+    "conscientiousness": 0.8,
+    "extraversion": 0.6,
+    "agreeableness": 0.75,
+    "neuroticism": 0.3
+  }
+}
+```
+
+#### 获取身份列表
+
+```
+GET /api/v1/identities?page=1&page_size=20
+```
+
+#### 获取单个身份
+
+```
+GET /api/v1/identities/{id}
+```
+
+#### 更新身份
+
+```
+PUT /api/v1/identities/{id}
+```
+
+#### 删除身份
+
+```
+DELETE /api/v1/identities/{id}
+```
+
+---
+
+### 设备管理 (Device)
+
+#### 注册设备
+
+```
+POST /api/v1/devices
+```
+
+**请求体:**
+
+```json
+{
+  "agent_id": "device-001",
+  "identity_id": "user-123",
+  "device_type": "phone",
+  "device_name": "iPhone 15",
+  "capabilities": ["voice", "display", "camera"]
+}
+```
+
+#### 获取设备列表
+
+```
+GET /api/v1/devices?identity_id=user-123
+```
+
+#### 获取单个设备
+
+```
+GET /api/v1/devices/{id}
+```
+
+#### 设备心跳
+
+```
+POST /api/v1/devices/{id}/heartbeat
+```
+
+**请求体:**
+
+```json
+{
+  "status": "online",
+  "battery": 85,
+  "network": "wifi"
+}
+```
+
+---
+
+### 行为上报 (Behavior)
+
+#### 上报行为
+
+```
+POST /api/v1/behaviors
+```
+
+**请求体:**
+
+```json
+{
+  "agent_id": "device-001",
+  "identity_id": "user-123",
+  "type": "decision",
+  "observation": {
+    "action": "purchase",
+    "item": "coffee",
+    "impulse": true
+  }
+}
+```
+
+#### 获取行为列表
+
+```
+GET /api/v1/behaviors/{identity_id}
+```
+
+---
+
+### 数据同步 (Sync)
+
+#### 同步数据
+
+```
+POST /api/v1/sync
+```
+
+**请求体:**
+
+```json
+{
+  "agent_id": "device-001",
+  "identity_id": "user-123",
+  "sync_type": "full",
+  "changes": []
+}
+```
+
+#### 获取同步状态
+
+```
+GET /api/v1/sync/{identity_id}/state
+```
+
+---
+
+## v3.x 多设备协同 API
+
+### Agent 管理
+
+#### 获取 Agent 列表
+
+```
+GET /api/v1/agents
+```
+
+#### 获取单个 Agent
+
+```
+GET /api/v1/agents/{id}
+```
+
+#### 删除 Agent
+
+```
+DELETE /api/v1/agents/{id}
+```
+
+---
+
+### 任务管理 (Task)
+
+#### 提交任务
+
+```
+POST /api/v1/tasks
+```
+
+**请求体:**
+
+```json
+{
+  "skill_id": "text.process",
+  "input": "base64_encoded_input",
+  "target_agent": "",
+  "priority": 0,
+  "timeout_ms": 30000
+}
+```
+
+#### 获取任务列表
+
+```
+GET /api/v1/tasks
+```
+
+#### 获取任务状态
+
+```
+GET /api/v1/tasks/{id}
+```
+
+#### 取消任务
+
+```
+POST /api/v1/tasks/{id}/cancel
+```
+
+---
+
+### 消息通信 (Message)
+
+#### 发送消息
+
+```
+POST /api/v1/messages
+```
+
+#### 广播消息
+
+```
+POST /api/v1/messages/broadcast
+```
+
+#### 组播消息
+
+```
+POST /api/v1/messages/multicast
+```
+
+---
+
+### 技能管理
+
+#### 获取技能列表
+
+```
+GET /api/v1/skills
+```
+
+---
+
+### 系统信息
+
+#### 获取系统信息
+
+```
+GET /api/v1/system/info
+```
+
+#### 获取系统指标
+
+```
+GET /api/v1/system/metrics
+```
+
+---
+
 ## v4.x 灵魂特征 API
 
-### 情绪系统 (v4.0.0)
+### 情绪系统 (Emotion) - v4.0.0
+
+#### 触发情绪
+
+```
+POST /api/v1/emotions/trigger
+```
+
+**请求体:**
+
+```json
+{
+  "identity_id": "user-123",
+  "trigger_type": "event",
+  "trigger_desc": "Received a compliment from friend",
+  "emotion_type": "joy",
+  "intensity": 0.8
+}
+```
 
 #### 获取情绪状态
 
 ```
-GET /api/v1/soul/emotion/{identity_id}
+GET /api/v1/emotions/{identity_id}
 ```
 
 **响应:**
@@ -56,79 +368,74 @@ GET /api/v1/soul/emotion/{identity_id}
   },
   "dominant_emotion": "joy",
   "emotion_intensity": 0.6,
-  "emotion_stability": 0.7,
-  "last_trigger": "positive_interaction",
-  "timestamp": 1711622400000
+  "emotion_stability": 0.7
 }
 ```
 
-#### 更新情绪状态
+#### 获取情绪上下文
 
 ```
-POST /api/v1/soul/emotion/{identity_id}/update
+GET /api/v1/emotions/{identity_id}/context
+```
+
+#### 获取情绪画像
+
+```
+GET /api/v1/emotions/{identity_id}/profile
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "base_joy_level": 0.5,
+  "base_anger_level": 0.1,
+  "base_sadness_level": 0.1,
+  "base_fear_level": 0.1,
+  "base_love_level": 0.4,
+  "base_disgust_level": 0.05,
+  "base_desire_level": 0.3,
+  "emotional_stability": 0.7
+}
+```
+
+#### 更新情绪画像
+
+```
+PUT /api/v1/emotions/{identity_id}/profile
+```
+
+---
+
+### 三观系统 (Philosophy) - v4.1.0
+
+#### 设置世界观
+
+```
+POST /api/v1/philosophy/worldview
 ```
 
 **请求体:**
 
 ```json
 {
-  "trigger_type": "event",
-  "trigger_name": "received_compliment",
-  "intensity": 0.8,
-  "context": {
-    "source": "user_interaction",
-    "description": "Received a compliment from friend"
-  }
-}
-```
-
-#### 获取欲望状态
-
-```
-GET /api/v1/soul/desire/{identity_id}
-```
-
-**响应:**
-
-```json
-{
   "identity_id": "user-123",
-  "desires": {
-    "physiological": {
-      "hunger": 0.3,
-      "thirst": 0.2,
-      "sleep": 0.4
-    },
-    "safety": {
-      "security": 0.8,
-      "stability": 0.7
-    },
-    "social": {
-      "belonging": 0.6,
-      "intimacy": 0.5
-    },
-    "esteem": {
-      "recognition": 0.5,
-      "achievement": 0.4
-    },
-    "self_actualization": {
-      "growth": 0.6,
-      "creativity": 0.7
-    }
-  },
-  "dominant_desire": "creativity",
-  "satisfaction_level": 0.65
+  "optimism": 0.7,
+  "change_belief": 0.6,
+  "trust_in_people": 0.65,
+  "fate_control": 0.5,
+  "world_essence": "material",
+  "society_view": "fair",
+  "future_view": "optimistic",
+  "relationship_view": "cooperative"
 }
 ```
-
----
-
-### 三观系统 (v4.1.0)
 
 #### 获取世界观
 
 ```
-GET /api/v1/soul/worldview/{identity_id}
+GET /api/v1/philosophy/{identity_id}/worldview
 ```
 
 **响应:**
@@ -136,78 +443,31 @@ GET /api/v1/soul/worldview/{identity_id}
 ```json
 {
   "identity_id": "user-123",
+  "optimism": 0.7,
+  "change_belief": 0.6,
+  "trust_in_people": 0.65,
+  "fate_control": 0.5,
   "world_essence": "material",
-  "world_order": "orderly",
-  "human_nature": "mixed",
-  "social_cognition": {
-    "society_fairness": 0.6,
-    "social_mobility": 0.5,
-    "institutional_trust": 0.7
-  },
-  "future_view": {
-    "optimism": 0.7,
-    "change_orientation": "progressive",
-    "control_belief": 0.6
-  }
+  "society_view": "fair",
+  "future_view": "optimistic",
+  "relationship_view": "cooperative"
 }
 ```
 
-#### 获取人生观
+#### 获取三观上下文
 
 ```
-GET /api/v1/soul/lifeview/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "meaning_source": "contribution",
-  "time_orientation": "present_future",
-  "life_attitude": {
-    "adventure_seeking": 0.6,
-    "risk_tolerance": 0.5,
-    "control_focus": "internal"
-  },
-  "success_definition": "balance",
-  "happiness_source": ["relationships", "growth", "health"]
-}
-```
-
-#### 获取价值观
-
-```
-GET /api/v1/soul/values/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "core_values": {
-    "honesty": 0.9,
-    "kindness": 0.85,
-    "family": 0.8,
-    "health": 0.75,
-    "freedom": 0.7,
-    "achievement": 0.65,
-    "creativity": 0.6
-  },
-  "moral_framework": "utilitarian",
-  "decision_priority": ["honesty", "kindness", "family"]
-}
+GET /api/v1/philosophy/{identity_id}/context
 ```
 
 ---
 
-### 社会身份 (v4.2.0)
+### 社会身份 (Social) - v4.2.0
 
-#### 获取社会身份画像
+#### 获取社会身份
 
 ```
-GET /api/v1/soul/identity/{identity_id}
+GET /api/v1/social/{identity_id}
 ```
 
 **响应:**
@@ -233,23 +493,54 @@ GET /api/v1/soul/identity/{identity_id}
     "cultural_capital": 0.6,
     "social_capital": 0.5,
     "economic_capital": 0.55
-  },
-  "identity_profile": {
-    "primary_role": "professional",
-    "role_priority": ["professional", "family_member", "friend"],
-    "identity_confidence": 0.75
   }
 }
 ```
 
----
-
-### 地域文化 (v4.3.0)
-
-#### 获取地域文化画像
+#### 更新社会身份
 
 ```
-GET /api/v1/soul/culture/{identity_id}
+PUT /api/v1/social/{identity_id}
+```
+
+#### 获取教育背景
+
+```
+GET /api/v1/social/{identity_id}/education
+```
+
+#### 更新教育背景
+
+```
+PUT /api/v1/social/{identity_id}/education
+```
+
+#### 获取职业画像
+
+```
+GET /api/v1/social/{identity_id}/career
+```
+
+#### 更新职业画像
+
+```
+PUT /api/v1/social/{identity_id}/career
+```
+
+#### 获取社会上下文
+
+```
+GET /api/v1/social/{identity_id}/context
+```
+
+---
+
+### 地域文化 (Culture) - v4.3.0
+
+#### 获取地域文化
+
+```
+GET /api/v1/culture/{identity_id}
 ```
 
 **响应:**
@@ -271,19 +562,46 @@ GET /api/v1/soul/culture/{identity_id}
     "long_term_orientation": 0.7
   },
   "communication_style": "direct",
-  "social_style": "open",
-  "migration_history": []
+  "social_style": "open"
 }
+```
+
+#### 更新地域文化
+
+```
+PUT /api/v1/culture/{identity_id}
+```
+
+#### 设置位置
+
+```
+POST /api/v1/culture/{identity_id}/location
+```
+
+**请求体:**
+
+```json
+{
+  "province": "guangdong",
+  "city": "shenzhen",
+  "city_tier": 1
+}
+```
+
+#### 获取文化上下文
+
+```
+GET /api/v1/culture/{identity_id}/context
 ```
 
 ---
 
-### 人生阶段 (v4.4.0)
+### 人生阶段 (LifeStage) - v4.4.0
 
-#### 获取人生阶段状态
+#### 获取人生阶段
 
 ```
-GET /api/v1/soul/lifestage/{identity_id}
+GET /api/v1/lifestage/{identity_id}
 ```
 
 **响应:**
@@ -311,51 +629,58 @@ GET /api/v1/soul/lifestage/{identity_id}
 }
 ```
 
----
-
-### 情绪行为联动 (v4.5.0)
-
-#### 获取情绪行为状态
+#### 更新人生阶段
 
 ```
-GET /api/v1/soul/behavior/{identity_id}
+PUT /api/v1/lifestage/{identity_id}
 ```
 
-**响应:**
+#### 设置当前阶段
+
+```
+POST /api/v1/lifestage/{identity_id}/stage
+```
+
+**请求体:**
 
 ```json
 {
-  "identity_id": "user-123",
-  "decision_influence": {
-    "risk_preference": "moderate",
-    "impulse_control": 0.7,
-    "social_tendency": 0.6,
-    "decision_style": "analytical"
-  },
-  "expression_influence": {
-    "tone_style": "warm",
-    "word_choice": "positive",
-    "expression_frequency": 0.6
-  },
-  "triggered_behaviors": [
-    {
-      "behavior_type": "seek_social_connection",
-      "action_tendency": "approach",
-      "urgency": 0.4
-    }
-  ],
-  "coping_strategies": ["problem_focused", "seeking_support"]
+  "stage_name": "early_adulthood",
+  "age": 25
 }
+```
+
+#### 添加人生事件
+
+```
+POST /api/v1/lifestage/{identity_id}/event
+```
+
+**请求体:**
+
+```json
+{
+  "event_type": "career",
+  "event_name": "job_change",
+  "impact": 0.6,
+  "description": "Changed to a new company"
+}
+```
+
+#### 获取人生阶段上下文
+
+```
+GET /api/v1/lifestage/{identity_id}/context
 ```
 
 ---
 
-### 人际关系 (v4.6.0)
+### 人际关系 (Relationship) - v4.6.0
 
-#### 获取人际关系状态
+#### 获取人际关系系统
 
 ```
-GET /api/v1/soul/relationship/{identity_id}
+GET /api/v1/relationship/{identity_id}
 ```
 
 **响应:**
@@ -383,16 +708,47 @@ GET /api/v1/soul/relationship/{identity_id}
 }
 ```
 
+#### 更新人际关系系统
+
+```
+PUT /api/v1/relationship/{identity_id}
+```
+
+#### 添加关系
+
+```
+POST /api/v1/relationship/{identity_id}/add
+```
+
+**请求体:**
+
+```json
+{
+  "person_id": "friend-001",
+  "person_name": "李四",
+  "relationship_type": "friend",
+  "intimacy": 0.7,
+  "trust": 0.8,
+  "importance": 0.75
+}
+```
+
+#### 获取人际关系上下文
+
+```
+GET /api/v1/relationship/{identity_id}/context
+```
+
 ---
 
 ## v5.x 外在呈现 API
 
-### 外在形象系统 (v5.0.0)
+### 外在形象 (Avatar) - v5.0.0
 
-#### 获取 Avatar 形象
+#### 获取 Avatar
 
 ```
-GET /api/v1/presentation/avatar/{identity_id}
+GET /api/v1/avatar/{identity_id}
 ```
 
 **响应:**
@@ -409,58 +765,94 @@ GET /api/v1/presentation/avatar/{identity_id}
     "hair_color": "black"
   },
   "body_features": {
-    "height": 175,
-    "weight": 70,
     "body_type": "average",
-    "posture": "confident",
-    "movement_style": "energetic"
+    "height_category": "tall",
+    "build": "fit",
+    "metabolism": "normal",
+    "posture_style": "confident"
+  },
+  "style_preferences": {
+    "clothing_style": "casual",
+    "color_preferences": ["blue", "black"],
+    "accessories_style": "minimal",
+    "grooming_style": "neat",
+    "fashion_trendiness": 0.4
   },
   "age_appearance": {
     "apparent_age": 28,
     "aging_stage": "prime",
     "facial_maturity": 0.6
-  },
-  "style_preferences": {
-    "clothing_style": "casual",
-    "accessory_style": "minimal",
-    "overall_vibe": "professional"
-  },
-  "model_3d": {
-    "model_id": "avatar-001",
-    "model_type": "custom",
-    "render_quality": "high"
   }
 }
 ```
 
-#### 更新 Avatar 形象
+#### 更新 Avatar
 
 ```
-PUT /api/v1/presentation/avatar/{identity_id}
+PUT /api/v1/avatar/{identity_id}
+```
+
+#### 更新面部特征
+
+```
+PUT /api/v1/avatar/{identity_id}/facial
 ```
 
 **请求体:**
 
 ```json
 {
-  "facial_features": {
-    "hair_style": "medium",
-    "hair_color": "brown"
-  },
-  "style_preferences": {
-    "clothing_style": "smart_casual"
-  }
+  "face_shape": "oval",
+  "eye_shape": "almond",
+  "hair_style": "medium"
 }
+```
+
+#### 更新身体特征
+
+```
+PUT /api/v1/avatar/{identity_id}/body
+```
+
+**请求体:**
+
+```json
+{
+  "body_type": "fit",
+  "posture_style": "confident"
+}
+```
+
+#### 更新风格偏好
+
+```
+PUT /api/v1/avatar/{identity_id}/style
+```
+
+**请求体:**
+
+```json
+{
+  "clothing_style": "smart_casual",
+  "color_preferences": ["navy", "gray"],
+  "fashion_trendiness": 0.5
+}
+```
+
+#### 获取 Avatar 上下文
+
+```
+GET /api/v1/avatar/{identity_id}/context?scene=meeting&social_context=professional
 ```
 
 ---
 
-### 语音合成系统 (v5.1.0 - v5.6.x)
+### 表情动作 (Expression) - v5.4.0
 
-#### 获取语音配置
+#### 获取表情画像
 
 ```
-GET /api/v1/presentation/voice/{identity_id}
+GET /api/v1/expression/{identity_id}
 ```
 
 **响应:**
@@ -468,44 +860,69 @@ GET /api/v1/presentation/voice/{identity_id}
 ```json
 {
   "identity_id": "user-123",
-  "characteristics": {
-    "voice_type": "male_young",
-    "pitch": 0.5,
-    "speed": 1.0,
-    "volume": 0.7,
-    "timbre": "warm"
+  "facial_expression_settings": {
+    "default_expression": "neutral",
+    "expressiveness_level": 0.6,
+    "eye_contact_frequency": 0.7,
+    "smile_frequency": 0.5,
+    "natural_blink_rate": 15
   },
-  "style": {
-    "formality": "casual",
-    "emotion_expressiveness": 0.6,
-    "accent_style": "neutral"
-  },
-  "emotional_voice": {
-    "joy_voice": {"pitch_modifier": 0.1, "speed_modifier": 0.1},
-    "anger_voice": {"pitch_modifier": -0.1, "speed_modifier": 0.2}
-  },
-  "tts_config": {
-    "engine": "standard",
-    "quality": "high",
-    "streaming": true
+  "body_gesture_settings": {
+    "gesture_frequency": 0.5,
+    "gesture_amplitude": 0.4,
+    "posture_style": "confident",
+    "hand_movement_style": "natural",
+    "head_movement_frequency": 0.3
   }
 }
 ```
 
-#### 生成语音
+#### 更新表情设置
 
 ```
-POST /api/v1/presentation/voice/{identity_id}/synthesize
+PUT /api/v1/expression/{identity_id}/facial
 ```
 
 **请求体:**
 
 ```json
 {
-  "text": "你好，很高兴见到你！",
+  "default_expression": "warm_smile",
+  "expressiveness_level": 0.7,
+  "eye_contact_frequency": 0.8,
+  "smile_frequency": 0.6
+}
+```
+
+#### 更新手势设置
+
+```
+PUT /api/v1/expression/{identity_id}/gesture
+```
+
+**请求体:**
+
+```json
+{
+  "gesture_frequency": 0.6,
+  "posture_style": "open",
+  "hand_movement_style": "expressive"
+}
+```
+
+#### 生成表情
+
+```
+POST /api/v1/expression/{identity_id}/generate
+```
+
+**请求体:**
+
+```json
+{
   "emotion": "joy",
-  "speed": 1.0,
-  "output_format": "mp3"
+  "intensity": 0.8,
+  "scene": "meeting"
 }
 ```
 
@@ -513,16 +930,79 @@ POST /api/v1/presentation/voice/{identity_id}/synthesize
 
 ```json
 {
-  "audio_url": "/audio/output-001.mp3",
-  "duration_ms": 2500,
-  "format": "mp3",
-  "sample_rate": 22050
+  "identity_id": "user-123",
+  "expression_name": "warm_smile",
+  "intensity": 0.7,
+  "duration_ms": 500,
+  "eyebrow_state": "relaxed",
+  "eye_state": "bright",
+  "mouth_state": "smile"
 }
+```
+
+#### 获取表情上下文
+
+```
+GET /api/v1/expression/{identity_id}/context?emotion=joy&scene=meeting
 ```
 
 ---
 
-### TTS引擎API (v5.6.x)
+### 表达内容 (Speech) - v5.5.0
+
+#### 获取语音画像
+
+```
+GET /api/v1/speech/{identity_id}
+```
+
+**响应:**
+
+```json
+{
+  "identity_id": "user-123",
+  "content_style": {
+    "formality_level": 0.5,
+    "emotional_intensity": 0.6,
+    "humor_level": 0.4,
+    "directness": 0.6,
+    "vocabulary_level": "moderate"
+  },
+  "expression_depth": {
+    "thinking_depth": "moderate",
+    "self_disclosure_level": 0.5,
+    "abstract_concept_level": 0.6
+  }
+}
+```
+
+#### 更新表达风格
+
+```
+PUT /api/v1/speech/{identity_id}/style
+```
+
+**请求体:**
+
+```json
+{
+  "formality_level": 0.6,
+  "emotional_intensity": 0.5,
+  "humor_level": 0.3,
+  "directness": 0.7,
+  "vocabulary_level": "professional"
+}
+```
+
+#### 获取表达上下文
+
+```
+GET /api/v1/speech/{identity_id}/context?emotion=joy&scene=meeting
+```
+
+---
+
+### TTS 语音合成 (TTS) - v5.6.x
 
 #### 语音合成
 
@@ -594,11 +1074,6 @@ GET /api/v1/tts/voices?provider=doubao
 }
 ```
 
-**可用音色类型:**
-- 大模型音色: 猴哥、魅力女友、儒雅逸辰、爽朗少年等30+音色
-- 情绪音色: 开心女声、悲伤女声、愤怒女声
-- 方言音色: 东北方言、四川方言、广东方言
-
 #### 声音克隆
 
 ```
@@ -622,22 +1097,10 @@ POST /api/v1/tts/clone
 }
 ```
 
-**响应:**
-
-```json
-{
-  "voice_id": "cloned_voice_user-123",
-  "voice_name": "我的声音",
-  "status": "ready",
-  "quality": 0.85,
-  "message": "Voice cloning completed successfully"
-}
-```
-
-#### 设置身份音色映射
+#### 设置身份音色
 
 ```
-PUT /api/v1/tts/identity/{identity_id}/voice
+PUT /api/v1/tts/identity/{id}/voice
 ```
 
 **请求体:**
@@ -645,343 +1108,13 @@ PUT /api/v1/tts/identity/{identity_id}/voice
 ```json
 {
   "voice_id": "zh_female_meilinvyou_uranus_bigtts"
-}
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "voice_id": "zh_female_meilinvyou_uranus_bigtts",
-  "success": true
 }
 ```
 
 #### 获取身份音色
 
 ```
-GET /api/v1/tts/identity/{identity_id}/voice
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "voice_id": "zh_female_meilinvyou_uranus_bigtts"
-}
-```
-
----
-
-### 表达内容系统 (v5.2.0)
-
-#### 获取表达内容配置
-
-```
-GET /api/v1/presentation/speech/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "content_style": {
-    "tone_style": "warm",
-    "language_level": "moderate",
-    "directness": 0.6,
-    "humor_tendency": 0.4,
-    "emotional_coloring": "positive"
-  },
-  "expression_depth": {
-    "thinking_depth": "moderate",
-    "self_disclosure_level": 0.5,
-    "abstract_concept_level": 0.6
-  },
-  "cultural_expression": {
-    "indirect_expression": 0.4,
-    "respect_level": 0.7,
-    "honorific_usage": "moderate",
-    "face_awareness": 0.5
-  },
-  "social_expression": {
-    "professional_tone": "balanced",
-    "authority_expression": "confident",
-    "identity_confidence": 0.75
-  }
-}
-```
-
-#### 获取决策上下文
-
-```
-GET /api/v1/presentation/speech/{identity_id}/context
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "recommended_tone": "warm_professional",
-  "recommended_formality": "moderate",
-  "recommended_depth": "moderate",
-  "recommended_length": "medium",
-  "scene_adaptation": {
-    "scene": "meeting",
-    "formality_level": 0.7,
-    "expression_range": "professional"
-  },
-  "emotion_adaptation": {
-    "current_emotion": "joy",
-    "expression_intensity": 0.6
-  },
-  "opening_suggestion": "您好，有什么可以帮您的吗？",
-  "closing_suggestion": "祝您有愉快的一天！"
-}
-```
-
----
-
-### 表情动作系统 (v5.3.0)
-
-#### 获取表情动作配置
-
-```
-GET /api/v1/presentation/expression/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "facial_expression_settings": {
-    "default_expression": "neutral",
-    "expression_intensity": 0.6,
-    "eye_contact_tendency": 0.7,
-    "blink_rate": 15.0,
-    "smile_tendency": 0.5,
-    "micro_expression_enabled": true
-  },
-  "body_gesture_settings": {
-    "default_posture": "confident",
-    "gesture_intensity": 0.5,
-    "hand_gesture_enabled": true,
-    "nod_frequency": 0.4,
-    "mirroring_enabled": false
-  },
-  "emotion_expression_mapping": {
-    "joy": {
-      "expression_type": "smile",
-      "intensity": 0.8,
-      "posture": "open"
-    },
-    "anger": {
-      "expression_type": "furrowed_brow",
-      "intensity": 0.6,
-      "posture": "tense"
-    }
-  },
-  "animation_settings": {
-    "lip_sync_enabled": true,
-    "breathing_animation_enabled": true,
-    "eye_movement_enabled": true
-  }
-}
-```
-
-#### 获取当前表情状态
-
-```
-GET /api/v1/presentation/expression/{identity_id}/current
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "current_expression": {
-    "expression_name": "warm_smile",
-    "intensity": 0.7,
-    "duration_ms": 500,
-    "eyebrow_state": "relaxed",
-    "eye_state": "bright",
-    "mouth_state": "smile"
-  },
-  "current_gesture": {
-    "gesture_name": "open_posture",
-    "posture": "confident",
-    "hand_position": "natural"
-  },
-  "recommended_expression": {
-    "expression_name": "attentive",
-    "reason": "listening_mode"
-  }
-}
-```
-
----
-
-### 形象个性化系统 (v5.4.0)
-
-#### 获取个性化配置
-
-```
-GET /api/v1/presentation/personalization/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "image_preferences": {
-    "preferred_colors": ["blue", "black", "white"],
-    "preferred_styles": ["casual", "smart_casual"],
-    "style_experimentation": 0.4,
-    "comfort_priority": "medium",
-    "presentation_effort": "medium"
-  },
-  "image_evolution": {
-    "evolution_mode": "gradual",
-    "seasonal_adaptation": true,
-    "trend_following_level": 0.4,
-    "core_style_elements": ["minimalist", "clean_lines"]
-  },
-  "scene_adaptation_settings": {
-    "adaptation_mode": "auto",
-    "default_work_style": "business_casual",
-    "default_home_style": "relaxed",
-    "location_awareness": true
-  },
-  "style_management": {
-    "recommendation_enabled": true,
-    "recommendation_source": "hybrid"
-  }
-}
-```
-
-#### 获取个性化上下文
-
-```
-GET /api/v1/presentation/personalization/{identity_id}/context
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "recommended_style": {
-    "style_name": "smart_casual",
-    "confidence": 0.75,
-    "color_palette": ["navy", "white", "gray"],
-    "occasion": "work",
-    "season": "spring"
-  },
-  "style_score": 0.72,
-  "consistency_score": 0.68,
-  "versatility_score": 0.65,
-  "evolution_readiness": 0.55,
-  "style_suggestions": [
-    {
-      "suggestion_type": "add",
-      "target_area": "accessory",
-      "suggestion": "Consider adding a watch for professional settings"
-    }
-  ]
-}
-```
-
----
-
-### 多端展示系统 (v5.5.0)
-
-#### 获取展示配置
-
-```
-GET /api/v1/presentation/display/{identity_id}
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "rendering_settings": {
-    "render_engine": "webgl",
-    "quality_preset": "high",
-    "target_fps": 60,
-    "adaptive_quality": true,
-    "post_processing_enabled": true,
-    "physics_enabled": true
-  },
-  "device_adaptation": {
-    "adaptation_mode": "auto",
-    "auto_optimize": true,
-    "mobile_optimizations": {
-      "gpu_power_mode": "balanced",
-      "texture_streaming": true,
-      "battery_aware_mode": true
-    }
-  },
-  "display_sync": {
-    "sync_mode": "state_sync",
-    "sync_frequency_ms": 100,
-    "interpolation_mode": "linear",
-    "prediction_enabled": true
-  }
-}
-```
-
-#### 获取展示上下文
-
-```
-GET /api/v1/presentation/display/{identity_id}/context
-```
-
-**响应:**
-
-```json
-{
-  "identity_id": "user-123",
-  "current_device": "phone-primary",
-  "device_type": "phone",
-  "current_quality": "high",
-  "current_fps": 58.5,
-  "sync_status": "synced",
-  "sync_latency_ms": 45,
-  "battery_level": 0.75,
-  "thermal_state": "normal",
-  "connected_devices": ["watch-001", "tablet-001"],
-  "recommended_quality": "high",
-  "quality_adjustment_needed": false
-}
-```
-
-#### 同步展示状态
-
-```
-POST /api/v1/presentation/display/{identity_id}/sync
-```
-
-**请求体:**
-
-```json
-{
-  "device_id": "phone-primary",
-  "state": {
-    "avatar_position": {"x": 0, "y": 0, "z": 0},
-    "avatar_rotation": {"x": 0, "y": 0, "z": 0},
-    "current_animation": "idle",
-    "current_expression": "neutral"
-  },
-  "timestamp": 1711622400000
-}
+GET /api/v1/tts/identity/{id}/voice
 ```
 
 ---
@@ -1021,268 +1154,21 @@ ws://localhost:8080/ws/{identity_id}/{device_id}
 
 ---
 
-## 基础 REST API
-
-### 健康检查
-
-```
-GET /health
-```
-
-**响应:**
-
-```json
-{
-  "status": "healthy",
-  "version": "v5.5.0"
-}
-```
-
----
-
-### Agent 管理
-
-#### 获取Agent列表
-
-```
-GET /api/v1/agents
-```
-
-**查询参数:**
-
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| type | int | Agent类型过滤 |
-| status | int | 状态过滤 |
-| page | int | 页码，默认1 |
-| page_size | int | 每页数量，默认20 |
-
-#### 获取单个Agent
-
-```
-GET /api/v1/agents/{id}
-```
-
-#### 删除Agent
-
-```
-DELETE /api/v1/agents/{id}
-```
-
----
-
-### 任务管理
-
-#### 提交任务
-
-```
-POST /api/v1/tasks
-```
-
-**请求体:**
-
-```json
-{
-  "skill_id": "text.process",
-  "input": "eyJ0ZXh0IjoiaGVsbG8iLCJvcGVyYXRpb24iOiJ1cHBlcmNhc2UifQ==",
-  "target_agent": "",
-  "priority": 0,
-  "timeout_ms": 30000
-}
-```
-
-#### 获取任务列表
-
-```
-GET /api/v1/tasks
-```
-
-#### 获取任务状态
-
-```
-GET /api/v1/tasks/{id}
-```
-
-#### 取消任务
-
-```
-POST /api/v1/tasks/{id}/cancel
-```
-
----
-
-### 消息通信
-
-#### 发送消息
-
-```
-POST /api/v1/messages
-```
-
-#### 广播消息
-
-```
-POST /api/v1/messages/broadcast
-```
-
-#### 组播消息
-
-```
-POST /api/v1/messages/multicast
-```
-
----
-
-### 技能管理
-
-#### 获取技能列表
-
-```
-GET /api/v1/skills
-```
-
----
-
-### 系统信息
-
-#### 获取系统信息
-
-```
-GET /api/v1/system/info
-```
-
-#### 获取系统指标
-
-```
-GET /api/v1/system/metrics
-```
-
----
-
 ## gRPC API
 
 ### 服务列表
 
 | 服务 | 说明 |
 |------|------|
-| AgentService | Agent管理与任务执行 |
+| AgentService | Agent 管理与任务执行 |
 | MessageService | 消息通信 |
 | ManagementService | 系统管理 |
 | SoulService | 灵魂特征管理 (v4.x) |
 | PresentationService | 外在呈现管理 (v5.x) |
 
-### AgentService
-
-```protobuf
-service AgentService {
-  rpc Connect(stream AgentMessage) returns (stream CenterMessage);
-  rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse);
-  rpc GetTaskStatus(GetTaskStatusRequest) returns (GetTaskStatusResponse);
-  rpc CancelTask(CancelTaskRequest) returns (CancelTaskResponse);
-  rpc SubscribeTask(SubscribeTaskRequest) returns (stream TaskEvent);
-  rpc RegisterCapabilities(RegisterCapabilitiesRequest) returns (RegisterCapabilitiesResponse);
-  rpc GetCapabilities(GetCapabilitiesRequest) returns (GetCapabilitiesResponse);
-}
-```
-
-### SoulService (v4.x)
-
-```protobuf
-service SoulService {
-  // 情绪系统
-  rpc GetEmotionState(GetEmotionStateRequest) returns (EmotionState);
-  rpc UpdateEmotion(UpdateEmotionRequest) returns (EmotionState);
-  rpc GetDesireState(GetDesireStateRequest) returns (DesireState);
-
-  // 三观系统
-  rpc GetWorldview(GetWorldviewRequest) returns (Worldview);
-  rpc GetLifeView(GetLifeViewRequest) returns (LifeView);
-  rpc GetValueSystem(GetValueSystemRequest) returns (ValueSystem);
-
-  // 社会身份
-  rpc GetSocialIdentity(GetSocialIdentityRequest) returns (SocialIdentity);
-
-  // 地域文化
-  rpc GetRegionalCulture(GetRegionalCultureRequest) returns (RegionalCulture);
-
-  // 人生阶段
-  rpc GetLifeStage(GetLifeStageRequest) returns (LifeStage);
-
-  // 情绪行为
-  rpc GetEmotionBehavior(GetEmotionBehaviorRequest) returns (EmotionBehavior);
-
-  // 人际关系
-  rpc GetRelationship(GetRelationshipRequest) returns (RelationshipState);
-}
-```
-
-### PresentationService (v5.x)
-
-```protobuf
-service PresentationService {
-  // 外在形象
-  rpc GetAvatar(GetAvatarRequest) returns (Avatar);
-  rpc UpdateAvatar(UpdateAvatarRequest) returns (Avatar);
-
-  // 语音合成
-  rpc GetVoiceProfile(GetVoiceProfileRequest) returns (VoiceProfile);
-  rpc SynthesizeVoice(SynthesizeVoiceRequest) returns (SynthesizeVoiceResponse);
-
-  // 表达内容
-  rpc GetSpeechContent(GetSpeechContentRequest) returns (SpeechContentProfile);
-  rpc GetSpeechContext(GetSpeechContextRequest) returns (SpeechDecisionContext);
-
-  // 表情动作
-  rpc GetExpressionGesture(GetExpressionGestureRequest) returns (ExpressionGestureProfile);
-  rpc GetCurrentExpression(GetCurrentExpressionRequest) returns (ExpressionGestureContext);
-
-  // 形象个性化
-  rpc GetPersonalization(GetPersonalizationRequest) returns (AvatarPersonalizationProfile);
-  rpc GetPersonalizationContext(GetPersonalizationContextRequest) returns (PersonalizationContext);
-
-  // 多端展示
-  rpc GetDisplaySettings(GetDisplaySettingsRequest) returns (MultiDisplayProfile);
-  rpc GetDisplayContext(GetDisplayContextRequest) returns (DisplayContext);
-  rpc SyncDisplayState(SyncDisplayStateRequest) returns (SyncDisplayStateResponse);
-}
-```
-
 ---
 
 ## 枚举类型
-
-### AgentType
-
-| 值 | 说明 |
-|---|------|
-| 0 | UNKNOWN |
-| 1 | FULL (完整版) |
-| 2 | MOBILE (移动版) |
-| 3 | LITE (轻量版) |
-| 4 | IOT (物联网) |
-| 5 | EDGE (边缘计算) |
-
-### AgentStatus
-
-| 值 | 说明 |
-|---|------|
-| 0 | UNKNOWN |
-| 1 | ONLINE |
-| 2 | BUSY |
-| 3 | IDLE |
-| 4 | OFFLINE |
-
-### TaskStatus
-
-| 值 | 说明 |
-|---|------|
-| 0 | UNKNOWN |
-| 1 | PENDING |
-| 2 | RUNNING |
-| 3 | COMPLETED |
-| 4 | FAILED |
-| 5 | CANCELLED |
-| 6 | TIMEOUT |
 
 ### EmotionType
 
@@ -1317,21 +1203,11 @@ service PresentationService {
 | AVOIDANT | 回避型 |
 | DISORGANIZED | 混乱型 |
 
-### QualityPreset
-
-| 值 | 说明 |
-|---|------|
-| LOW | 低质量 |
-| MEDIUM | 中等质量 |
-| HIGH | 高质量 |
-| ULTRA | 超高质量 |
-| CUSTOM | 自定义 |
-
 ---
 
 ## 错误处理
 
-### HTTP状态码
+### HTTP 状态码
 
 | 状态码 | 说明 |
 |--------|------|
@@ -1344,15 +1220,77 @@ service PresentationService {
 
 ```json
 {
-  "error": {
-    "code": "INVALID_PARAMETER",
-    "message": "Invalid parameter: identity_id is required",
-    "details": {}
-  }
+  "error": "Invalid parameter: identity_id is required"
 }
 ```
 
 ---
 
-*最后更新: 2026-04-08*
-*版本: v5.6.5*
+## API 端点总览
+
+| 模块 | 端点 | 方法 |
+|------|------|------|
+| **基础** | `/health` | GET |
+| **Identity** | `/api/v1/identities` | POST/GET |
+| **Identity** | `/api/v1/identities/{id}` | GET/PUT/DELETE |
+| **Device** | `/api/v1/devices` | POST/GET |
+| **Device** | `/api/v1/devices/{id}` | GET/PUT/DELETE |
+| **Device** | `/api/v1/devices/{id}/heartbeat` | POST |
+| **Behavior** | `/api/v1/behaviors` | POST |
+| **Behavior** | `/api/v1/behaviors/{identity_id}` | GET |
+| **Sync** | `/api/v1/sync` | POST |
+| **Sync** | `/api/v1/sync/{identity_id}/state` | GET |
+| **Agents** | `/api/v1/agents` | GET |
+| **Agents** | `/api/v1/agents/{id}` | GET/DELETE |
+| **Tasks** | `/api/v1/tasks` | POST/GET |
+| **Tasks** | `/api/v1/tasks/{id}` | GET |
+| **Tasks** | `/api/v1/tasks/{id}/cancel` | POST |
+| **Messages** | `/api/v1/messages` | POST |
+| **Messages** | `/api/v1/messages/broadcast` | POST |
+| **Messages** | `/api/v1/messages/multicast` | POST |
+| **Skills** | `/api/v1/skills` | GET |
+| **System** | `/api/v1/system/info` | GET |
+| **System** | `/api/v1/system/metrics` | GET |
+| **Emotion** | `/api/v1/emotions/trigger` | POST |
+| **Emotion** | `/api/v1/emotions/{identity_id}` | GET |
+| **Emotion** | `/api/v1/emotions/{identity_id}/context` | GET |
+| **Emotion** | `/api/v1/emotions/{identity_id}/profile` | GET/PUT |
+| **Philosophy** | `/api/v1/philosophy/worldview` | POST |
+| **Philosophy** | `/api/v1/philosophy/{identity_id}/worldview` | GET |
+| **Philosophy** | `/api/v1/philosophy/{identity_id}/context` | GET |
+| **Social** | `/api/v1/social/{identity_id}` | GET/PUT |
+| **Social** | `/api/v1/social/{identity_id}/education` | GET/PUT |
+| **Social** | `/api/v1/social/{identity_id}/career` | GET/PUT |
+| **Social** | `/api/v1/social/{identity_id}/context` | GET |
+| **Culture** | `/api/v1/culture/{identity_id}` | GET/PUT |
+| **Culture** | `/api/v1/culture/{identity_id}/location` | POST |
+| **Culture** | `/api/v1/culture/{identity_id}/context` | GET |
+| **LifeStage** | `/api/v1/lifestage/{identity_id}` | GET/PUT |
+| **LifeStage** | `/api/v1/lifestage/{identity_id}/stage` | POST |
+| **LifeStage** | `/api/v1/lifestage/{identity_id}/event` | POST |
+| **LifeStage** | `/api/v1/lifestage/{identity_id}/context` | GET |
+| **Relationship** | `/api/v1/relationship/{identity_id}` | GET/PUT |
+| **Relationship** | `/api/v1/relationship/{identity_id}/add` | POST |
+| **Relationship** | `/api/v1/relationship/{identity_id}/context` | GET |
+| **Avatar** | `/api/v1/avatar/{identity_id}` | GET/PUT |
+| **Avatar** | `/api/v1/avatar/{identity_id}/facial` | PUT |
+| **Avatar** | `/api/v1/avatar/{identity_id}/body` | PUT |
+| **Avatar** | `/api/v1/avatar/{identity_id}/style` | PUT |
+| **Avatar** | `/api/v1/avatar/{identity_id}/context` | GET |
+| **Expression** | `/api/v1/expression/{identity_id}` | GET |
+| **Expression** | `/api/v1/expression/{identity_id}/facial` | PUT |
+| **Expression** | `/api/v1/expression/{identity_id}/gesture` | PUT |
+| **Expression** | `/api/v1/expression/{identity_id}/generate` | POST |
+| **Expression** | `/api/v1/expression/{identity_id}/context` | GET |
+| **Speech** | `/api/v1/speech/{identity_id}` | GET |
+| **Speech** | `/api/v1/speech/{identity_id}/style` | PUT |
+| **Speech** | `/api/v1/speech/{identity_id}/context` | GET |
+| **TTS** | `/api/v1/tts/synthesize` | POST |
+| **TTS** | `/api/v1/tts/voices` | GET |
+| **TTS** | `/api/v1/tts/clone` | POST |
+| **TTS** | `/api/v1/tts/identity/{id}/voice` | GET/PUT |
+
+---
+
+*最后更新: 2026-04-11*
+*版本: v6.3.0*
