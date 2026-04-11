@@ -410,6 +410,44 @@
 
 ---
 
+### v6.3.2 - 代码库清理 ✅ 已完成
+
+**目标**: 删除未使用的冗余代码，简化项目结构
+
+**已删除文件**:
+
+**pkg/grpc/ 层**:
+- `ofa_service.go` - OFAServer 定义（未被 main.go 使用）
+- `converters.go` - 类型转换函数（未被外部调用）
+
+**pkg/rest/ 层**:
+- `user_profile_api.go` - 用户画像 REST API（未被 main.go 使用）
+
+**internal/store/ 层**:
+- `user_session_store.go` - User/Session 存储（仅被 OFAServer 使用）
+
+**internal/ 服务层**:
+- `internal/memory/` - Memory 服务（未被使用）
+- `internal/preference/` - Preference 服务（未被使用）
+- `internal/decision/` - Decision 服务（未被使用）
+- `internal/voice/` - Voice 服务（未被使用）
+
+**proto/ 层**:
+- `api.go` - User/Session/Memory/Preference/Voice API 类型
+- `memory.go` - Memory proto 类型
+- `preference.go` - Preference proto 类型
+- `helpers.go` - GenerateID 和辅助函数
+
+**原因**: 这些文件是为 v1.x 用户画像层准备的，但项目采用 v2.x 分布式架构后，这些代码未被整合到主服务入口（main.go 只使用 CenterService + Server），成为冗余代码。
+
+**清理后项目结构更简洁**:
+- 单一 REST 入口: `pkg/rest/server.go`
+- 单一 gRPC 入口: `pkg/grpc/server.go`
+- 单一服务核心: `internal/service/service.go`
+- 必要的 proto 类型: `identity.go`, `decision.go`, `ofa.go`
+
+---
+
 ## 七、长期愿景
 
 ### 最终目标
@@ -421,7 +459,7 @@
 - **测试覆盖**: 单元测试 + E2E 测试 (v5.7.0/v5.9.0 ✅)
 - **部署方案**: Docker + Kubernetes (v5.8.0 ✅)
 
-### 项目状态: 🎉 核心功能完整 + REST API 全覆盖
+### 项目状态: 🎉 核心功能完整 + REST API 全覆盖 + 代码库清理
 
 所有关键偏差已修正:
 - ✅ API 文档完整
@@ -429,3 +467,4 @@
 - ✅ 部署方案完整
 - ✅ E2E 验证完整
 - ✅ REST API 全覆盖 (v2.x-v6.x 所有模块)
+- ✅ 代码库清理 (删除冗余 v1.x 用户画像层)
