@@ -221,6 +221,46 @@
 
 ---
 
+### v6.0.0 - 性能优化 ✅ 已完成
+
+**目标**: 优化系统性能，添加性能测试和基准测试
+
+**已完成任务**:
+1. ✅ `pkg/performance/performance.go` - 性能测试框架
+   - PerformanceConfig - 性能测试配置
+   - PerformanceMetrics - 性能指标收集
+   - LatencyRecorder - 延迟记录与百分位计算
+   - StressTest - 压力测试
+   - RampTest - 渐进压力测试
+
+2. ✅ `pkg/cache/performance_test.go` - 缓存性能测试
+   - TestLocalCachePerformance - 本地缓存性能测试
+   - BenchmarkLocalCacheSet/Get/Concurrent/Eviction - 基准测试
+   - TestCacheHitRate - 缓存命中率测试
+
+3. ✅ `internal/identity/performance_test.go` - 身份存储性能测试
+   - TestIdentityStorePerformance - 存储性能测试
+   - BenchmarkIdentityCreate/Get/Update/Concurrent - 基准测试
+   - TestConcurrentIdentitySync - 并发同步测试
+
+4. ✅ `scripts/test_performance.sh` - 性能测试脚本 (Linux/Mac)
+5. ✅ `scripts/test_performance.ps1` - 性能测试脚本 (Windows)
+
+**新增文件**:
+- `src/center/pkg/performance/performance.go`
+- `src/center/pkg/cache/performance_test.go`
+- `src/center/internal/identity/performance_test.go`
+- `scripts/test_performance.sh`
+- `scripts/test_performance.ps1`
+
+**性能目标**:
+- 缓存 ops/sec > 100000
+- 身份存储 ops/sec > 1000
+- API 响应时间 < 100ms
+- 吞吐量 > 500 req/s
+
+---
+
 ## 六、执行计划
 
 ### v5.9.0 执行完成 ✅
