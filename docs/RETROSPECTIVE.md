@@ -438,13 +438,20 @@
 - `preference.go` - Preference proto 类型
 - `helpers.go` - GenerateID 和辅助函数
 
-**原因**: 这些文件是为 v1.x 用户画像层准备的，但项目采用 v2.x 分布式架构后，这些代码未被整合到主服务入口（main.go 只使用 CenterService + Server），成为冗余代码。
+**pkg/ 扩展功能层（30+ 目录）**:
+- 删除未使用的扩展功能: cluster, market, workflow, rbac, stream, edge, ai, federated, tenant, observability, security, performance, ha, audit, store, cloud, assistant, smart, nlp, auto, messaging, config, transfer, scenario, wasm, llm, collab, decentralized, codegen, plugin, openapi, constraint, local, benchmark
 
-**清理后项目结构更简洁**:
-- 单一 REST 入口: `pkg/rest/server.go`
-- 单一 gRPC 入口: `pkg/grpc/server.go`
-- 单一服务核心: `internal/service/service.go`
-- 必要的 proto 类型: `identity.go`, `decision.go`, `ofa.go`
+**原因**: 这些文件是为 v1.x 用户画像层或未来扩展准备的，但项目采用 v2.x 分布式架构后，这些代码未被整合到主服务入口（main.go 只使用 CenterService + Server），成为冗余代码。
+
+**清理后核心 pkg 结构**:
+- `pkg/grpc/` - gRPC 服务入口
+- `pkg/rest/` - REST 服务入口（80+ 端点）
+- `pkg/metrics/` - 性能指标收集
+- `pkg/cache/` - 缓存服务
+- `pkg/errors/` - 错误处理
+- `pkg/auth/` - 认证中间件
+- `pkg/version/` - 版本管理
+- `pkg/performance/` - 性能测试框架
 
 ---
 
