@@ -455,6 +455,86 @@
 
 ---
 
+### v6.3.3 - v5.x 引擎测试完善 ✅ 已完成
+
+**目标**: 为 v5.x 外在呈现引擎补充单元测试
+
+**已完成任务**:
+1. ✅ `internal/avatar/engine_test.go` - Avatar 引擎测试 (20个测试)
+   - TestAvatarEngineCreation - 引擎创建测试
+   - TestDefaultAvatarEngineConfig - 默认配置测试
+   - TestCreateAvatar - 创建 Avatar 测试
+   - TestCreateAvatarWithFeatures - 带特征创建测试
+   - TestGetAvatar - 获取 Avatar 测试
+   - TestUpdateAvatar - 更新 Avatar 测试
+   - TestUpdateFacialFeatures - 更新面部特征测试
+   - TestUpdateBodyFeatures - 更新身体特征测试
+   - TestUpdateStylePreferences - 更新风格偏好测试
+   - TestApplyLifeStageInfluence - 人生阶段影响测试
+   - TestApplySocialIdentityInfluence - 社会身份影响测试
+   - TestApplyCulturalInfluence - 文化影响测试
+   - TestApplyEmotionExpression - 情绪表情测试
+   - TestGetDecisionContext - 决策上下文测试
+   - TestCreateProfile - 创建 Profile 测试
+   - TestGetProfile - 获取 Profile 测试
+   - TestCalculateAgeAppearance - 年龄外观计算测试
+   - TestCalculateMetabolism - 新陈代谢计算测试
+   - TestCalculateExpressiveness - 表情强度计算测试
+   - TestTimestampUpdates - 时间戳更新测试
+
+2. ✅ `internal/expression/engine_test.go` - 表情手势引擎测试 (20个测试)
+   - TestExpressionGestureEngineCreation - 引擎创建测试
+   - TestDefaultExpressionGestureEngineConfig - 默认配置测试
+   - TestCreateProfile - 创建 Profile 测试
+   - TestGetProfile - 获取 Profile 测试
+   - TestUpdateFacialExpressionSettings - 更新面部表情测试
+   - TestUpdateBodyGestureSettings - 更新身体手势测试
+   - TestApplyEmotionExpression - 应用情绪表情测试
+   - TestApplyRelationshipInfluence - 关系影响测试
+   - TestApplyLifeStageInfluence - 人生阶段影响测试
+   - TestGenerateExpression - 生成表情测试
+   - TestGenerateGesture - 生成手势测试
+   - TestGetDecisionContext - 决策上下文测试
+   - TestGetDefaultEmotionMapping - 默认情绪映射测试
+   - TestCalculateDuration - 计算持续时间测试
+   - TestGenerateSceneAdaptation - 场景适应测试
+   - TestGenerateSocialAdaptation - 社交适应测试
+   - TestTimestampUpdates - 时间戳更新测试
+   - TestApplyAttachmentToGestures - 依恋风格影响测试
+   - TestApplyRelationshipTypeToGestures - 关系类型影响测试
+   - TestApplyLifeStageToGestures - 人生阶段手势影响测试
+
+3. ✅ `internal/speech/engine_test.go` - 语音内容引擎测试 (20个测试)
+   - TestSpeechContentEngineCreation - 引擎创建测试
+   - TestDefaultSpeechContentEngineConfig - 默认配置测试
+   - TestCreateProfile - 创建 Profile 测试
+   - TestGetProfile - 获取 Profile 测试
+   - TestUpdateContentStyle - 更新内容风格测试
+   - TestApplyPhilosophyInfluence - 三观影响测试
+   - TestApplyCulturalInfluence - 文化影响测试
+   - TestApplySocialIdentityInfluence - 社会身份影响测试
+   - TestApplyEmotionInfluence - 情绪影响测试
+   - TestGenerateContent - 内容生成测试
+   - TestGetDecisionContext - 决策上下文测试
+   - TestRecommendTone - 推荐语调测试
+   - TestRecommendFormality - 推荐正式程度测试
+   - TestRecommendDepth - 推荐表达深度测试
+   - TestRecommendLength - 推荐长度测试
+   - TestCalculateIndirectness - 计算间接程度测试
+   - TestGetDefaultGreeting - 默认问候语测试
+   - TestGetDefaultClosing - 默认结束语测试
+   - TestGenerateEmotionAdaptation - 情绪适应测试
+   - TestGenerateSocialAdaptation - 社交适应测试
+   - TestTimestampUpdates - 时间戳更新测试
+   - TestApplyEmotionToStyleClamping - 情绪影响值约束测试
+
+**新增文件**:
+- `src/center/internal/avatar/engine_test.go`
+- `src/center/internal/expression/engine_test.go`
+- `src/center/internal/speech/engine_test.go`
+
+---
+
 ## 七、长期愿景
 
 ### 最终目标
@@ -466,12 +546,13 @@
 - **测试覆盖**: 单元测试 + E2E 测试 (v5.7.0/v5.9.0 ✅)
 - **部署方案**: Docker + Kubernetes (v5.8.0 ✅)
 
-### 项目状态: 🎉 核心功能完整 + REST API 全覆盖 + 代码库清理
+### 项目状态: 🎉 核心功能完整 + REST API 全覆盖 + 代码库清理 + 测试覆盖完善
 
 所有关键偏差已修正:
 - ✅ API 文档完整
-- ✅ 测试覆盖完整
+- ✅ 测试覆盖完整 (v2.x-v5.x 所有引擎)
 - ✅ 部署方案完整
 - ✅ E2E 验证完整
 - ✅ REST API 全覆盖 (v2.x-v6.x 所有模块)
 - ✅ 代码库清理 (删除冗余 v1.x 用户画像层)
+- ✅ v5.x 外在呈现引擎测试完整 (v6.3.3)
