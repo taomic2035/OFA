@@ -348,6 +348,56 @@
 
 ---
 
+### v6.3.0 - 外在呈现 REST API 完善 ✅ 已完成
+
+**目标**: 为 v5.x 外在呈现组件补充 REST API 端点
+
+**已完成任务**:
+1. ✅ `internal/service/service.go` - 集成 v5.x 外在呈现引擎到 CenterService
+   - AvatarEngine 初始化 (v5.0.0)
+   - ExpressionGestureEngine 初始化 (v5.4.0)
+   - SpeechContentEngine 初始化 (v5.5.0)
+   - Getter 方法提供 REST API 访问
+
+2. ✅ `pkg/rest/server.go` - 添加 v5.x 外在呈现 REST API
+   - Avatar API: `/api/v1/avatar/{identity_id}` (获取/更新形象)
+   - Facial Features API: `/api/v1/avatar/{identity_id}/facial` (面部特征)
+   - Body Features API: `/api/v1/avatar/{identity_id}/body` (身体特征)
+   - Style Preferences API: `/api/v1/avatar/{identity_id}/style` (风格偏好)
+   - Avatar Context API: `/api/v1/avatar/{identity_id}/context` (决策上下文)
+   - Expression Profile API: `/api/v1/expression/{identity_id}` (表情画像)
+   - Expression Settings API: `/api/v1/expression/{identity_id}/facial` (表情设置)
+   - Gesture Settings API: `/api/v1/expression/{identity_id}/gesture` (手势设置)
+   - Generate Expression API: `/api/v1/expression/{identity_id}/generate` (生成表情)
+   - Expression Context API: `/api/v1/expression/{identity_id}/context` (表情上下文)
+   - Speech Profile API: `/api/v1/speech/{identity_id}` (语音画像)
+   - Speech Style API: `/api/v1/speech/{identity_id}/style` (语音风格)
+   - Speech Context API: `/api/v1/speech/{identity_id}/context` (语音上下文)
+
+3. ✅ 添加 helper 函数
+   - getFloatFromMap, getStringFromMap, getIntFromMap
+   - parseFacialFeatures, parseBodyFeatures, parseStylePreferences
+   - parseEmotionMapping, getStringSliceFromMap
+
+**API 端点清单**:
+| 模块 | 端点 | 方法 |
+|------|------|------|
+| Avatar | `/api/v1/avatar/{identity_id}` | GET/PUT |
+| Avatar | `/api/v1/avatar/{identity_id}/facial` | PUT |
+| Avatar | `/api/v1/avatar/{identity_id}/body` | PUT |
+| Avatar | `/api/v1/avatar/{identity_id}/style` | PUT |
+| Avatar | `/api/v1/avatar/{identity_id}/context` | GET |
+| Expression | `/api/v1/expression/{identity_id}` | GET |
+| Expression | `/api/v1/expression/{identity_id}/facial` | PUT |
+| Expression | `/api/v1/expression/{identity_id}/gesture` | PUT |
+| Expression | `/api/v1/expression/{identity_id}/generate` | POST |
+| Expression | `/api/v1/expression/{identity_id}/context` | GET |
+| Speech | `/api/v1/speech/{identity_id}` | GET |
+| Speech | `/api/v1/speech/{identity_id}/style` | PUT |
+| Speech | `/api/v1/speech/{identity_id}/context` | GET |
+
+---
+
 ## 六、执行计划
 
 ### v5.9.0 执行完成 ✅

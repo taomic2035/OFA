@@ -21,6 +21,9 @@ import (
 	"github.com/ofa/center/internal/culture"
 	"github.com/ofa/center/internal/lifestage"
 	"github.com/ofa/center/internal/relationship"
+	"github.com/ofa/center/internal/avatar"
+	"github.com/ofa/center/internal/expression"
+	"github.com/ofa/center/internal/speech"
 
 	pb "github.com/ofa/center/proto"
 )
@@ -62,6 +65,12 @@ type CenterService struct {
 	lifestageEngine *lifestage.LifeStageEngine
 	// v4.6.0: Relationship Engine
 	relationshipEngine *relationship.RelationshipEngine
+	// v5.0.0: Avatar Engine
+	avatarEngine *avatar.AvatarEngine
+	// v5.4.0: Expression/Gesture Engine
+	expressionEngine *expression.ExpressionGestureEngine
+	// v5.5.0: Speech Content Engine
+	speechEngine *speech.SpeechContentEngine
 	// v5.6.2: TTS Service
 	ttsService *TTSService
 
@@ -127,6 +136,31 @@ func NewCenterServiceWithMode(ctx context.Context, cfg *config.Config, mode Cent
 
 	// v4.6.0: Initialize Relationship Engine
 	service.relationshipEngine = relationship.NewRelationshipEngine()
+
+	// v5.0.0: Initialize Avatar Engine
+	service.avatarEngine = avatar.NewAvatarEngine(avatar.AvatarEngineConfig{
+		DefaultFaceShape:     "oval",
+		DefaultBodyType:      "average",
+		DefaultStyle:         "casual",
+		DefaultRenderQuality: "medium",
+		EnableAgeProgression: true,
+		EnableStyleEvolution: true,
+	})
+
+	// v5.4.0: Initialize Expression/Gesture Engine
+	service.expressionEngine = expression.NewExpressionGestureEngine(expression.ExpressionGestureEngineConfig{
+		EnableEmotionInfluence:    true,
+		EnableRelationshipInfluence: true,
+		EnableLifeStageInfluence:   true,
+	})
+
+	// v5.5.0: Initialize Speech Content Engine
+	service.speechEngine = speech.NewSpeechContentEngine(speech.SpeechContentEngineConfig{
+		EnablePhilosophyInfluence:  true,
+		EnableCulturalInfluence:    true,
+		EnableSocialInfluence:      true,
+		EnableEmotionInfluence:     true,
+	})
 
 	// v5.6.2: Initialize TTS Service
 	service.ttsService = NewTTSService(cfg)
@@ -221,6 +255,21 @@ func (s *CenterService) GetLifestageEngine() *lifestage.LifeStageEngine {
 // GetRelationshipEngine returns the relationship engine instance (v4.6.0)
 func (s *CenterService) GetRelationshipEngine() *relationship.RelationshipEngine {
 	return s.relationshipEngine
+}
+
+// GetAvatarEngine returns the avatar engine instance (v5.0.0)
+func (s *CenterService) GetAvatarEngine() *avatar.AvatarEngine {
+	return s.avatarEngine
+}
+
+// GetExpressionEngine returns the expression/gesture engine instance (v5.4.0)
+func (s *CenterService) GetExpressionEngine() *expression.ExpressionGestureEngine {
+	return s.expressionEngine
+}
+
+// GetSpeechEngine returns the speech content engine instance (v5.5.0)
+func (s *CenterService) GetSpeechEngine() *speech.SpeechContentEngine {
+	return s.speechEngine
 }
 
 // GetTaskQueue returns the task queue channel

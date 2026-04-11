@@ -167,6 +167,26 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/api/v1/tts/identity/{id}/voice", s.withMetrics(s.ttsSetIdentityVoice)).Methods("PUT")
 	s.router.HandleFunc("/api/v1/tts/identity/{id}/voice", s.withMetrics(s.ttsGetIdentityVoice)).Methods("GET")
 
+	// === Avatar API (v5.0.0/v6.3.0) ===
+	s.router.HandleFunc("/api/v1/avatar/{identity_id}", s.withMetrics(s.getAvatar)).Methods("GET")
+	s.router.HandleFunc("/api/v1/avatar/{identity_id}", s.withMetrics(s.updateAvatar)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/avatar/{identity_id}/facial", s.withMetrics(s.updateFacialFeatures)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/avatar/{identity_id}/body", s.withMetrics(s.updateBodyFeatures)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/avatar/{identity_id}/style", s.withMetrics(s.updateStylePreferences)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/avatar/{identity_id}/context", s.withMetrics(s.getAvatarContext)).Methods("GET")
+
+	// === Expression API (v5.4.0/v6.3.0) ===
+	s.router.HandleFunc("/api/v1/expression/{identity_id}", s.withMetrics(s.getExpressionProfile)).Methods("GET")
+	s.router.HandleFunc("/api/v1/expression/{identity_id}/facial", s.withMetrics(s.updateFacialExpressionSettings)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/expression/{identity_id}/gesture", s.withMetrics(s.updateBodyGestureSettings)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/expression/{identity_id}/generate", s.withMetrics(s.generateExpression)).Methods("POST")
+	s.router.HandleFunc("/api/v1/expression/{identity_id}/context", s.withMetrics(s.getExpressionContext)).Methods("GET")
+
+	// === Speech API (v5.5.0/v6.3.0) ===
+	s.router.HandleFunc("/api/v1/speech/{identity_id}", s.withMetrics(s.getSpeechProfile)).Methods("GET")
+	s.router.HandleFunc("/api/v1/speech/{identity_id}/style", s.withMetrics(s.updateContentStyle)).Methods("PUT")
+	s.router.HandleFunc("/api/v1/speech/{identity_id}/context", s.withMetrics(s.getSpeechContext)).Methods("GET")
+
 	// Dashboard static files
 	s.setupDashboardRoutes()
 }
@@ -680,6 +700,298 @@ func (s *Server) ttsGetIdentityVoice(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// === Avatar Handlers (v5.0.0/v6.3.0) ===
+
+func (s *Server) getAvatar(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	avatarEngine := s.service.GetAvatarEngine()
+	avatar := avatarEngine.GetAvatar(identityID)
+	if avatar == nil {
+		jsonResponse(w, http.StatusOK, map[string]string{"message": "no avatar set"})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, avatar)
+}
+
+func (s *Server) updateAvatar(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	avatarEngine := s.service.GetAvatarEngine()
+
+	// Get existing avatar or create new one
+	avatar := avatarEngine.GetAvatar(identityID)
+	if avatar == nil {
+		// Create new avatar with base features from request
+		baseFeatures := parseFacialFeatures(req)
+		baseBody := parseBodyFeatures(req)
+		avatar = avatarEngine.CreateAvatar(identityID, baseFeatures, baseBody)
+	} else {
+		// Update existing avatar
+		updates := &models.Avatar{
+			ID: identityID,
+		}
+		if req["facial_features"] != nil {
+			updates.FacialFeatures = parseFacialFeatures(req)
+		}
+		if req["body_features"] != nil {
+			updates.BodyFeatures = parseBodyFeatures(req)
+		}
+		if req["style_preferences"] != nil {
+			updates.StylePreferences = parseStylePreferences(req)
+		}
+		avatar = avatarEngine.UpdateAvatar(identityID, updates)
+	}
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"avatar":      avatar,
+	})
+}
+
+func (s *Server) updateFacialFeatures(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	features := parseFacialFeatures(req)
+	avatarEngine := s.service.GetAvatarEngine()
+	avatar := avatarEngine.UpdateFacialFeatures(identityID, features)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"avatar":      avatar,
+	})
+}
+
+func (s *Server) updateBodyFeatures(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	features := parseBodyFeatures(req)
+	avatarEngine := s.service.GetAvatarEngine()
+	avatar := avatarEngine.UpdateBodyFeatures(identityID, features)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"avatar":      avatar,
+	})
+}
+
+func (s *Server) updateStylePreferences(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	preferences := parseStylePreferences(req)
+	avatarEngine := s.service.GetAvatarEngine()
+	avatar := avatarEngine.UpdateStylePreferences(identityID, preferences)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"avatar":      avatar,
+	})
+}
+
+func (s *Server) getAvatarContext(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+	scene := r.URL.Query().Get("scene")
+	socialContext := r.URL.Query().Get("social_context")
+	culturalContext := r.URL.Query().Get("cultural_context")
+
+	avatarEngine := s.service.GetAvatarEngine()
+	context := avatarEngine.GetDecisionContext(identityID, scene, socialContext, culturalContext)
+
+	jsonResponse(w, http.StatusOK, context)
+}
+
+// === Expression Handlers (v5.4.0/v6.3.0) ===
+
+func (s *Server) getExpressionProfile(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	expressionEngine := s.service.GetExpressionEngine()
+	profile := expressionEngine.GetProfile(identityID)
+	if profile == nil {
+		// Create profile if not exists
+		profile = expressionEngine.CreateProfile(identityID)
+	}
+
+	jsonResponse(w, http.StatusOK, profile)
+}
+
+func (s *Server) updateFacialExpressionSettings(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	settings := models.FacialExpressionSettings{
+		DefaultExpression:     getStringFromMap(req, "default_expression"),
+		ExpressivenessLevel:   getFloatFromMap(req, "expressiveness_level"),
+		EyeContactFrequency:   getFloatFromMap(req, "eye_contact_frequency"),
+		SmileFrequency:        getFloatFromMap(req, "smile_frequency"),
+		NaturalBlinkRate:      getIntFromMap(req, "natural_blink_rate"),
+		EmotionMapping:        parseEmotionMapping(req),
+	}
+
+	expressionEngine := s.service.GetExpressionEngine()
+	profile := expressionEngine.UpdateFacialExpressionSettings(identityID, settings)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"profile":     profile,
+	})
+}
+
+func (s *Server) updateBodyGestureSettings(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	settings := models.BodyGestureSettings{
+		GestureFrequency:      getFloatFromMap(req, "gesture_frequency"),
+		GestureAmplitude:      getFloatFromMap(req, "gesture_amplitude"),
+		PostureStyle:          getStringFromMap(req, "posture_style"),
+		HandMovementStyle:     getStringFromMap(req, "hand_movement_style"),
+		HeadMovementFrequency: getFloatFromMap(req, "head_movement_frequency"),
+	}
+
+	expressionEngine := s.service.GetExpressionEngine()
+	profile := expressionEngine.UpdateBodyGestureSettings(identityID, settings)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"profile":     profile,
+	})
+}
+
+func (s *Server) generateExpression(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	emotion := getStringFromMap(req, "emotion")
+	intensity := getFloatFromMap(req, "intensity")
+	scene := getStringFromMap(req, "scene")
+
+	expressionEngine := s.service.GetExpressionEngine()
+	expressionState := expressionEngine.GenerateExpression(identityID, emotion, intensity, scene)
+
+	jsonResponse(w, http.StatusOK, expressionState)
+}
+
+func (s *Server) getExpressionContext(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+	emotion := r.URL.Query().Get("emotion")
+	scene := r.URL.Query().Get("scene")
+	socialContext := r.URL.Query().Get("social_context")
+
+	expressionEngine := s.service.GetExpressionEngine()
+	context := expressionEngine.GetDecisionContext(identityID, emotion, scene, socialContext)
+
+	jsonResponse(w, http.StatusOK, context)
+}
+
+// === Speech Handlers (v5.5.0/v6.3.0) ===
+
+func (s *Server) getSpeechProfile(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	speechEngine := s.service.GetSpeechEngine()
+	profile := speechEngine.GetProfile(identityID)
+	if profile == nil {
+		// Create profile if not exists
+		profile = speechEngine.CreateProfile(identityID)
+	}
+
+	jsonResponse(w, http.StatusOK, profile)
+}
+
+func (s *Server) updateContentStyle(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	style := models.ContentStyle{
+		FormalityLevel:   getFloatFromMap(req, "formality_level"),
+		EmotionalIntensity: getFloatFromMap(req, "emotional_intensity"),
+		HumorLevel:       getFloatFromMap(req, "humor_level"),
+		Directness:       getFloatFromMap(req, "directness"),
+		VocabularyLevel:  getStringFromMap(req, "vocabulary_level"),
+	}
+
+	speechEngine := s.service.GetSpeechEngine()
+	profile := speechEngine.UpdateContentStyle(identityID, style)
+
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"success":     true,
+		"identity_id": identityID,
+		"profile":     profile,
+	})
+}
+
+func (s *Server) getSpeechContext(w http.ResponseWriter, r *http.Request) {
+	identityID := mux.Vars(r)["identity_id"]
+	emotion := r.URL.Query().Get("emotion")
+	scene := r.URL.Query().Get("scene")
+
+	speechEngine := s.service.GetSpeechEngine()
+	profile := speechEngine.GetProfile(identityID)
+
+	// Return speech style based on current emotion and scene
+	context := map[string]interface{}{
+		"identity_id":   identityID,
+		"emotion":       emotion,
+		"scene":         scene,
+		"content_style": profile.ContentStyle,
+		"expression_depth": profile.ExpressionDepth,
+	}
+
+	jsonResponse(w, http.StatusOK, context)
+}
+
 // ===== Helper Functions =====
 
 func jsonResponse(w http.ResponseWriter, status int, data interface{}) {
@@ -692,6 +1004,124 @@ func errorResponse(w http.ResponseWriter, err error) {
 	jsonResponse(w, http.StatusInternalServerError, map[string]string{
 		"error": err.Error(),
 	})
+}
+
+func getFloatFromMap(m map[string]interface{}, key string) float64 {
+	if v, ok := m[key]; ok {
+		switch val := v.(type) {
+		case float64:
+			return val
+		case float32:
+			return float64(val)
+		case int:
+			return float64(val)
+		case int64:
+			return float64(val)
+		}
+	}
+	return 0.0
+}
+
+func getStringFromMap(m map[string]interface{}, key string) string {
+	if v, ok := m[key]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return ""
+}
+
+func getIntFromMap(m map[string]interface{}, key string) int {
+	if v, ok := m[key]; ok {
+		switch val := v.(type) {
+		case int:
+			return val
+		case int64:
+			return int(val)
+		case float64:
+			return int(val)
+		}
+	}
+	return 0
+}
+
+func parseFacialFeatures(data map[string]interface{}) models.FacialFeatures {
+	if ff, ok := data["facial_features"].(map[string]interface{}); ok {
+		return models.FacialFeatures{
+			FaceShape:      getStringFromMap(ff, "face_shape"),
+			EyeShape:       getStringFromMap(ff, "eye_shape"),
+			EyeColor:       getStringFromMap(ff, "eye_color"),
+			SkinTone:       getStringFromMap(ff, "skin_tone"),
+			HairColor:      getStringFromMap(ff, "hair_color"),
+			HairStyle:      getStringFromMap(ff, "hair_style"),
+			NoseShape:      getStringFromMap(ff, "nose_shape"),
+			LipShape:       getStringFromMap(ff, "lip_shape"),
+			EyebrowShape:   getStringFromMap(ff, "eyebrow_shape"),
+			FacialMarkings: getStringSliceFromMap(ff, "facial_markings"),
+			AgeAppearance:  getIntFromMap(ff, "age_appearance"),
+		}
+	}
+	return models.FacialFeatures{}
+}
+
+func parseBodyFeatures(data map[string]interface{}) models.BodyFeatures {
+	if bf, ok := data["body_features"].(map[string]interface{}); ok {
+		return models.BodyFeatures{
+			BodyType:       getStringFromMap(bf, "body_type"),
+			HeightCategory: getStringFromMap(bf, "height_category"),
+			Build:          getStringFromMap(bf, "build"),
+			Metabolism:     getStringFromMap(bf, "metabolism"),
+			PostureStyle:   getStringFromMap(bf, "posture_style"),
+		}
+	}
+	return models.BodyFeatures{}
+}
+
+func parseStylePreferences(data map[string]interface{}) models.StylePreferences {
+	if sp, ok := data["style_preferences"].(map[string]interface{}); ok {
+		return models.StylePreferences{
+			ClothingStyle:    getStringFromMap(sp, "clothing_style"),
+			ColorPreferences: getStringSliceFromMap(sp, "color_preferences"),
+			AccessoriesStyle: getStringFromMap(sp, "accessories_style"),
+			GroomingStyle:    getStringFromMap(sp, "grooming_style"),
+			FashionTrendiness: getFloatFromMap(sp, "fashion_trendiness"),
+		}
+	}
+	return models.StylePreferences{}
+}
+
+func parseEmotionMapping(data map[string]interface{}) map[string]models.ExpressionMapping {
+	mapping := make(map[string]models.ExpressionMapping)
+	if em, ok := data["emotion_mapping"].(map[string]interface{}); ok {
+		for emotion, m := range em {
+			if mVal, ok := m.(map[string]interface{}); ok {
+				mapping[emotion] = models.ExpressionMapping{
+					ExpressionName: getStringFromMap(mVal, "expression_name"),
+					Intensity:      getFloatFromMap(mVal, "intensity"),
+					DurationMs:     getIntFromMap(mVal, "duration_ms"),
+				}
+			}
+		}
+	}
+	return mapping
+}
+
+func getStringSliceFromMap(m map[string]interface{}, key string) []string {
+	if v, ok := m[key]; ok {
+		if slice, ok := v.([]interface{}); ok {
+			result := make([]string, 0, len(slice))
+			for _, item := range slice {
+				if s, ok := item.(string); ok {
+					result = append(result, s)
+				}
+			}
+			return result
+		}
+		if slice, ok := v.([]string); ok {
+			return slice
+		}
+	}
+	return nil
 }
 
 func parseInt(s string) int {
