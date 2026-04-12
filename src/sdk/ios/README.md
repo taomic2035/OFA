@@ -1,17 +1,26 @@
 # OFA iOS SDK
 
-Version: 8.1.0
+Version: 9.8.0
 
 OFA iOS SDK provides multi-platform support for iPhone, iPad, Mac, and Apple Watch.
+Aligned with Android SDK architecture for consistent cross-platform behavior.
 
 ## Features
 
+### Core Features (v8.1.0)
 - **Multi-platform Support**: iPhone, iPad, Mac, Apple Watch
 - **WebSocket Connection**: Connect to OFA Center server
 - **Identity Management**: Personal identity sync and behavior observation
 - **Scene Detection**: Detect user context from device sensors
 - **Audio Playback**: TTS and voice streaming playback
 - **Swift Concurrency**: Full async/await support
+
+### New Features (v9.8.0)
+- **Error Handling Framework**: CircuitBreaker, RetryExecutor, FallbackProvider
+- **Distributed Components**: EventBus, CrossDeviceRouter, DistributedOrchestrator
+- **Memory System**: L1/L2/L3/Archive multi-level memory storage
+- **Connection Recovery**: Automatic reconnection with exponential backoff
+- **Graceful Degradation**: Fallback mechanisms for offline scenarios
 
 ## Requirements
 
@@ -42,7 +51,7 @@ Or in Xcode:
 
 ## Usage
 
-### Basic Setup
+### Basic Setup (v9.8.0)
 
 ```swift
 import OFA
@@ -50,17 +59,95 @@ import OFA
 // Create configuration
 let config = AgentConfig(
     centerAddress: "ws://your-center:8080/ws",
-    mode: .sync
+    mode: .sync,
+    enableCache: true
 )
 
 // Create agent
 let agent = OFAiOSAgent(config: config)
 
-// Initialize
+// Initialize (includes memory and distributed components)
 try await agent.initialize()
 
-// Connect to Center
+// Connect to Center with automatic retry
 try await agent.connectCenter()
+```
+
+### Error Handling (v9.8.0)
+
+```swift
+// The agent now includes CircuitBreaker and RetryExecutor
+// Connections automatically retry with exponential backoff
+
+// Check connection recovery status
+let (isRecovering, circuitState) = agent.getConnectionRecoveryStatus()
+print("Recovering: \(isRecovering), Circuit: \(circuitState.rawValue)")
+
+// Handle errors manually
+try await agent.syncWithCenter()
+// If fails, agent.handleError() will attempt recovery
+
+// Use RetryExecutor for custom operations
+let executor = RetryExecutor(config: .aggressiveConfig)
+let breaker = CircuitBreaker.defaultBreaker(name: "custom")
+
+let result = try await executor.execute(
+    operation: { attempt in
+        // Your operation here
+        return "success"
+    },
+    circuitBreaker: breaker
+)
+```
+
+### Memory System (v9.8.0)
+
+```swift
+// Get memory statistics
+let stats = agent.getMemoryStats()
+print("L1: \(stats.l1Count), L2: \(stats.l2Count), L3: \(stats.l3Count)")
+print("Hit Rate: \(stats.averageHitRate)")
+
+// Store and retrieve memories
+try await agent.storeMemory("last_task", value: "search_query", category: .task)
+let lastTask = await agent.retrieveMemory("last_task")
+
+// Use memory manager directly
+let memoryManager = UserMemoryManager()
+try await memoryManager.initialize()
+
+let entry = MemoryEntry(
+    key: "preference_theme",
+    value: "dark",
+    level: .l2,
+    category: .preference,
+    importance: 0.8
+)
+try await memoryManager.store(entry: entry)
+```
+
+### Distributed Components (v9.8.0)
+
+```swift
+// Access distributed orchestrator
+let orchestrator = agent.getDistributedOrchestrator()
+
+// Publish events
+let event = Event(
+    type: .sceneChange,
+    sourceAgentId: agent.profile.agentId,
+    payload: ["scene": "running"]
+)
+orchestrator.eventBus.publish(event: event)
+
+// Route messages
+let message = Message(
+    type: "notification",
+    sourceAgentId: agent.profile.agentId,
+    content: "Hello from iOS"
+)
+let result = orchestrator.routeMessage(message: message)
+print("Routed to: \(result.target.rawValue)")
 ```
 
 ### SwiftUI Integration
@@ -77,8 +164,19 @@ struct ContentView: View {
     var body: some View {
         VStack {
             Text("Status: \(agent.status.rawValue)")
+            Text("Scene: \(agent.currentScene.rawValue)")
+            Text("Errors: \(agent.errorCount)")
+
+            if agent.connectedToCenter {
+                Text("Connected to Center")
+            }
+
             Button("Connect") {
                 Task { try? await agent.connectCenter() }
+            }
+
+            Button("Sync") {
+                Task { try? await agent.syncWithCenter() }
             }
         }
         .onAppear {
@@ -149,6 +247,21 @@ player.queueAudio(chunk2)
 | AudioPlayer | Audio playback and streaming |
 | AgentModeManager | Mode transitions and sync scheduling |
 
+### New Components (v9.8.0)
+
+| Component | Description |
+|-----------|-------------|
+| ErrorHandler | Error categorization and notification |
+| CircuitBreaker | Prevent cascading failures |
+| RetryExecutor | Retry with exponential backoff |
+| ConnectionRecoveryManager | Automatic reconnection |
+| FallbackProvider | Graceful degradation |
+| EventBus | Publish/subscribe for events |
+| CrossDeviceRouter | Message routing between devices |
+| DistributedOrchestrator | Coordinates distributed components |
+| MemoryManager | L1/L2/L3/Archive memory storage |
+| ContextMemory | Current operation context |
+
 ### Platform Detection
 
 Device types supported:
@@ -156,6 +269,24 @@ Device types supported:
 - iPad  
 - Mac
 - Watch
+
+### Memory Levels
+
+| Level | Duration | Capacity |
+|-------|----------|----------|
+| L1 | Seconds | ~10 entries |
+| L2 | Minutes | ~100 entries |
+| L3 | Hours | ~500 entries |
+| Archive | Unlimited | Persistent |
+
+## Alignment with Android SDK
+
+The iOS SDK (v9.8.0) is aligned with Android SDK architecture:
+- Same error handling patterns (CircuitBreaker, RetryExecutor)
+- Same memory levels (L1/L2/L3/Archive)
+- Same distributed components (EventBus, CrossDeviceRouter)
+- Same scene detection logic
+- Same identity sync protocol
 
 ## License
 

@@ -1,6 +1,7 @@
 // OFAiOSAgent.swift
-// OFA iOS SDK - Agent Implementation for iPhone/iPad/Mac (v8.1.0)
+// OFA iOS SDK - Agent Implementation for iPhone/iPad/Mac (v9.8.0)
 // Supports multi-device Apple ecosystem integration
+// Aligned with Android SDK architecture
 
 import Foundation
 import Combine
@@ -58,7 +59,7 @@ public enum AgentMode: String, Codable {
     case sync = "sync"              // Sync with Center periodically
 }
 
-/// OFA iOS Agent - Main entry point for iPhone/iPad/Mac
+/// OFA iOS Agent - Main entry point for iPhone/iPad/Mac (v9.8.0)
 public class OFAiOSAgent: ObservableObject {
 
     // MARK: - Published Properties
@@ -66,8 +67,10 @@ public class OFAiOSAgent: ObservableObject {
     @Published public var status: AgentStatus = .offline
     @Published public var connectedToCenter: Bool = false
     @Published public var currentIdentityId: String?
+    @Published public var currentScene: SceneType = .unknown
+    @Published public var errorCount: Int = 0
 
-    // MARK: - Core Components
+    // MARK: - Core Components (v9.8.0 - Aligned with Android)
 
     public let profile: AgentProfile
     private let modeManager: AgentModeManager
@@ -75,6 +78,13 @@ public class OFAiOSAgent: ObservableObject {
     private let identityManager: IdentityManager
     private let sceneDetector: SceneDetector
     private let audioPlayer: AudioPlayer
+
+    // MARK: - New Components (v9.8.0)
+
+    private let errorHandler: ErrorHandler
+    private let connectionRecovery: ConnectionRecoveryManager
+    private let distributedOrchestrator: DistributedOrchestrator
+    private let memoryManager: UserMemoryManager
 
     // MARK: - Configuration
 
@@ -99,14 +109,19 @@ public class OFAiOSAgent: ObservableObject {
             identityId: nil
         )
 
-        // Initialize components
+        // Initialize core components
         self.modeManager = AgentModeManager(mode: config.mode)
         self.centerConnection = CenterConnection(centerAddress: config.centerAddress)
         self.identityManager = IdentityManager()
         self.sceneDetector = SceneDetector()
         self.audioPlayer = AudioPlayer()
 
-        // Setup connections
+        // Initialize new components (v9.8.0)
+        self.connectionRecovery = ConnectionRecoveryManager(centerConnection: centerConnection)
+        self.distributedOrchestrator = DistributedOrchestrator()
+        self.memoryManager = UserMemoryManager()
+
+        // Setup bindings
         setupBindings()
     }
 
@@ -114,10 +129,22 @@ public class OFAiOSAgent: ObservableObject {
 
     /// Initialize the agent
     public func initialize() async throws {
-        // Initialize components
+        // Initialize core components
         try await identityManager.initialize()
         sceneDetector.initialize()
         audioPlayer.initialize()
+
+        // Initialize memory manager
+        try await memoryManager.initialize()
+
+        // Initialize distributed orchestrator
+        distributedOrchestrator.initialize(
+            sceneDetector: sceneDetector,
+            centerConnection: centerConnection
+        )
+
+        // Register local device
+        distributedOrchestrator.registerLocalDevice(profile: profile)
 
         // Connect to Center if in sync mode
         if modeManager.mode == .sync && config.centerAddress != nil {
@@ -125,26 +152,51 @@ public class OFAiOSAgent: ObservableObject {
         }
 
         status = .online
+        print("OFAiOSAgent initialized (v9.8.0)")
     }
 
-    /// Connect to Center server
+    /// Connect to Center server with error handling
     public func connectCenter() async throws {
         guard let address = config.centerAddress else {
-            throw OFAError.configurationError("Center address not configured")
+            throw OFAError(
+                code: "CONFIG_ERROR",
+                message: "Center address not configured",
+                category: .validation,
+                severity: .high,
+                strategy: .none
+            )
         }
 
-        try await centerConnection.connect(address: address)
-        try await centerConnection.register(profile: profile)
+        // Use retry executor for connection
+        let retryExecutor = RetryExecutor(config: .aggressiveConfig)
+        let circuitBreaker = CircuitBreaker.defaultBreaker(name: "center_connection")
 
-        connectedToCenter = true
-        status = .online
+        do {
+            try await retryExecutor.execute(
+                operation: { attempt in
+                    try await self.centerConnection.connect(address: address)
+                    try await self.centerConnection.register(profile: self.profile)
+                },
+                circuitBreaker: circuitBreaker
+            )
 
-        // Start heartbeat
-        startHeartbeat()
+            connectedToCenter = true
+            status = .online
+
+            // Start heartbeat
+            startHeartbeat()
+
+            print("Connected to Center successfully")
+        } catch {
+            ErrorHandler.notifyError(error: ErrorHandler.categorizeError(error))
+            errorCount += 1
+            throw error
+        }
     }
 
     /// Disconnect from Center
     public func disconnect() async {
+        connectionRecovery.stopRecovery()
         centerConnection.disconnect()
         connectedToCenter = false
         status = .offline
@@ -161,10 +213,16 @@ public class OFAiOSAgent: ObservableObject {
         }
     }
 
-    /// Sync with Center
+    /// Sync with Center (v9.8.0 - enhanced)
     public func syncWithCenter() async throws {
         guard connectedToCenter else {
-            throw OFAError.connectionError("Not connected to Center")
+            throw OFAError(
+                code: "NOT_CONNECTED",
+                message: "Not connected to Center",
+                category: .connection,
+                severity: .medium,
+                strategy: .backoffRetry
+            )
         }
 
         // Sync identity
@@ -175,11 +233,73 @@ public class OFAiOSAgent: ObservableObject {
         // Sync behaviors
         let behaviors = await identityManager.getPendingBehaviors()
         try await centerConnection.reportBehaviors(behaviors)
+
+        // Sync memory (new in v9.8.0)
+        let importantMemories = await memoryManager.getByCategory(category: .identity)
+        for memory in importantMemories where memory.importance > 0.8 {
+            // Would send to Center for backup
+        }
     }
 
     /// Get current status
     public func getStatus() -> AgentStatus {
         return status
+    }
+
+    /// Get memory statistics (new in v9.8.0)
+    public func getMemoryStats() -> MemoryStats {
+        return memoryManager.getStats()
+    }
+
+    /// Get distributed orchestrator (new in v9.8.0)
+    public func getDistributedOrchestrator() -> DistributedOrchestrator {
+        return distributedOrchestrator
+    }
+
+    /// Get connection recovery status (new in v9.8.0)
+    public func getConnectionRecoveryStatus() -> (isRecovering: Bool, circuitState: CircuitState) {
+        return (connectionRecovery.isRecovering, connectionRecovery.circuitState)
+    }
+
+    /// Store memory (new in v9.8.0)
+    public func storeMemory(key: String, value: Any, category: MemoryCategory = .general) async throws {
+        let entry = MemoryEntry(
+            key: key,
+            value: value,
+            level: .l2,
+            category: category
+        )
+        try await memoryManager.store(entry: entry)
+    }
+
+    /// Retrieve memory (new in v9.8.0)
+    public func retrieveMemory(key: String) async -> Any? {
+        let entry = await memoryManager.retrieve(key: key)
+        return entry?.value.value
+    }
+
+    /// Handle error with recovery (new in v9.8.0)
+    public func handleError(error: Error) async {
+        let categorized = ErrorHandler.categorizeError(error)
+        ErrorHandler.notifyError(error: categorized)
+        errorCount += 1
+
+        // Attempt recovery based on strategy
+        switch categorized.strategy {
+        case .backoffRetry:
+            connectionRecovery.startRecovery()
+
+        case .gracefulDegrade:
+            // Use cached data
+            status = .busy
+
+        case .circuitBreak:
+            // Wait for circuit to recover
+            status = .error
+
+        default:
+            break
+        }
     }
 
     // MARK: - Device Detection
@@ -312,20 +432,4 @@ public struct AgentConfig {
     }
 }
 
-// MARK: - Errors
-
-public enum OFAError: Error {
-    case configurationError(String)
-    case connectionError(String)
-    case syncError(String)
-    case identityError(String)
-
-    public var localizedDescription: String {
-        switch self {
-        case .configurationError(let msg): return "Configuration error: \(msg)"
-        case .connectionError(let msg): return "Connection error: \(msg)"
-        case .syncError(let msg): return "Sync error: \(msg)"
-        case .identityError(let msg): return "Identity error: \(msg)"
-        }
-    }
-}
+// Note: OFAError is now defined in ErrorHandler.swift (v9.8.0)
