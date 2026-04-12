@@ -149,11 +149,21 @@ func NewSceneEngine(config *SceneEngineConfig) *SceneEngine {
 	engine.RegisterDetector(&RunningDetector{})
 	engine.RegisterDetector(&MeetingDetector{})
 	engine.RegisterDetector(&HealthAlertDetector{})
+	engine.RegisterDetector(&DrivingDetector{})
+	engine.RegisterDetector(&ExerciseDetector{})
+	engine.RegisterDetector(&SleepDetector{})
+	engine.RegisterDetector(&WorkDetector{})
+	engine.RegisterDetector(&HomeDetector{})
 
 	// Register default handlers
 	engine.RegisterHandler(&NotificationHandler{})
 	engine.RegisterHandler(&RoutingHandler{})
 	engine.RegisterHandler(&AlertHandler{})
+	engine.RegisterHandler(&DrivingHandler{})
+	engine.RegisterHandler(&ExerciseHandler{})
+	engine.RegisterHandler(&SleepHandler{})
+	engine.RegisterHandler(&WorkHandler{})
+	engine.RegisterHandler(&HomeHandler{})
 
 	// Initialize default rules
 	engine.initDefaultRules()
