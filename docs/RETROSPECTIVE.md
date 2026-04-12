@@ -619,6 +619,62 @@
 
 ---
 
+### v7.1.0 - 持久化存储集成 ✅ 已完成
+
+**目标**: 生产环境存储切换
+
+**已完成任务**:
+1. ✅ 数据库迁移脚本 - `migrations/v7.1.0_schema.sql`
+   - personal_identities, interests, behavior_observations 表
+   - devices, device_groups 表
+   - emotion_states, emotion_triggers, emotion_profiles, desire_states 表
+   - worldviews, life_views, enhanced_value_systems 表
+   - identity_profiles, education_profiles, career_profiles 表
+   - regional_cultures, life_stages, life_events 表
+   - relationships, relationship_profiles 表
+   - sync_states, sync_history, ws_sessions 表
+   - 完整索引定义
+
+2. ✅ PostgreSQL 存储配置 - `internal/store/postgres.go`
+   - PostgreSQLStore 实现 StoreInterface
+   - 连接池配置 (MaxOpenConns=25, MaxIdleConns=5)
+   - Agent/Task/Message CRUD 操作
+   - 内置 MemoryCache 层
+
+3. ✅ Redis 缓存层集成 - `pkg/cache/redis.go`
+   - RedisCache 双层架构 (L1 本地 + L2 Redis)
+   - 会话管理 (CreateSession/GetSession/UpdateSession)
+   - 消息缓存 (CacheMessage/GetCachedMessage)
+   - 批量操作 (GetMulti/SetMulti/DeleteMulti)
+   - 统计信息 (GetStatistics)
+
+4. ✅ HybridStore 模式 - `internal/store/hybrid.go`
+   - PostgreSQL + Redis 组合
+   - 持久化数据存 PostgreSQL
+   - 热数据存 Redis (在线状态、资源使用)
+   - Pub/Sub 支持
+
+5. ✅ 存储层测试 - `internal/store/store_comprehensive_test.go`
+   - StoreInterface 合规性测试
+   - Agent/Task/Message CRUD 测试
+   - 并发操作测试
+   - 边界条件测试
+   - Benchmark 性能基准
+
+**新增文件**:
+- `src/center/migrations/v7.1.0_schema.sql`
+- `src/center/internal/store/store_comprehensive_test.go`
+
+**存储架构改进**:
+| 层级 | 实现 | 特性 |
+|------|------|------|
+| L1 缓存 | LocalCache | 本地内存缓存，5分钟 TTL |
+| L2 缓存 | RedisCache | Redis 分布式缓存，可配置 TTL |
+| 持久层 | PostgreSQL/SQLite | 关系数据库，连接池支持 |
+| 模式 | HybridStore | 持久层 + 缓存层组合 |
+
+---
+
 ## 七、长期愿景
 
 ### 最终目标
@@ -629,15 +685,72 @@
 - **分布式架构**: Center-Agent 去中心化 (v2.x ✅)
 - **测试覆盖**: 单元测试 + E2E 测试 (v5.7.0/v5.9.0 ✅)
 - **部署方案**: Docker + Kubernetes (v5.8.0 ✅)
+- **通信能力**: Center-Agent WebSocket 通信 (v7.0.0 ✅)
+- **存储能力**: PostgreSQL + Redis 持久化 (v7.1.0 ✅)
+- **安全能力**: JWT + Agent Token + RBAC 权限 (v7.2.0 ✅)
 
-### 项目状态: 🎉 核心功能完整 + REST API 全覆盖 + 代码库清理 + 测试覆盖完善 + WebSocket 通信
+### 项目状态: 🎉 生产可用 + 核心功能完整 + REST API 全覆盖 + WebSocket 通信 + 持久化存储 + 安全认证
 
 所有关键偏差已修正:
 - ✅ API 文档完整
-- ✅ 测试覆盖完整 (v2.x-v5.x 所有引擎)
+- ✅ 测试覆盖完整 (v2.x-v7.x 所有模块)
 - ✅ 部署方案完整
 - ✅ E2E 验证完整
 - ✅ REST API 全覆盖 (v2.x-v6.x 所有模块)
 - ✅ 代码库清理 (删除冗余 v1.x 用户画像层)
 - ✅ v5.x 外在呈现引擎测试完整 (v6.3.3)
 - ✅ Center-Agent WebSocket 通信桥接 (v7.0.0)
+- ✅ PostgreSQL + Redis 持久化存储 (v7.1.0)
+- ✅ Agent Token + RBAC 权限系统 (v7.2.0)
+
+---
+
+### v7.2.0 - 安全认证完善 ✅ 已完成
+
+**目标**: API 安全加固
+
+**已完成任务**:
+1. ✅ Agent Token 验证 - `pkg/auth/agent_token.go`
+   - AgentTokenManager 令牌管理器
+   - APIKey/Session/Temporary 三种令牌类型
+   - 令牌生命周期管理 (生成/验证/撤销/过期)
+   - 使用量追踪和速率限制配置
+   - MaxTokensPerAgent 限制
+
+2. ✅ API 权限中间件增强 - `pkg/auth/permission.go`
+   - PermissionSystem 角色权限系统
+   - 系统默认角色 (Admin/Agent/Guest/Service)
+   - 角色继承机制 (Inherits)
+   - 资源级别权限 (ResourcePermission)
+   - RequirePermission/RequireRole/RequireAdmin 中间件
+   - PermissionMiddleware HTTP 中间件
+
+3. ✅ 安全认证测试 - `pkg/auth/security_test.go`
+   - AgentToken 生成验证测试
+   - 令牌撤销测试
+   - MaxTokensPerAgent 限制测试
+   - 权限系统 CRUD 测试
+   - 权限继承测试
+   - 资源权限测试
+   - 并发安全测试
+   - 速率限制测试
+
+**新增文件**:
+- `src/center/pkg/auth/agent_token.go`
+- `src/center/pkg/auth/permission.go`
+- `src/center/pkg/auth/security_test.go`
+
+**认证机制**:
+| 类型 | JWT | AgentToken APIKey | AgentToken Session |
+|------|-----|-------------------|-------------------|
+| 过期 | 15min | 30天 | 24h |
+| 使用 | 用户访问 | 设备认证 | 临时会话 |
+| 存储 | 无需 | 内存索引 | 内存索引 |
+
+**权限层级**:
+| 角色 | 权限范围 |
+|------|---------|
+| Admin | 全部 (*) |
+| Agent | 自我 (agent:self, task:self, identity:self) |
+| Guest | 仅读 (agent:read:self) |
+| Service | 系统集成 (task:*, sync:*) |

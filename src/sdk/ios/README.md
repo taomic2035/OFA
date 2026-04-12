@@ -1,221 +1,161 @@
-# OFA iOS Agent SDK
+# OFA iOS SDK
 
-iOS SDK for building OFA Agent applications.
+Version: 8.1.0
+
+OFA iOS SDK provides multi-platform support for iPhone, iPad, Mac, and Apple Watch.
+
+## Features
+
+- **Multi-platform Support**: iPhone, iPad, Mac, Apple Watch
+- **WebSocket Connection**: Connect to OFA Center server
+- **Identity Management**: Personal identity sync and behavior observation
+- **Scene Detection**: Detect user context from device sensors
+- **Audio Playback**: TTS and voice streaming playback
+- **Swift Concurrency**: Full async/await support
 
 ## Requirements
 
-- iOS 13.0+ / macOS 12.0+
-- Swift 5.9+
-- Xcode 15.0+
+- iOS 15.0+ / macOS 12.0+ / watchOS 8.0+
+- Swift 5.7+
+- Xcode 14.0+
 
 ## Installation
 
 ### Swift Package Manager
 
-Add to your `Package.swift`:
+Add the following to your Package.swift dependencies:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/ofa/ios-agent-sdk.git", from: "1.0.0")
+    .package(path: "path/to/OFA")
 ]
 ```
 
 Or in Xcode:
-1. File → Add Packages
-2. Enter package URL: `https://github.com/ofa/ios-agent-sdk`
+1. File > Add Packages...
+2. Add local package path
 
-## Quick Start
+### Manual Integration
 
-### 1. Initialize Agent
+1. Clone or copy the OFA folder to your project
+2. Add the Swift files to your Xcode project target
+
+## Usage
+
+### Basic Setup
 
 ```swift
-import OFAAgent
+import OFA
 
-let agent = OFAAgent(
-    agentId: "my-ios-agent",
-    name: "My iPhone",
-    type: .mobile,
-    centerAddress: "192.168.1.100",
-    centerPort: 9090
+// Create configuration
+let config = AgentConfig(
+    centerAddress: "ws://your-center:8080/ws",
+    mode: .sync
 )
+
+// Create agent
+let agent = OFAiOSAgent(config: config)
+
+// Initialize
+try await agent.initialize()
+
+// Connect to Center
+try await agent.connectCenter()
 ```
 
-### 2. Register Skills
+### SwiftUI Integration
 
 ```swift
-// Register built-in skills
-agent.registerSkill(EchoSkill())
-agent.registerSkill(TextProcessSkill())
-agent.registerSkill(CalculatorSkill())
+import SwiftUI
+import OFA
 
-// Register custom skill
-agent.registerSkill(MyCustomSkill())
-```
+struct ContentView: View {
+    @StateObject private var agent = OFAiOSAgent(
+        config: AgentConfig(centerAddress: "ws://localhost:8080/ws")
+    )
 
-### 3. Set Delegates
-
-```swift
-class MyViewController: UIViewController, OFAAgentDelegate, OFAAgentTaskDelegate {
-    func agent(_ agent: OFAAgent, didChangeConnectionState state: OFAAgent.ConnectionState) {
-        switch state {
-        case .connected:
-            print("Connected to Center")
-        case .disconnected:
-            print("Disconnected from Center")
-        case .error(let error):
-            print("Connection error: \(error)")
-        default:
-            break
+    var body: some View {
+        VStack {
+            Text("Status: \(agent.status.rawValue)")
+            Button("Connect") {
+                Task { try? await agent.connectCenter() }
+            }
+        }
+        .onAppear {
+            Task { try? await agent.initialize() }
         }
     }
-
-    func agent(_ agent: OFAAgent, didReceiveTask taskId: String, skillId: String) {
-        print("Received task: \(taskId)")
-    }
-
-    func agent(_ agent: OFAAgent, didCompleteTask taskId: String) {
-        print("Task completed: \(taskId)")
-    }
-
-    func agent(_ agent: OFAAgent, didFailTask taskId: String, error: Error) {
-        print("Task failed: \(error)")
-    }
 }
 ```
 
-### 4. Connect to Center
+### Identity Management
 
 ```swift
-Task {
-    do {
-        try await agent.connect()
-    } catch {
-        print("Connection failed: \(error)")
-    }
-}
+let identityManager = IdentityManager()
+try await identityManager.initialize()
+
+// Create identity
+let identity = try await identityManager.createIdentity(name: "User")
+
+// Observe behavior
+identityManager.observeBehavior(
+    type: "decision",
+    context: ["impulse_purchase": true]
+)
+
+// Trigger personality inference
+await identityManager.inferPersonality()
 ```
 
-### 5. Disconnect
+### Scene Detection
 
 ```swift
-agent.disconnect()
+let detector = SceneDetector()
+detector.initialize()
+
+// Add listener
+let listener = MySceneListener()
+detector.addListener(listener)
+
+// Manual detection
+await detector.detect()
 ```
 
-## Custom Skills
-
-Implement `SkillExecutor` protocol:
+### Audio Playback
 
 ```swift
-import OFAAgent
+let player = AudioPlayer()
+player.initialize()
 
-class MyCustomSkill: SkillExecutor, @unchecked Sendable {
-    var skillId: String { "my.custom.skill" }
-    var skillName: String { "My Custom Skill" }
-    var category: String { "utility" }
+// Play audio data
+player.play(audioData)
 
-    func execute(_ input: Data) async throws -> Data {
-        // Parse input
-        guard let json = try JSONSerialization.jsonObject(with: input) as? [String: Any] else {
-            throw OFAError.executionFailed("Invalid input")
-        }
-
-        // Process
-        let result = processInput(json)
-
-        // Return output
-        let output = ["result": result]
-        return try JSONSerialization.data(withJSONObject: output)
-    }
-
-    private func processInput(_ input: [String: Any]) -> String {
-        // Your processing logic
-        return "processed"
-    }
-}
-```
-
-## Built-in Skills
-
-| Skill ID | Description | Operations |
-|----------|-------------|------------|
-| echo | Echo test | Returns input with length |
-| text.process | Text processing | uppercase, lowercase, reverse, length |
-| calculator | Calculator | add, sub, mul, div, pow, sqrt |
-
-## Background Mode
-
-For background operation, enable background modes:
-
-1. Project → Target → Signing & Capabilities
-2. Add Capability → Background Modes
-3. Check "Background fetch" and "Remote notifications"
-
-```swift
-// In AppDelegate
-func application(_ application: UIApplication,
-                 didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-    // Handle push notifications for task alerts
-}
+// Streaming playback
+player.playStream()
+player.queueAudio(chunk1)
+player.queueAudio(chunk2)
 ```
 
 ## Architecture
 
-```
-┌─────────────────────────────────────┐
-│           iOS Device                 │
-│  ┌─────────────────────────────────┐│
-│  │        OFA Agent SDK            ││
-│  │  ┌───────────┐ ┌──────────────┐ ││
-│  │  │  Agent    │ │   Skill      │ ││
-│  │  │  Core     │ │   Executors  │ ││
-│  │  └─────┬─────┘ └──────────────┘ ││
-│  │        │                        ││
-│  │  ┌─────┴─────┐                  ││
-│  │  │  gRPC     │                  ││
-│  │  │  Client   │                  ││
-│  │  └─────┬─────┘                  ││
-│  └────────┼────────────────────────┘│
-└───────────┼──────────────────────────┘
-            │
-            │ gRPC
-            ▼
-    ┌───────────────┐
-    │ OFA Center    │
-    │ (gRPC:9090)   │
-    └───────────────┘
-```
+### Core Components
 
-## API Reference
+| Component | Description |
+|-----------|-------------|
+| OFAiOSAgent | Main entry point for iPhone/iPad/Mac |
+| CenterConnection | WebSocket connection to Center |
+| IdentityManager | Identity sync and behavior observation |
+| SceneDetector | Scene detection from sensors |
+| AudioPlayer | Audio playback and streaming |
+| AgentModeManager | Mode transitions and sync scheduling |
 
-### OFAAgent
+### Platform Detection
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `agentId` | String | Agent identifier |
-| `name` | String | Agent name |
-| `type` | AgentType | Agent type |
-| `connectionState` | ConnectionState | Current connection state |
-| `heartbeatInterval` | TimeInterval | Heartbeat interval (seconds) |
-
-| Method | Description |
-|--------|-------------|
-| `connect()` | Connect to Center |
-| `disconnect()` | Disconnect from Center |
-| `registerSkill(_:)` | Register a skill |
-| `unregisterSkill(_:)` | Unregister a skill |
-| `getRegisteredSkills()` | Get registered skill IDs |
-
-### SkillExecutor
-
-| Property | Description |
-|----------|-------------|
-| `skillId` | Unique skill identifier |
-| `skillName` | Human-readable name |
-| `category` | Skill category |
-
-| Method | Description |
-|--------|-------------|
-| `execute(_:)` | Execute skill with input data |
+Device types supported:
+- iPhone
+- iPad  
+- Mac
+- Watch
 
 ## License
 

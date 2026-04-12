@@ -1,0 +1,74 @@
+# Default values for ofa-center
+# This is a YAML-formatted file.
+
+replicaCount: 2
+
+image:
+  repository: ofa/center
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  httpPort: 8080
+  grpcPort: 9090
+  wsPort: 8081
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+config:
+  centerId: center-production
+  logLevel: info
+
+postgresql:
+  enabled: true
+  auth:
+    username: ofa
+    password: ofa_secret
+    database: ofa_center
+  primary:
+    persistence:
+      size: 10Gi
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+monitoring:
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+    adminUser: admin
+    adminPassword: admin123
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: ofa.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

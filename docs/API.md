@@ -5,7 +5,31 @@
 OFA 提供两种 API 接口：
 - **REST API**: HTTP 接口，端口 8080
 - **gRPC API**: 高性能 RPC 接口，端口 9090
+- **WebSocket**: 实时通信，端口 8080
 - **状态推送**: Center 向设备端推送状态更新
+
+---
+
+## 认证机制
+
+### JWT 认证
+用于用户和 API 访问的短期令牌：
+- Access Token: 15 分钟有效期
+- Refresh Token: 24 小时有效期
+- 支持 Ed25519 签名算法
+
+### Agent Token 认证
+用于设备端长期认证：
+- API Key: 30 天有效期，适合设备持久化
+- Session Token: 24 小时，适合临时会话
+- Temporary Token: 1 小时，单次使用
+
+### 权限系统
+基于角色的访问控制 (RBAC)：
+- Admin: 完全访问权限 (*)
+- Agent: 自我管理权限 (agent:self, task:self)
+- Guest: 读取权限
+- Service: 系统集成权限
 
 ---
 
@@ -18,6 +42,7 @@ OFA 提供两种 API 接口：
 | v4.x | 灵魂特征 | `/api/v1/emotions`, `/api/v1/philosophy`, `/api/v1/social`, `/api/v1/culture`, `/api/v1/lifestage`, `/api/v1/relationship` |
 | v5.x | 外在呈现 | `/api/v1/avatar`, `/api/v1/expression`, `/api/v1/speech`, `/api/v1/tts` |
 | v6.x | REST API 完善 | 统一入口 `pkg/rest/server.go` |
+| v7.x | WebSocket + 安全认证 | `/ws`, `/api/v1/auth` |
 
 ---
 

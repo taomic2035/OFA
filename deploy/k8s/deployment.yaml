@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ofa-center
+  namespace: ofa-system
+  labels:
+    app: ofa-center
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ofa-center
+  template:
+    metadata:
+      labels:
+        app: ofa-center
+    spec:
+      containers:
+      - name: center
+        image: ofa/center:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: grpc
+        - containerPort: 8081
+          name: ws
+        envFrom:
+        - configMapRef:
+            name: ofa-center-config
+        - secretRef:
+            name: ofa-center-secret
+        env:
+        - name: DB_HOST
+          value: "ofa-postgres"
+        - name: REDIS_HOST
+          value: "ofa-redis"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/status
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/status
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5

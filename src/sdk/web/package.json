@@ -1,46 +1,31 @@
 {
-  "name": "ofa-web-agent",
-  "version": "0.9.0",
-  "description": "OFA Web Agent SDK - TypeScript/JavaScript implementation for browser-based agents",
+  "name": "ofa-web-sdk",
+  "version": "8.3.0",
+  "description": "OFA Web SDK - Browser-based agent implementation",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "build:watch": "tsc --watch",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
-    "clean": "rm -rf dist"
+    "dev": "tsc -w"
   },
-  "keywords": [
-    "ofa",
-    "agent",
-    "websocket",
-    "distributed",
-    "federated"
-  ],
+  "keywords": ["ofa", "agent", "websocket", "distributed"],
   "author": "OFA Team",
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^29.5.0",
-    "@types/node": "^20.0.0",
-    "jest": "^29.5.0",
-    "ts-jest": "^29.1.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
+  },
+  "dependencies": {
+    "eventemitter3": "^5.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ofa/ofa-web-agent"
-  },
-  "files": [
-    "dist",
-    "README.md"
-  ],
-  "exports": {
-    ".": {
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
+    "url": "https://github.com/ofa/ofa"
   }
 }

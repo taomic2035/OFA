@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ofa-center.fullname" . }}
+  labels:
+    {{- include "ofa-center.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ofa-center.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ofa-center.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: grpc
+              containerPort: 9090
+            - name: ws
+              containerPort: 8081
+          env:
+            - name: CENTER_ID
+              value: {{ .Values.config.centerId }}
+            - name: LOG_LEVEL
+              value: {{ .Values.config.logLevel }}
+            - name: DB_HOST
+              value: {{ include "ofa-center.fullname" . }}-postgres
+            - name: REDIS_HOST
+              value: {{ include "ofa-center.fullname" . }}-redis
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /api/v1/status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /api/v1/status
+              port: http

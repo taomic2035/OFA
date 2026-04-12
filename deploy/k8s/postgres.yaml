@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ofa-postgres
+  namespace: ofa-system
+spec:
+  serviceName: ofa-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ofa-postgres
+  template:
+    metadata:
+      labels:
+        app: ofa-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "ofa"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ofa-center-secret
+              key: DB_PASSWORD
+        - name: POSTGRES_DB
+          value: "ofa_center"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ofa-postgres
+  namespace: ofa-system
+spec:
+  selector:
+    app: ofa-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  clusterIP: None

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ofa-center-config
+  namespace: ofa-system
+data:
+  CENTER_ID: "center-production"
+  GRPC_ADDRESS: ":9090"
+  REST_ADDRESS: ":8080"
+  WS_ADDRESS: ":8081"
+  LOG_LEVEL: "info"

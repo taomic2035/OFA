@@ -1,0 +1,259 @@
+name: OFA Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy (e.g., v7.5.0 or latest)'
+        required: false
+        default: 'latest'
+
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_CENTER: ${{ github.repository }}/center
+  IMAGE_NAME_AGENT: ${{ github.repository }}/agent
+
+jobs:
+  # ====================
+  # Prepare Deployment
+  # ====================
+  prepare:
+    name: Prepare Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      environment: ${{ steps.env.outputs.environment }}
+    steps:
+    - name: Determine version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "release" ]; then
+          VERSION="${{ github.event.release.tag_name }}"
+        else
+          VERSION="${{ github.event.inputs.version }}"
+        fi
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "Deploying version: ${VERSION}"
+
+    - name: Determine environment
+      id: env
+      run: |
+        if [ "${{ github.event_name }}" = "release" ]; then
+          ENV="production"
+        else
+          ENV="${{ github.event.inputs.environment }}"
+        fi
+        echo "environment=${ENV}" >> $GITHUB_OUTPUT
+        echo "Target environment: ${ENV}"
+
+  # ====================
+  # Deploy to Staging
+  # ====================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.environment == 'staging'
+    environment: staging
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+    - name: Deploy Center to Staging
+      run: |
+        kubectl set image deployment/ofa-center-staging \
+          center=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_CENTER }}:${{ needs.prepare.outputs.version }} \
+          -n staging
+
+    - name: Deploy Agent to Staging
+      run: |
+        kubectl set image deployment/ofa-agent-staging \
+          agent=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_AGENT }}:${{ needs.prepare.outputs.version }} \
+          -n staging
+
+    - name: Wait for deployment
+      run: |
+        kubectl rollout status deployment/ofa-center-staging -n staging --timeout=300s
+        kubectl rollout status deployment/ofa-agent-staging -n staging --timeout=300s
+
+    - name: Verify deployment
+      run: |
+        kubectl get pods -n staging
+        kubectl get services -n staging
+
+  # ====================
+  # Deploy to Production
+  # ====================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.environment == 'production'
+    environment: production
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME_PROD }}
+
+    - name: Create production namespace if not exists
+      run: kubectl create namespace production --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Apply production manifests
+      run: |
+        kubectl apply -f k8s/production/ -n production
+
+    - name: Deploy Center to Production
+      run: |
+        kubectl set image deployment/ofa-center \
+          center=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_CENTER }}:${{ needs.prepare.outputs.version }} \
+          -n production
+
+    - name: Deploy Agent to Production
+      run: |
+        kubectl set image deployment/ofa-agent \
+          agent=${{ env.REGISTRY }}/${{ env.IMAGE_NAME_AGENT }}:${{ needs.prepare.outputs.version }} \
+          -n production
+
+    - name: Wait for deployment
+      run: |
+        kubectl rollout status deployment/ofa-center -n production --timeout=600s
+        kubectl rollout status deployment/ofa-agent -n production --timeout=600s
+
+    - name: Run smoke tests
+      run: |
+        # Wait for services to be ready
+        sleep 30
+
+        # Test health endpoint
+        CENTER_URL=$(kubectl get service ofa-center -n production -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+        curl -f "http://${CENTER_URL}:8080/health" || exit 1
+        curl -f "http://${CENTER_URL}:8080/api/v1/health" || exit 1
+
+    - name: Notify deployment success
+      if: success()
+      run: |
+        echo "Production deployment successful!"
+        echo "Version: ${VERSION}"
+        echo "Time: $(date)"
+
+  # ====================
+  # Rollback Job
+  # ====================
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: failure()
+    environment: production
+    steps:
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME_PROD }}
+
+    - name: Rollback Center
+      run: kubectl rollout undo deployment/ofa-center -n production
+
+    - name: Rollback Agent
+      run: kubectl rollout undo deployment/ofa-agent -n production
+
+    - name: Verify rollback
+      run: |
+        kubectl rollout status deployment/ofa-center -n production --timeout=300s
+        kubectl rollout status deployment/ofa-agent -n production --timeout=300s
+
+  # ====================
+  # Post-Deployment
+  # ====================
+  post-deploy:
+    name: Post-Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: success() && needs.prepare.outputs.environment == 'production'
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Update documentation
+      run: |
+        # Update version in docs
+        VERSION="${{ needs.prepare.outputs.version }}"
+        echo "Updating docs to version ${VERSION}"
+
+        # Could update README, API.md version numbers
+
+    - name: Send notification
+      uses: 8398a7/action-slack@v3
+      if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+      with:
+        status: success
+        text: |
+          OFA Production Deployment Successful
+          Version: ${{ needs.prepare.outputs.version }}
+          Commit: ${{ github.sha }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ====================
+  # Deployment Summary
+  # ====================
+  deploy-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy-staging, deploy-production]
+    if: always()
+    steps:
+    - name: Generate Summary
+      run: |
+        echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Version | ${{ needs.prepare.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Environment | ${{ needs.prepare.outputs.environment }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Staging Status | ${{ needs.deploy-staging.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Production Status | ${{ needs.deploy-production.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Timestamp" >> $GITHUB_STEP_SUMMARY
+        echo "$(date)" >> $GITHUB_STEP_SUMMARY

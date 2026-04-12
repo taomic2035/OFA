@@ -1,79 +1,27 @@
-# OFA .gitignore
-
-# Build artifacts
-build/
-dist/
+# Binaries
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
 
-# Go
+# Test binary, built with `go test -c`
 *.test
+
+# Output of the go coverage tool
 *.out
-vendor/
+
+# Go workspace file
 go.work
-go.work.sum
-pkg/mod/
-src/*/pkg/mod/
-src/center/center.exe
-src/center/*.txt
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-.Python
-venv/
-.venv/
-*.egg-info/
-.eggs/
-
-# Java/Kotlin
-*.class
-*.jar
-*.war
-.gradle/
-build/
-out/
-target/
-
-# Android
-*.apk
-*.aab
-*.ap_
-*.dex
-local.properties
-.idea/
-captures/
-*.iml
-.gradle/
-*.aar
-
-# iOS/Swift
-*.ipa
-*.dSYM.zip
-*.dSYM
-DerivedData/
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-xcuserdata/
-*.xccheckout
-*.moved-aside
-*.xcuserstate
-
-# Node.js
+# Dependency directories
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+vendor/
+
+# Build directories
+dist/
+build/
+bin/
 
 # IDE
 .idea/
@@ -82,77 +30,60 @@ yarn-error.log*
 *.swo
 *~
 
-# Environment
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# Logs
-logs/
-*.log
-
-# Build/test output files
-*_output.txt
-*_build.txt
-*_test.txt
-*_results.txt
-*_version.txt
-err.txt
-out.txt
-DvibecodingOFAgit_output.txt
-
-# Build directory
-build/
-
-# Temporary scripts (keep scripts/ folder for official scripts)
-check_git.bat
-commit_v1.bat
-git_push.bat
-do_push.bat
-test_build.bat
-test_build.sh
-start-dashboard.bat
-check_git.ps1
-do_commit.ps1
-check_status.ps1
-prepare_commit.ps1
-do_push.ps1
-git_push.ps1
-git_push_final.ps1
-
-# Duplicate configs (keep root configs/)
-src/center/configs/
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Test coverage
-coverage/
-*.coverprofile
-coverage.txt
-
-# Documentation
-site/
-docs/_build/
-
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# Temporary
-tmp/
-temp/
+# Temporary files
 *.tmp
-*.temp
+*.bak
+*.log
 
-# Protobuf generated (keep source)
-# src/center/proto/*.pb.go
-# src/agent/go/proto/*.pb.go
+# Environment files
+.env
+.env.local
+.env.*.local
 
-# Config (keep templates)
-configs/local.yaml
-configs/production.yaml
+# Generated files
+*.generated.*
+
+# Dashboard specific
+src/dashboard/node_modules/
+src/dashboard/.vite/
+src/dashboard/dist/
+
+# Center specific
+src/center/center.exe
+
+# SDK builds
+src/sdk/android/sdk/build/
+src/sdk/android/.gradle/
+src/sdk/ios/build/
+src/sdk/web/dist/
+
+# Test coverage
+coverage.html
+coverage.out
+
+# Claude Code plans (optional - keep if needed)
+# .claude/plans/
+
+# Task output files (temporary)
+*.claude/tasks/*.output
+
+# Gradle wrapper jar (binary)
+gradle-wrapper.jar
+
+# Android local properties (machine-specific)
+local.properties
+
+# Android SDK intermediate files
+*.apk
+*.aab
+*.class
+
+# iOS build
+*.xcuserstate
+DerivedData/
+*.ipa
+*.dSYM.zip

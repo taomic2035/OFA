@@ -505,7 +505,91 @@ kubectl rollout undo deployment/ofa-center -n ofa
 
 ---
 
-*文档更新时间: 2026-04-10*
+## 十三、CI/CD 集成
+
+### 13.1 GitHub Actions 工作流
+
+项目提供了完整的 CI/CD 工作流配置:
+
+| 工作流文件 | 说明 |
+|-----------|------|
+| `.github/workflows/ci.yaml` | 基础 CI (测试+构建+Docker) |
+| `.github/workflows/ci-enhanced.yaml` | 增强版 CI (多平台+安全扫描+Android SDK) |
+| `.github/workflows/deploy.yaml` | 部署工作流 (Staging/Production) |
+
+### 13.2 CI 流程
+
+```yaml
+# 自动触发条件
+push:
+  branches: [main, develop]
+pull_request:
+  branches: [main, develop]
+release:
+  types: [published]
+```
+
+**CI Jobs**:
+
+| Job | 说明 | 条件 |
+|-----|------|------|
+| go-test | Go 单元测试 | 必须通过 |
+| android-build | Android SDK 构建 | 必须通过 |
+| security-scan | 安全扫描 | 建议通过 |
+| build | 多平台构建 | 测试通过后 |
+| lint | 代码质量检查 | 建议 |
+| integration-test | 集成测试 | 有 PostgreSQL/Redis |
+| docker | Docker 构建&推送 | main 分支或 release |
+
+### 13.3 Deploy 流程
+
+```bash
+# 手动触发部署
+gh workflow run deploy.yaml \
+  -f environment=staging \
+  -f version=v7.5.0
+
+# 或在 GitHub UI 触发
+# Actions -> OFA Deploy -> Run workflow
+```
+
+**部署环境**:
+
+| 环境 | 说明 | 触发条件 |
+|------|------|---------|
+| staging | 测试环境 | workflow_dispatch |
+| production | 生产环境 | release 或手动触发 |
+
+### 13.4 制品输出
+
+每次成功构建会产出以下制品:
+
+| 制品 | 说明 | 位置 |
+|------|------|------|
+| center-* | Center 二进制 | artifacts (多平台) |
+| agent-* | Agent 二进制 | artifacts (多平台) |
+| sdk-aar | Android SDK AAR | artifacts |
+| Docker Images | 容器镜像 | ghcr.io, docker.io |
+
+### 13.5 本地 CI 模拟
+
+```bash
+# 运行 Go 测试 (模拟 go-test job)
+cd src/center && go test -v -race ./...
+
+# 构建 Android SDK (模拟 android-build job)
+cd src/sdk/android && ./gradlew assembleRelease test
+
+# 安全扫描 (模拟 security-scan job)
+gosec ./src/center/...
+
+# 本地 Docker 构建 (模拟 docker job)
+docker build -t ofa/center:test -f src/center/Dockerfile .
+```
+
+---
+
+*文档更新时间: 2026-04-11*
 
 ---
 

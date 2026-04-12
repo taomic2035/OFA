@@ -1,0 +1,37 @@
+server:
+  name: "ofa-center"
+  version: "v5.6.5"
+
+grpc:
+  address: ":9090"
+
+rest:
+  address: ":8080"
+
+database:
+  type: "memory"
+
+scheduler:
+  default_strategy: "hybrid"
+  max_concurrent: 100
+
+agent:
+  heartbeat_interval: "30s"
+  heartbeat_timeout: "60s"
+  offline_threshold: "5m"
+
+tts:
+  primary_provider: "doubao"
+  fallback_provider: "volcengine"
+  enable_cache: true
+  cache_size_mb: 100
+  default_voice: "zh_female_tianmei"
+  default_format: "mp3"
+  default_sample_rate: 24000
+  default_rate: 1.0
+  default_pitch: 1.0
+  default_volume: 0.7
+  volcengine_app_id: ""
+  volcengine_token: ""
+  doubao_app_id: ""
+  doubao_token: ""

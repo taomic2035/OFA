@@ -1,36 +1,45 @@
-// Package.swift
-// swift-tools-version:5.9
+// swift-tools-version:5.7
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
-    name: "OFAAgent",
+    name: "OFA",
     platforms: [
-        .iOS(.v13),
-        .macOS(.v12)
+        .iOS(.v15),
+        .macOS(.v12),
+        .watchOS(.v8)
     ],
     products: [
         .library(
-            name: "OFAAgent",
-            targets: ["OFAAgent"]),
+            name: "OFA",
+            targets: ["OFA"]
+        ),
     ],
     dependencies: [
-        .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.20.0"),
-        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.25.0"),
+        // Dependencies can be added here if needed
     ],
     targets: [
         .target(
-            name: "OFAAgent",
-            dependencies: [
-                .product(name: "GRPC", package: "grpc-swift"),
-                .product(name: "NIOCore", package: "grpc-swift"),
-                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
+            name: "OFA",
+            dependencies: [],
+            path: "OFA",
+            exclude: [
+                "OFAiOSAgentExample.swift"
             ],
-            path: "Sources/OFAAgent"),
+            resources: [],
+            publicHeadersPath: nil,
+            cSettings: [],
+            cppSettings: [],
+            swiftSettings: [
+                .enableExperimentalFeature("Concurrency")
+            ]
+        ),
         .testTarget(
-            name: "OFAAgentTests",
-            dependencies: ["OFAAgent"],
-            path: "Tests/OFAAgentTests"),
-    ]
+            name: "OFATests",
+            dependencies: ["OFA"],
+            path: "Tests"
+        ),
+    ],
+    swiftLanguageVersions: [.v5]
 )

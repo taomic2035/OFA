@@ -1,0 +1,17 @@
+apiVersion: v2
+name: ofa-center
+description: OFA Center - Distributed Agent System Soul Carrier
+type: application
+version: 8.4.0
+appVersion: "8.4.0"
+maintainers:
+  - name: OFA Team
+    email: team@ofa.dev
+keywords:
+  - agent
+  - distributed
+  - websocket
+  - llm
+home: https://github.com/ofa/ofa
+sources:
+  - https://github.com/ofa/ofa
