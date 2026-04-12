@@ -11,6 +11,8 @@ import Monitor from './views/Monitor.vue'
 import Messages from './views/Messages.vue'
 import Settings from './views/Settings.vue'
 import Profile from './views/Profile.vue'
+import Scenes from './views/Scenes.vue'
+import ApiDebugger from './views/ApiDebugger.vue'
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
@@ -19,6 +21,8 @@ const routes = [
   { path: '/monitor', name: 'Monitor', component: Monitor },
   { path: '/messages', name: 'Messages', component: Messages },
   { path: '/profile', name: 'Profile', component: Profile },
+  { path: '/scenes', name: 'Scenes', component: Scenes },
+  { path: '/api-debugger', name: 'ApiDebugger', component: ApiDebugger },
   { path: '/settings', name: 'Settings', component: Settings }
 ]
 

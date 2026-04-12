@@ -76,6 +76,24 @@ const isConnected = inject<any>('isConnected')
             <span>用户画像</span>
           </router-link>
         </li>
+      <li>
+          <router-link to="/scenes">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            <span>场景检测</span>
+          </router-link>
+        </li>
+        <li>
+          <router-link to="/api-debugger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+            <span>API调试</span>
+          </router-link>
+        </li>
       </ul>
 
       <div class="nav-divider"></div>
@@ -98,7 +116,7 @@ const isConnected = inject<any>('isConnected')
         <span :class="['status-dot', isConnected ? 'connected' : 'disconnected']"></span>
         <span class="status-text">{{ isConnected ? '已连接' : '未连接' }}</span>
       </div>
-      <div class="version">v1.0.0</div>
+      <div class="version">v9.7.0</div>
     </div>
   </aside>
 </template>
