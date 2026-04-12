@@ -48,6 +48,7 @@
 | v9.2.0 | 缓存优化 (多级缓存/热点优化) | ✅ 完成 |
 | v9.3.0 | 健康检查完善 (自愈/降级/告警) | ✅ 完成 |
 | v9.4.0 | SDK实用性增强 + 场景引擎扩展 | ✅ 完成 |
+| v9.5.0 | SDK-Center联调验证 + 集成测试 | ✅ 完成 |
 
 ### 代码统计
 
@@ -741,8 +742,60 @@ src/sdk/ios/
 ---
 
 *报告生成时间: 2026-04-12*
-*当前版本: v9.4.0*
+*当前版本: v9.5.0*
 *项目状态: 生产就绪*
+
+---
+
+## 十三、v9.5.0 SDK-Center联调验证
+
+**目标**: 完善SDK与Center的真实联调测试
+
+**已完成任务**:
+
+### WebSocket集成测试
+1. ✅ WebSocket连接生命周期测试 - `tests/e2e/integration_test.go`
+   - TestWebSocketLifecycle（连接、注册、心跳、断开）
+   - TestIdentitySynchronization（身份更新、同步请求）
+   - TestSceneDetection（场景数据上报、广播接收）
+   - TestMultiDeviceCoordination（3设备协调、消息路由）
+   - TestBehaviorObservation（行为上报、性格推断）
+   - TestTaskAssignment（任务请求、结果上报）
+   - TestErrorHandling（无效消息、缺失字段处理）
+   - TestConnectionRecovery（断开后重连恢复）
+
+### 自动化测试脚本
+2. ✅ 集成测试脚本 - `scripts/integration-test.sh`
+   - REST API端点验证（8个）
+   - WebSocket消息流程
+   - 场景检测流程
+   - 身份同步流程
+   - 多设备协调流程
+   - 测试报告生成
+
+### 集成测试文档
+3. ✅ E2E测试文档更新 - `docs/E2E_TEST_PLAN.md`
+   - WebSocket消息协议定义
+   - 8个场景测试用例
+   - SDK错误处理验证
+   - 自动化脚本使用说明
+
+**新增文件**:
+- `src/center/tests/e2e/integration_test.go`
+- `scripts/integration-test.sh`
+
+**测试覆盖**:
+| 测试类型 | 用例数 |
+|---------|--------|
+| WebSocket集成 | 8 |
+| REST API | 8 |
+| 场景检测 | 8种 |
+| 错误处理 | 3类 |
+
+**下一步规划**:
+- Dashboard监控界面
+- 分布式集群部署
+- 性能压测验证
 
 ---
 

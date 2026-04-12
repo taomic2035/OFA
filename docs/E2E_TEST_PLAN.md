@@ -1,4 +1,4 @@
-# OFA 端到端联调验证计划 (v8.2.0)
+# OFA 端到端联调验证计划 (v9.5.0)
 
 ## 一、验证目标
 
@@ -275,4 +275,240 @@ curl -X POST http://localhost:8080/api/v1/chat/stream \
 ---
 
 *计划创建时间: 2026-04-11*
-*版本: v8.2.0*
+*版本: v9.5.0*
+
+---
+
+## 八、WebSocket集成测试 (v9.5.0)
+
+### 测试用例列表
+
+| 测试用例 | 说明 | 文件 |
+|---------|------|------|
+| TestWebSocketLifecycle | 连接生命周期（注册、心跳、断开） | integration_test.go |
+| TestIdentitySynchronization | 身份同步（更新、请求、响应） | integration_test.go |
+| TestSceneDetection | 场景检测（跑步场景、动作广播） | integration_test.go |
+| TestMultiDeviceCoordination | 多设备协调（3设备注册、消息路由） | integration_test.go |
+| TestBehaviorObservation | 行为观察（上报、性格推断） | integration_test.go |
+| TestTaskAssignment | 任务分配（技能请求、结果上报） | integration_test.go |
+| TestErrorHandling | 错误处理（无效消息、缺失字段） | integration_test.go |
+| TestConnectionRecovery | 连接恢复（断开后重连） | integration_test.go |
+
+### 运行集成测试
+```bash
+# 运行所有集成测试
+cd src/center
+go test -v ./tests/e2e/... -timeout 120s
+
+# 运行单个测试
+go test -v ./tests/e2e/... -run TestWebSocketLifecycle
+
+# 运行带详细输出
+go test -v ./tests/e2e/... -run TestMultiDeviceCoordination -timeout 60s
+```
+
+### WebSocket消息协议
+
+#### 注册消息
+```json
+{
+    "type": "Register",
+    "timestamp": 1234567890,
+    "payload": {
+        "agent_id": "device_001",
+        "device_type": "android",
+        "device_name": "Test Device",
+        "identity_id": "identity_001",
+        "capabilities": ["voice", "display", "camera"]
+    }
+}
+```
+
+#### 心跳消息
+```json
+{
+    "type": "Heartbeat",
+    "timestamp": 1234567891,
+    "payload": {
+        "agent_id": "device_001",
+        "session_id": "session_001",
+        "status": "online",
+        "battery": 85,
+        "network_type": "wifi"
+    }
+}
+```
+
+#### 场景数据上报
+```json
+{
+    "type": "StateUpdate",
+    "timestamp": 1234567892,
+    "payload": {
+        "agent_id": "device_001",
+        "session_id": "session_001",
+        "update_type": "scene_data",
+        "data": {
+            "activity_type": "running",
+            "heart_rate": 145,
+            "duration": 1800
+        }
+    }
+}
+```
+
+---
+
+## 九、自动化集成测试脚本 (v9.5.0)
+
+### 脚本使用
+```bash
+# 运行完整集成测试
+./scripts/integration-test.sh
+
+# 确保Center服务已启动
+cd src/center && go run ./cmd/center
+
+# 然后运行测试脚本
+./scripts/integration-test.sh
+```
+
+### 脚本功能
+| 功能 | 说明 |
+|------|------|
+| REST API测试 | 8个端点验证 |
+| WebSocket测试 | 连接、消息协议 |
+| 场景流程测试 | 检测、历史、活跃 |
+| 身份同步测试 | 创建、更新、行为、推断 |
+| 多设备测试 | 3设备注册、跨设备消息 |
+| 测试报告生成 | JSON格式报告 |
+
+---
+
+## 十、场景检测验证 (v9.4.0)
+
+### 已支持场景
+
+| 场景 | 检测器 | 检测方式 |
+|------|--------|---------|
+| Running | RunningDetector | 活动类型、心率、时长、位置 |
+| Meeting | MeetingDetector | 日历事件、位置、音频、时间 |
+| HealthAlert | HealthAlertDetector | 心率阈值、血压、体温、血氧 |
+| Driving | DrivingDetector | GPS速度、蓝牙车载、导航 |
+| Exercise | ExerciseDetector | 心率、健身App、卡路里、时长 |
+| Sleeping | SleepDetector | 时间、心率、光线、活动、呼吸 |
+| Work | WorkDetector | 位置、时间、App、网络、会议 |
+| Home | HomeDetector | 位置、时间、网络、家人、娱乐App |
+
+### 场景测试用例
+```bash
+# 测试跑步场景检测
+curl -X POST http://localhost:8080/api/v1/scene/detect \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "test_agent",
+    "data": {
+        "activity_type": "running",
+        "heart_rate": 145,
+        "duration": 1800,
+        "steps": 3500,
+        "location": "outdoor"
+    }
+  }'
+
+# 测试驾驶场景检测
+curl -X POST http://localhost:8080/api/v1/scene/detect \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "test_agent",
+    "data": {
+        "activity_type": "driving",
+        "speed": 60,
+        "bluetooth_devices": [{"name": "BMW Car Audio"}],
+        "navigation_active": true
+    }
+  }'
+
+# 测试睡眠场景检测
+curl -X POST http://localhost:8080/api/v1/scene/detect \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "test_agent",
+    "data": {
+        "activity_type": "sleep",
+        "heart_rate": 55,
+        "movement": 5,
+        "light_level": 0,
+        "hour": 23
+    }
+  }'
+```
+
+---
+
+## 十一、SDK错误处理验证 (v9.4.0)
+
+### ErrorHandler框架测试
+```java
+// Android SDK错误处理测试
+ErrorHandler.RetryExecutor executor = 
+    new ErrorHandler.RetryExecutor(ErrorHandler.RetryConfig.defaultConfig());
+
+// 测试重试机制
+CompletableFuture<String> result = executor.execute(
+    attempt -> {
+        if (attempt < 3) {
+            return CompletableFuture.failedFuture(new Exception("Network error"));
+        }
+        return CompletableFuture.completedFuture("Success");
+    },
+    ErrorHandler.CircuitBreaker.defaultBreaker("test")
+);
+
+// 验证结果
+result.whenComplete((value, error) -> {
+    if (error == null) {
+        System.out.println("Retry succeeded: " + value);
+    }
+});
+```
+
+### CircuitBreaker测试
+```java
+// 测试熔断器状态转换
+ErrorHandler.CircuitBreaker breaker = 
+    ErrorHandler.CircuitBreaker.defaultBreaker("center");
+
+// CLOSED状态 -> 允许执行
+assertTrue(breaker.allowExecution());
+
+// 模拟5次失败 -> OPEN状态
+for (int i = 0; i < 5; i++) {
+    breaker.recordFailure();
+}
+assertEquals(ErrorHandler.CircuitBreaker.State.OPEN, breaker.getState());
+
+// 等待恢复时间 -> HALF_OPEN状态
+Thread.sleep(30000);
+assertTrue(breaker.allowExecution());
+assertEquals(ErrorHandler.CircuitBreaker.State.HALF_OPEN, breaker.getState());
+
+// 2次成功 -> CLOSED状态
+breaker.recordSuccess();
+breaker.recordSuccess();
+assertEquals(ErrorHandler.CircuitBreaker.State.CLOSED, breaker.getState());
+```
+
+### 错误分类测试
+```java
+// 测试错误分类
+OFAError networkError = ErrorHandler.categorizeError(
+    new java.net.SocketTimeoutException("Connection timed out"));
+assertEquals(ErrorHandler.ErrorCategory.NETWORK, networkError.getCategory());
+assertEquals(ErrorHandler.RecoveryStrategy.BACKOFF_RETRY, networkError.getStrategy());
+
+OFAError authError = ErrorHandler.categorizeError(
+    new SecurityException("Authentication failed"));
+assertEquals(ErrorHandler.ErrorCategory.AUTHENTICATION, authError.getCategory());
+assertEquals(ErrorHandler.RecoveryStrategy.MANUAL_INTERVENTION, authError.getStrategy());
+```
